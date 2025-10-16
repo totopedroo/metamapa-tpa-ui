@@ -31,7 +31,7 @@ Esta entrega incluye el diseño y maquetado de las siguientes interfaces:
 
 ---
 
-### 🔍 **Visualizador (Usuario anónimo o registrado)**
+###  **Visualizador (Usuario anónimo o registrado)**
 - Listado de colecciones disponibles.  
 - Filtros de hechos por **fecha, ubicación, categoría y fuente**.  
 - Alternancia entre **modo curado** e **irrestricto**.  
