@@ -1,4 +1,4 @@
-/* Endpoints de la API para las actualizaciones dinámicas */
+/* Configurable: endpoints de tu API real */
 const API = {
     hechosIrrestrictos: "/api/public/hechos?modo=irrestricto&limit=6",
     hechosCurados:      "/api/public/hechos?modo=curado&limit=6"
@@ -7,9 +7,7 @@ const API = {
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-/* --- INTERACTIVIDAD DEL CLIENTE --- */
-
-/* Mobile nav toggle */
+/* Mobile nav toggle (sin cambios) */
 const navBtn = $(".nav-toggle");
 const nav = $("#menu-principal");
 if (navBtn) {
@@ -20,58 +18,61 @@ if (navBtn) {
     });
 }
 
-/* Helper para crear una tarjeta de hecho (usado para la carga dinámica de tabs) */
+/* ---- LÓGICA DE CARGA DINÁMICA (AJAX) PARA LAS PESTAÑAS ---- */
+
+// Funciones para crear el HTML de las tarjetas que se cargan con AJAX
+function badge(label) { return `<span class="badge">${label}</span>`; }
+
 function cardHecho({ titulo, descripcion, categoria, lugar, fecha }) {
     const fechaFmt = fecha ? new Date(fecha).toLocaleDateString("es-AR") : "—";
-    const badge = (label) => `<span class="badge">${label}</span>`;
-
     return `
     <article class="card" role="listitem">
-      <div class="card-header">
-        <h3>${titulo}</h3>
-      </div>
-      <div class="card-meta">
-        ${categoria ? badge(categoria) : ""} ${lugar ? badge(lugar) : ""} ${badge(fechaFmt)}
-      </div>
-      <div class="card-body">
-        <p>${descripcion}</p>
-      </div>
+        <div class="card-header">
+            <h3>${titulo}</h3>
+        </div>
+        <div class="card-meta">
+            ${categoria ? badge(categoria) : ""} ${lugar ? badge(lugar) : ""} ${badge(fechaFmt)}
+        </div>
+        <div class="card-body">
+            <p>${descripcion}</p>
+        </div>
     </article>`;
 }
 
-/* Fetch para obtener datos de la API */
+// Fetch que devuelve JSON o null si falla
 async function getJSON(url) {
     try {
         const r = await fetch(url, { headers: { Accept: "application/json" } });
         if (!r.ok) throw new Error("HTTP " + r.status);
         return await r.json();
     } catch (e) {
-        console.error("Error al cargar datos:", e);
-        return null; // Devuelve null si falla
+        console.error("Error al hacer fetch:", e);
+        return null; // Devuelve null en caso de error
     }
 }
 
-/* Función para cargar hechos dinámicamente al cambiar de tab */
+// Carga hechos de la API y los renderiza
 async function cargarHechos(modo = "irrestricto") {
     const el = $("#hechos-grid");
     if (!el) return;
+    el.innerHTML = "<p>Cargando...</p>"; // Feedback para el usuario
 
-    el.innerHTML = "<p>Cargando hechos...</p>"; // Feedback para el usuario
     const url = modo === "curado" ? API.hechosCurados : API.hechosIrrestrictos;
     const data = await getJSON(url);
 
-    // Si la API responde y tiene 'items', los renderiza. Si no, muestra un mensaje.
-    if (Array.isArray(data?.items) && data.items.length > 0) {
-        el.innerHTML = data.items.map(cardHecho).join("");
-    } else {
-        el.innerHTML = "<p>No se encontraron hechos para esta categoría.</p>";
+    // Si la API falla o no devuelve items, muestra un mensaje
+    if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+        el.innerHTML = "<p>No se pudieron cargar los hechos en este momento.</p>";
+        return;
     }
+
+    el.innerHTML = data.items.map(cardHecho).join("");
 }
 
-/* Tabs de modo de navegación */
+// Event listeners para las pestañas
 $$(".tab").forEach(btn => {
     btn.addEventListener("click", () => {
-        // Si el tab ya está activo, no hace nada
+        // No hacer nada si el tab ya está activo
         if (btn.classList.contains("is-active")) return;
 
         $$(".tab").forEach(b => {
@@ -81,16 +82,7 @@ $$(".tab").forEach(btn => {
         btn.classList.add("is-active");
         btn.setAttribute("aria-selected", "true");
 
-        // Llama a la función para cargar dinámicamente los nuevos hechos
+        // Carga los hechos correspondientes al modo del botón
         cargarHechos(btn.dataset.mode);
     });
-});
-
-/* Animaciones de entrada (si las quieres mantener) */
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".fade-in-left, .fade-in-right, .fade-in-up")
-        .forEach((el, i) => {
-            el.style.animationDelay = `${i * 0.3}s`;
-            el.classList.add("animate");
-        });
 });
