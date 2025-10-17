@@ -189,59 +189,61 @@ h3{font-size:1.1rem; font-weight:700}
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .feature-card {
-    grid-column: span 6;
-    height: 200px;
-    perspective: 1000px; /* necesario para flip */
+    grid-column: span 6; /* Ocupa 6 columnas en móvil */
+    background-color: transparent; /* El fondo lo tendrán las caras */
+    min-height: 180px; /* IMPORTANTE: Altura mínima para evitar saltos */
+    perspective: 1000px; /* Crea el espacio 3D para el efecto de giro */
+    cursor: pointer;
 }
 
 @media (min-width: 900px) {
-    .feature-card { grid-column: span 3; }
+    .feature-card {
+        grid-column: span 3; /* Ocupa 3 columnas en desktop */
+    }
 }
 
 .feature-inner {
     position: relative;
     width: 100%;
     height: 100%;
-    transform-style: preserve-3d; /* importante para flip 3D */
-    transition: transform 0.8s ease-in-out; /* rotación suave */
+    transition: transform 0.6s; /* La animación del giro */
+    transform-style: preserve-3d; /* Activa el modo 3D */
+}
+
+.feature-card:hover .feature-inner {
+    transform: rotateY(180deg);
+}
+
+.feature-front,
+.feature-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* Oculta la cara de atrás */
+    backface-visibility: hidden;
+
+    /* Estilos para centrar el contenido */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    /* Estilos visuales */
+    padding: 1rem;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow);
 }
 
-.feature-card:hover .feature-inner {
-    transform: rotateY(180deg); /* rota lentamente */
-}
-
-.feature-front, .feature-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden; /* oculta la parte trasera cuando se voltea */
-    border-radius: var(--radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    top: 0;
-    left: 0;
-}
-
-/* Frente */
 .feature-front {
-    background: #fff;
-    color: var(--c-primary-700);
-    font-weight: bold;
-    font-size: 1.1rem;
+    background-color: #fff;
 }
 
 /* Reverso */
 .feature-back {
-    background: #688549;
-    color: #fff;
-    transform: rotateY(180deg); /* gira para estar “detrás” */
-    font-size: 0.95rem;
-    line-height: 1.4;
-    text-align: center;
+    background-color: #5a7d59; /* El color verde de tu imagen */
+    color: white;
+    transform: rotateY(180deg); /* La giramos 180 grados desde el inicio */
 }
 
 
