@@ -220,4 +220,29 @@ public class WebApiCallerService {
     public interface ApiCall<T> {
         T execute(String accessToken) throws Exception;
     }
+
+    /**
+     * Ejecuta una llamada HTTP GET pública (sin token) que retorna una lista
+     */
+    public <T> java.util.List<T> getPublicList(String url, Class<T> responseType) {
+        try {
+            return webClient
+                .get()
+                .uri(url)
+                // Sin header de autorización
+                .retrieve()
+                .bodyToFlux(responseType)
+                .collectList()
+                .block();
+        } catch (WebClientResponseException e) {
+            if(e.getStatusCode() == HttpStatus.NOT_FOUND){
+                throw new NotFoundException(e.getMessage());
+            }
+            throw new RuntimeException("Error en llamada al API pública: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error de conexión con el servicio: " + e.getMessage(), e);
+        }
+    }
+
+
 }

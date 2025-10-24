@@ -26,7 +26,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // Recursos estáticos y login público
-                        .requestMatchers("/css/**", "/js/**", "/img/**", "/landing/**", "/login").permitAll()
+                        .requestMatchers(
+                            "/",
+                            "/css/**",
+                            "/js/**",
+                            "/img/**",
+                            "/login/**",
+                            "/landing.html"
+                        ).permitAll()
                         // Ejemplo: Acceso a alumnos: ADMIN y DOCENTE
                         //.requestMatchers("/alumnos/**").hasAnyRole("ADMIN", "DOCENTE")
                         // Lo demás requiere autenticación

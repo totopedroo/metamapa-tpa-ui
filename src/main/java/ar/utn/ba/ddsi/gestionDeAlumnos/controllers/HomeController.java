@@ -13,7 +13,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/alumnos";
+        return "redirect:/landing.html";
     }
 
     @GetMapping("/inicio")

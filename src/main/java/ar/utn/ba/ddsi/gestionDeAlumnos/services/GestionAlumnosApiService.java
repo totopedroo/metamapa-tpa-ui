@@ -1,5 +1,6 @@
 package ar.utn.ba.ddsi.gestionDeAlumnos.services;
 
+import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.exceptions.NotFoundException;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AlumnoDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO;
@@ -123,4 +124,16 @@ public class GestionAlumnosApiService {
             throw new RuntimeException("Error al verificar existencia del alumno: " + e.getMessage(), e);
         }
     }
+
+
+
+    public List<ColeccionDTO> obtenerTodasLasColecciones() {
+        // Usamos el método público que no pide token
+        List<ColeccionDTO> response = webApiCallerService.getPublicList(
+            alumnosServiceUrl + "/colecciones",
+            ColeccionDTO.class
+        );
+        return response != null ? response : List.of();
+    }
+
 }

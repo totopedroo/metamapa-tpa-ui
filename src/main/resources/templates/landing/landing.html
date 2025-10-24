@@ -96,15 +96,11 @@
                 <h2 id="colecciones-title">Colecciones destacadas</h2>
                 <a class="link" th:href="@{/colecciones}">Ver todas →</a>
             </div>
+
             <div id="colecciones-grid" class="cards-grid" role="list" aria-live="polite">
                 <article class="card" role="listitem" th:each="coleccion : ${coleccionesDestacadas}">
                     <div class="card-header">
                         <h3 th:text="${coleccion.titulo}">Título de la Colección</h3>
-                    </div>
-                    <div class="card-meta">
-                        <span class="badge" th:text="${coleccion.hechos} + ' hechos'"></span>
-                        <span class="badge" th:text="${coleccion.fuentes} + ' fuentes'"></span>
-                        <span class="badge" th:text="'#' + ${coleccion.handle}"></span>
                     </div>
                     <div class="card-body">
                         <p th:text="${coleccion.descripcion}">Descripción de la colección...</p>
