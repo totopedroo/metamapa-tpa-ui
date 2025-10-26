@@ -244,5 +244,27 @@ public class WebApiCallerService {
         }
     }
 
+    /**
+     * Ejecuta una llamada HTTP GET pública (sin token) que retorna un Map
+     */
+    public java.util.Map getPublicMap(String url) {
+        try {
+            return webClient
+                .get()
+                .uri(url)
+                // Sin header de autorización
+                .retrieve()
+                .bodyToMono(java.util.Map.class) // <-- Cambiado a Map
+                .block();
+        } catch (WebClientResponseException e) {
+            if(e.getStatusCode() == HttpStatus.NOT_FOUND){
+                throw new NotFoundException(e.getMessage());
+            }
+            throw new RuntimeException("Error en llamada al API pública: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error de conexión con el servicio: " + e.getMessage(), e);
+        }
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package ar.utn.ba.ddsi.gestionDeAlumnos.services;
 
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO;
+import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.exceptions.NotFoundException;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AlumnoDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO;
@@ -134,6 +135,33 @@ public class GestionAlumnosApiService {
             ColeccionDTO.class
         );
         return response != null ? response : List.of();
+    }
+
+    /**
+     * Obtiene una lista pública de hechos, filtrada por modo.
+     */
+    public List<HechoDTO> getPublicHechos(String modo, int limit) {
+        String url = alumnosServiceUrl + "/hechos?modo=" + modo + "&limit=" + limit;
+
+        // 1. Llamar al nuevo método que espera un Map
+        Map responseMap = webApiCallerService.getPublicMap(url);
+
+        if (responseMap == null || !responseMap.containsKey("items")) {
+            return List.of();
+        }
+
+        // 2. Extraer la lista de "items"
+        // (Necesitamos convertirla manualmente, ya que Java no sabe qué tipo de lista es)
+        List<?> rawList = (List<?>) responseMap.get("items");
+
+        // 3. Mapear los Maps internos a HechoDTO
+        // Usamos Jackson ObjectMapper para una conversión robusta
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule()); // Para las fechas
+
+        return rawList.stream()
+            .map(item -> mapper.convertValue(item, HechoDTO.class))
+            .collect(java.util.stream.Collectors.toList());
     }
 
 }

@@ -1,7 +1,7 @@
 /* Configurable: endpoints de tu API real */
 const API = {
-    hechosIrrestrictos: "/api/public/hechos?modo=irrestricto&limit=6",
-    hechosCurados:      "/api/public/hechos?modo=curado&limit=6"
+    hechosIrrestrictos: "/api-proxy/hechos?modo=irrestricto",
+    hechosCurados:      "/api-proxy/hechos?modo=curado"
 };
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
