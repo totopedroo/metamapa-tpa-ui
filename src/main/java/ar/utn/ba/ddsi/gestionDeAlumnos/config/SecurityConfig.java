@@ -33,7 +33,8 @@ public class SecurityConfig {
                             "/img/**",
                             "/login/**",
                             "/landing.html",
-                            "/api-proxy/**"
+                            "/api-proxy/**",
+                            "/legal/**"
                         ).permitAll()
                         // Ejemplo: Acceso a alumnos: ADMIN y DOCENTE
                         //.requestMatchers("/alumnos/**").hasAnyRole("ADMIN", "DOCENTE")
