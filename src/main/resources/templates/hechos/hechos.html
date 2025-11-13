@@ -1,170 +1,144 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMapa - Hechos</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <title>Hechos</title>
+
+    <!-- CSS propio -->
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 </head>
 <body>
-
-<header class="header">
-    <div class="header-inner">
-        <div class="logo">
-            <a th:href="@{/}" aria-label="MetaMapa inicio">
-                <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
-            </a>
-        </div>
-        <nav>
-            <a th:href="@{/hechos}">Hechos</a>
-            <a th:href="@{/colecciones}">Colecciones</a>
-
-            <div sec:authorize="isAuthenticated()" class="d-inline">
-                <form th:action="@{/logout}" method="post" class="d-inline">
-                    <button type="submit" class="logout-btn">
-                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                    </button>
-                </form>
-            </div>
-            <div sec:authorize="isAnonymous()" class="d-inline">
-                <a th:href="@{/login}" class="logout-btn btn-invitado-header">
-                    <i class="bi bi-box-arrow-in-right"></i> Entrar como Usuario
-                </a>
-            </div>
-        </nav>
-    </div>
+<!-- HEADER -->
+<header class="main-header">
+    <a class="brand"
+       th:href="@{/landing}"
+       aria-label="MetaMapa inicio">
+        <span class="brand-logo" aria-hidden="true">🗺️</span>
+        <span class="brand-text">MetaMapa</span>
+    </a>
 </header>
 
-<div class="container">
+<!-- CONTENIDO PRINCIPAL -->
+<main class="content">
+    <div class="title-container">
+        <h2>Hechos</h2>
 
-    <div class="title-section">
-        <h2 th:text="'Hechos de la Colección ' + ${nombreColeccion}">Hechos de la Colección XXX</h2>
-        <a th:href="@{/hechos/nuevo}" class="btn btn-primary">+ AGREGAR HECHO</a>
+        <!-- Botón para alta de hecho -->
+        <a class="btn-primary"
+           th:href="@{/hechos/nuevo}">
+            ➕ Agregar Hecho
+        </a>
     </div>
 
+    <!-- FILTROS -->
     <section class="filters-card">
-        <form th:action="@{/hechos/buscar}" method="get">
-            <div class="filters">
-                <div>
-                    <label for="fecha-desde">Fecha:</label>
-                    <div class="fecha-group">
-                        <input type="date" id="fecha-desde" name="fechaDesde">
-                        <span>a</span>
-                        <input type="date" id="fecha-hasta" name="fechaHasta">
-                    </div>
-                </div>
-                <div>
-                    <label>Categoría:</label>
-                    <div class="multi-select" onclick="toggleCategorias()">
-                        <div class="select-box">Seleccione...</div>
-                        <div class="multi-select-options" id="categoria-options">
-                            <label th:each="categoria : ${listaCategorias}">
-                                <input type="checkbox" name="categorias" th:value="${categoria.id}" th:text="${categoria.nombre}">
-                            </label>
-                        </div>
-                    </div>
-                </div>
+        <!-- Podés usar GET o POST, según tu controlador -->
+        <form class="filters"
+              th:action="@{/hechos}"
+              method="get">
+
+            <!-- SELECT COLECCIÓN -->
+            <select name="coleccionId" style="border-radius: 6px !important;">
+                <option value="">Colección</option>
+                <option th:each="coleccion : ${colecciones}"
+                        th:value="${coleccion.id}"
+                        th:text="${coleccion.nombre}"
+                        th:selected="${coleccion.id} == ${filtroColeccionId}">
+                </option>
+            </select>
+
+            <!-- BUSCAR POR NOMBRE -->
+            <div class="search-box">
+                <input type="text"
+                       name="nombre"
+                       placeholder="Nombre"
+                       th:value="${filtroNombre}">
+                <button type="submit" class="btn-search">🔍</button>
             </div>
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">🔍 BUSCAR</button>
-                <a th:href="@{/hechos}" class="btn btn-secondary">🗑 LIMPIAR FILTROS</a>
+
+            <!-- NAVEGACIÓN -->
+            <div class="checkbox-group">
+                <span>Navegación:</span>
+
+                <label>
+                    <input type="radio"
+                           name="navegacion"
+                           value="curada"
+                           th:checked="${filtroNavegacion} == 'curada'">
+                    Curada
+                </label>
+
+                <label>
+                    <input type="radio"
+                           name="navegacion"
+                           value="irrestricta"
+                           th:checked="${filtroNavegacion} == 'irrestricta'">
+                    Irrestricta
+                </label>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="buttons-group">
+                <button type="submit" class="btn-primary">🔍 Buscar</button>
+
+                <!-- Limpiar filtros: redirige a /hechos sin params -->
+                <a class="btn-secondary" th:href="@{/hechos}">
+                    🧹 Limpiar Filtros
+                </a>
             </div>
         </form>
     </section>
 
-    <div class="results" id="resultados">
-        <h3>Hechos encontrados:</h3>
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
-                <tr>
-                    <th>Título</th> <th>Descripción</th> <th>Tags</th> <th>Fuente</th>
-                    <th>Ver Contenido</th> <th>Ver en Mapa</th> <th>Solicitar eliminación</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="hecho : ${listaHechosEncontrados}">
-                    <td th:text="${hecho.titulo}">Derrame en arroyo local</td>
-                    <td th:text="${hecho.descripcion}">Vecinos reportan manchas...</td>
-                    <td th:text="${hecho.tags}">Contaminación - Neuquén</td>
-                    <td th:text="${hecho.fuente}">Curada</td>
-                    <td>
-                        <a th:href="@{/hechos/contenido/{id}(id=${hecho.id})}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-camera"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" th:attr="onclick=|abrirMapaResultado(${hecho.latitud}, ${hecho.longitud})|">
-                            <i class="bi bi-geo-alt"></i>
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" th:attr="onclick=|abrirModalEliminacion('${hecho.titulo}')|">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- MAPA -->
+    <section class="map-container">
+        <div id="map"></div>
+    </section>
+</main>
 
-    <div class="results" id="subidos">
-        <h3>Hechos subidos:</h3>
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
-                <tr>
-                    <th>Título</th><th>Descripción</th><th>Tags</th><th>Fuente</th>
-                    <th>Contenido</th><th>Mapa</th><th>Eliminar</th><th>Editar</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="hecho : ${listaHechosSubidos}">
-                    <td th:text="${hecho.titulo}">Foco activo...</td>
-                    <td th:text="${hecho.descripcion}">Columna de humo...</td>
-                    <td th:text="${hecho.tags}">Incendio forestal - Córdoba</td>
-                    <td th:text="${hecho.fuente}">Curada</td>
-                    <td>...</td>
-                    <td>...</td>
-                    <td>...</td>
-                    <td>
-                        <a th:href="@{/hechos/editar/{id}(id=${hecho.id})}" class="btn btn-sm btn-warning">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+<!-- FOOTER -->
+<footer class="main-footer">
+    <div class="footer-container">
+        <span class="footer-left">MetaMapa 2025</span>
+        <a class="footer-center"
+           th:href="@{/legal/privacidad}">
+            Información legal y de privacidad
+        </a>
+        <span class="footer-right">Español (AR)</span>
     </div>
-</div>
+</footer>
 
-<div class="modal" id="modalHecho">
-    <div class="modal-content">
-        <h3>Agregar hecho</h3>
-        <form th:action="@{/hechos/guardar}" th:object="${nuevoHechoDTO}" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="titulo-hecho">Título:</label>
-                <input type="text" id="titulo-hecho" th:field="*{titulo}" required>
-            </div>
-            <div class="form-group">
-                <label for="media-hecho">Imágenes/Videos:</label>
-                <input type="file" id="media-hecho" name="archivos" multiple>
-            </div>
-            <div class="actions" style="margin-top:1rem;">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-                <button type="button" class="btn btn-secondary" onclick="cerrarHecho()">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script th:src="@{/js/hechos.js}" defer></script>
+
+<!-- Script para el mapa con Thymeleaf inline -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Lista de hechos enviada desde el back
+    // Asumo que cada hecho tiene latitud, longitud, titulo y descripcion
+    var hechos = /*[[${hechos}]]*/ [];
+
+    // Inicializar mapa
+    var map = L.map('map').setView([-34.6037, -58.3816], 5); // Centro genérico (Buenos Aires)
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Agregar marcadores por cada hecho
+    hechos.forEach(function(hecho) {
+        if (hecho.latitud != null && hecho.longitud != null) {
+            L.marker([hecho.latitud, hecho.longitud])
+                .addTo(map)
+                .bindPopup(
+                    '<strong>' + (hecho.titulo || 'Sin título') + '</strong><br/>' +
+                    (hecho.descripcion || '')
+                );
+        }
+    });
+</script>
 </body>
 </html>
