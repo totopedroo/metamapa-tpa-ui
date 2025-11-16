@@ -2,143 +2,280 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Hechos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMapa - Hechos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <!-- CSS propio -->
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        /* Paleta de colores de tus capturas (SIN MODIFICAR) */
+        :root {
+            --color-verde-oscuro: #4a5c36; /* Header/Footer/Botones */
+            --color-verde-claro: #8b9d62; /* Botón Agregar */
+            --color-beige-fondo: #f5f0e1; /* Fondo principal */
+            --color-rojo-boton: #a43f3f;  /* Botón Limpiar */
+            --color-blanco-tarjeta: #ffffff;
+            --color-gris-texto: #333333;
+        }
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+        body {
+            background-color: var(--color-beige-fondo);
+            color: var(--color-gris-texto);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Header y Footer */
+        .header-footer-bar {
+            background-color: var(--color-verde-oscuro);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tarjetas (Filtros y Resultados) */
+        .card {
+            background-color: var(--color-blanco-tarjeta);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.85;
+        }
+        .btn-verde-oscuro {
+            background-color: var(--color-verde-oscuro);
+            color: white;
+        }
+        .btn-verde-claro {
+            background-color: var(--color-verde-claro);
+            color: white;
+        }
+        .btn-rojo {
+            background-color: var(--color-rojo-boton);
+            color: white;
+        }
+
+        /* Formulario de Filtros */
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+        .filter-form input[type="text"],
+        .filter-form select {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 0.5rem;
+            background-color: #fcfcfc;
+        }
+        .filter-form .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .filter-form .btn-verde-icono {
+            background-color: var(--color-verde-oscuro);
+            color: white;
+            border-radius: 6px;
+            padding: 0.6rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Tabla de Resultados */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .results-table th,
+        .results-table td {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .results-table th {
+            color: #555;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+        .results-table .btn-icono {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .results-table .btn-icono.mapa {
+            color: var(--color-verde-oscuro);
+            background-color: #e8f5e9;
+        }
+        .results-table .btn-icono.eliminar {
+            color: var(--color-rojo-boton);
+            background-color: #ffebee;
+        }
+        .results-table .btn-icono.editar {
+            color: #d68000;
+            background-color: #fff8e1;
+        }
+
+    </style>
 </head>
-<body>
-<!-- HEADER -->
-<header class="main-header">
-    <a class="brand"
-       th:href="@{/landing}"
-       aria-label="MetaMapa inicio">
-        <span class="brand-logo" aria-hidden="true">🗺️</span>
-        <span class="brand-text">MetaMapa</span>
-    </a>
+<body class="min-h-screen flex flex-col">
+
+<!-- HEADER (Color de captura 1) -->
+<header class="header-footer-bar">
+    <h1 class="text-xl font-bold">MetaMapa</h1>
+    <span class="text-sm">Español (AR)</span>
 </header>
 
-<!-- CONTENIDO PRINCIPAL -->
-<main class="content">
-    <div class="title-container">
-        <h2>Hechos</h2>
+<!-- Contenido Principal -->
+<main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
 
-        <!-- Botón para alta de hecho -->
-        <a class="btn-primary"
-           th:href="@{/hechos/nuevo}">
-            ➕ Agregar Hecho
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold">Hechos</h2>
+        <a th:href="@{/hechos/nuevo}" class="btn btn-verde-claro">
+            <i class="fas fa-plus mr-1"></i> Agregar Hecho
         </a>
     </div>
 
-    <!-- FILTROS -->
-    <section class="filters-card">
-        <!-- Podés usar GET o POST, según tu controlador -->
-        <form class="filters"
-              th:action="@{/hechos}"
-              method="get">
+    <!-- FILTROS (Diseño de captura 1) -->
+    <div class="card">
+        <form th:action="@{/hechos}" method="get" class="filter-form">
 
-            <!-- SELECT COLECCIÓN -->
-            <select name="coleccionId" style="border-radius: 6px !important;">
-                <option value="">Colección</option>
-                <option th:each="coleccion : ${colecciones}"
-                        th:value="${coleccion.id}"
-                        th:text="${coleccion.nombre}"
-                        th:selected="${coleccion.id} == ${filtroColeccionId}">
+            <!-- Filtro Título Colección -->
+            <!-- SOLUCIÓN #request: Usamos 'tituloColeccionParam' del Model -->
+            <input type="text" name="tituloColeccion" placeholder="Buscar por Título de Colección"
+                   th:value="${tituloColeccionParam}">
+            <button type="submit" class="btn-verde-icono" aria-label="Buscar por título">
+                <i class="fas fa-search"></i>
+            </button>
+
+            <!-- Filtro ID Colección -->
+            <select name="coleccionId">
+                <option value="">Colección (ID)</option>
+                <!--
+                  SOLUCIÓN 'col.nombre': Usamos col.titulo (del DTO)
+                  SOLUCIÓN #request: Usamos coleccionIdParam (del Model)
+                -->
+                <option th:each="col : ${colecciones}"
+                        th:value="${col.id}"
+                        th:text="${col.titulo}"
+                        th:selected="${coleccionIdParam == col.id}">
                 </option>
             </select>
 
-            <!-- BUSCAR POR NOMBRE -->
-            <div class="search-box">
-                <input type="text"
-                       name="nombre"
-                       placeholder="Nombre"
-                       th:value="${filtroNombre}">
-                <button type="submit" class="btn-search">🔍</button>
-            </div>
+            <!-- Filtro Nombre Hecho -->
+            <input type="text" name="nombre" placeholder="Nombre"
+                   th:value="${nombreParam}">
+            <button type="submit" class="btn-verde-icono" aria-label="Buscar por nombre">
+                <i class="fas fa-search"></i>
+            </button>
 
-            <!-- NAVEGACIÓN -->
-            <div class="checkbox-group">
+            <!-- Filtro Navegación -->
+            <div class="radio-group">
                 <span>Navegación:</span>
-
                 <label>
-                    <input type="radio"
-                           name="navegacion"
-                           value="curada"
-                           th:checked="${filtroNavegacion} == 'curada'">
-                    Curada
+                    <input type="radio" name="nav" value="curada" th:checked="${navParam == 'curada'}"> Curada
                 </label>
-
                 <label>
-                    <input type="radio"
-                           name="navegacion"
-                           value="irrestricta"
-                           th:checked="${filtroNavegacion} == 'irrestricta'">
-                    Irrestricta
+                    <input type="radio" name="nav" value="irrestricta" th:checked="${navParam == 'irrestricta'}"> Irrestricta
                 </label>
             </div>
 
-            <!-- BOTONES -->
-            <div class="buttons-group">
-                <button type="submit" class="btn-primary">🔍 Buscar</button>
-
-                <!-- Limpiar filtros: redirige a /hechos sin params -->
-                <a class="btn-secondary" th:href="@{/hechos}">
-                    🧹 Limpiar Filtros
+            <!-- Botones de Acción -->
+            <div class="ml-auto flex gap-2">
+                <button type="submit" class="btn btn-verde-oscuro">
+                    <i class="fas fa-search mr-1"></i> Buscar
+                </button>
+                <a th:href="@{/hechos}" class="btn btn-rojo">
+                    <i class="fas fa-broom mr-1"></i> Limpiar Filtros
                 </a>
             </div>
         </form>
-    </section>
+    </div>
 
-    <!-- MAPA -->
-    <section class="map-container">
-        <div id="map"></div>
-    </section>
+    <!-- RESULTADOS (Diseño de captura 2) -->
+    <div class="card">
+        <h3 class="text-xl font-semibold mb-4">Hechos encontrados:</h3>
+
+        <div class="overflow-x-auto">
+            <table class="results-table">
+                <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Descripción</th>
+                    <th>Tags</th>
+                    <th>Ver en Mapa</th>
+                    <th>Solicitar eliminación</th>
+                    <th>Editar</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Loop de Thymeleaf -->
+                <tr th:each="hecho : ${hechos}">
+                    <td th:text="${hecho.titulo}">Foco activo en cordón serrano</td>
+                    <td th:text="${hecho.descripcion}">Columna de humo visible desde ruta provincial.</td>
+
+                    <!-- SOLUCIÓN 'hecho.etiquetas': El DTO ahora tiene este campo -->
+                    <td th:text="${hecho.etiquetas != null ? #strings.listJoin(hecho.etiquetas, ', ') : ''}">
+                        Incendio forestal - Córdoba
+                    </td>
+                    <td>
+                        <button class="btn-icono mapa" aria-label="Ver en mapa">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn-icono eliminar" aria-label="Solicitar eliminación">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn-icono editar" aria-label="Editar">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Mensaje si no hay resultados -->
+                <tr th:if="${hechos == null || hechos.isEmpty()}">
+                    <td colspan="6" class="text-center text-gray-500 py-6">
+                        No se encontraron hechos para los filtros seleccionados.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </main>
 
-<!-- FOOTER -->
-<footer class="main-footer">
-    <div class="footer-container">
-        <span class="footer-left">MetaMapa 2025</span>
-        <a class="footer-center"
-           th:href="@{/legal/privacidad}">
-            Información legal y de privacidad
-        </a>
-        <span class="footer-right">Español (AR)</span>
-    </div>
+<!-- FOOTER (Color de captura 1) -->
+<footer class="header-footer-bar mt-auto">
+    <span>MetaMapa 2025</span>
+    <span>Información legal y de privacidad</span>
 </footer>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<!-- Script para el mapa con Thymeleaf inline -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    // Lista de hechos enviada desde el back
-    // Asumo que cada hecho tiene latitud, longitud, titulo y descripcion
-    var hechos = /*[[${hechos}]]*/ [];
-
-    // Inicializar mapa
-    var map = L.map('map').setView([-34.6037, -58.3816], 5); // Centro genérico (Buenos Aires)
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Agregar marcadores por cada hecho
-    hechos.forEach(function(hecho) {
-        if (hecho.latitud != null && hecho.longitud != null) {
-            L.marker([hecho.latitud, hecho.longitud])
-                .addTo(map)
-                .bindPopup(
-                    '<strong>' + (hecho.titulo || 'Sin título') + '</strong><br/>' +
-                    (hecho.descripcion || '')
-                );
-        }
-    });
-</script>
 </body>
 </html>

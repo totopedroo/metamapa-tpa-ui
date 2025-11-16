@@ -1,8 +1,8 @@
-package ar.utn.ba.ddsi.gestionDeAlumnos.providers;
+/*package ar.utn.ba.ddsi.gestionDeAlumnos.providers;
 
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.RolesPermisosDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.services.GestionAlumnosApiService;
+//import ar.utn.ba.ddsi.gestionDeAlumnos.services.GestionAlumnosApiService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,9 @@ import java.util.List;
 @Component
 public class CustomAuthProvider implements AuthenticationProvider {
     private static final Logger log = LoggerFactory.getLogger(CustomAuthProvider.class);
-    private final GestionAlumnosApiService externalAuthService;
+    private final GestionUsuariosApiService externalAuthService;
 
-    public CustomAuthProvider(GestionAlumnosApiService externalAuthService) {
+    public CustomAuthProvider(GestionUsuariosApiService externalAuthService) {
         this.externalAuthService = externalAuthService;
     }
 
@@ -75,3 +75,4 @@ public class CustomAuthProvider implements AuthenticationProvider {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 }
+*/

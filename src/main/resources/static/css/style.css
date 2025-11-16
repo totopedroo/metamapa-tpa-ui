@@ -1,286 +1,210 @@
-/* Estilos personalizados para el Sistema de Gestión de Alumnos */
-
-/* Variables CSS personalizadas */
+/* ==============================
+   Variables de colores
+============================== */
 :root {
-    --primary-color: #0d6efd;
-    --secondary-color: #6c757d;
-    --success-color: #198754;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #0dcaf0;
-    --light-color: #f8f9fa;
-    --dark-color: #212529;
+    --primary: #688549;
+    --secondary: #a95038;
+    --background: #EBE5DD;
+    --text: #333333;
 }
 
-/* Estilos generales */
+/* ==============================
+   Reset y Body
+============================== */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--background) !important;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Navegación personalizada */
-.navbar-brand {
-    font-weight: 600;
-    font-size: 1.5rem;
+/* ==============================
+   HEADER
+============================== */
+.main-header {
+    background-color: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-.navbar-nav .nav-link {
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.navbar-nav .nav-link:hover {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-/* Estilos específicos para el botón de logout */
-.navbar-nav form {
-    display: inline-block;
-    vertical-align: top;
-}
-
-.navbar-nav form input[type="hidden"] {
-    display: none;
-}
-
-.navbar-nav .logout-btn {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
-    padding: 0.5rem 1rem;
+.main-header .brand {
+    color: white;
     text-decoration: none;
-    transition: color 0.3s ease;
-    display: inline-block;
-    vertical-align: top;
-    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.navbar-nav .logout-btn:hover {
-    color: rgba(255, 255, 255, 0.8) !important;
-    background: none;
-    border: none;
-    text-decoration: none;
+.brand-logo {
+    font-size: 1.8rem;
 }
 
-.navbar-nav .logout-btn:focus {
-    color: rgba(255, 255, 255, 0.8) !important;
-    background: none;
-    border: none;
-    box-shadow: none;
-    outline: none;
+.brand-text {
+    font-size: 1.2rem;
+    font-weight: bold;
 }
 
-.navbar-nav .logout-btn:active {
-    color: rgba(255, 255, 255, 0.8) !important;
-    background: none;
-    border: none;
+/* ==============================
+   MAIN CONTENT WRAPPER
+============================== */
+.content {
+    padding: 2rem;
+    flex: 1;
 }
 
-/* Cards personalizadas */
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: box-shadow 0.15s ease-in-out;
+/* ==============================
+   TITLE + BUTTON
+============================== */
+.title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.card-header {
-    background-color: #fff;
-    border-bottom: 1px solid #dee2e6;
-    font-weight: 600;
-}
-
-/* Botones personalizados */
-.btn {
-    font-weight: 500;
-    border-radius: 0.375rem;
-    transition: all 0.15s ease-in-out;
+.title-container h2 {
+    margin: 0;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: white !important;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 15px;
+    cursor: pointer;
 }
 
-.btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+.btn-secondary {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: white !important;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 15px;
+    cursor: pointer;
 }
 
-/* Tablas personalizadas */
-.table {
-    border-radius: 0.375rem;
-    overflow: hidden;
-}
-
-.table thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.025);
-}
-
-/* Badges personalizados */
-.badge {
-    font-size: 0.875em;
-    font-weight: 500;
-}
-
-/* Formularios personalizados */
-.form-control {
-    border-radius: 0.375rem;
-    border: 1px solid #ced4da;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.form-label {
-    font-weight: 500;
-    color: var(--dark-color);
-}
-
-/* Alertas personalizadas */
-.alert {
+.btn-search {
+    background-color: var(--primary);
     border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
+    color: white;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
-.alert-success {
-    background-color: #d1e7dd;
-    color: #0f5132;
+/* ==============================
+   FILTER CARD
+============================== */
+.filters-card {
+    background-color: white;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.alert-danger {
-    background-color: #f8d7da;
-    color: #842029;
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
-.alert-warning {
-    background-color: #fff3cd;
-    color: #664d03;
+select,
+input[type="text"],
+input[type="date"] {
+    padding: 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
 }
 
-.alert-info {
-    background-color: #d1ecf1;
-    color: #055160;
+/* Small group of filters */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-/* Estadísticas personalizadas */
-.stats-card {
-    border-radius: 0.75rem;
-    transition: transform 0.2s ease-in-out;
+/* Radio Buttons */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-.stats-card:hover {
-    transform: translateY(-2px);
+.checkbox-group input[type="radio"] {
+    transform: scale(1.2);
 }
 
-.stats-icon {
-    font-size: 2.5rem;
-    opacity: 0.8;
+/* Buttons layout */
+.buttons-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-/* Contactos personalizados */
-.contacto-item {
-    border-radius: 0.5rem;
-    transition: border-color 0.15s ease-in-out;
+/* ==============================
+   MAP SECTION
+============================== */
+.map-container {
+    margin-top: 1.5rem;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.contacto-item:hover {
-    border-color: var(--primary-color) !important;
+#map {
+    height: 500px;
+    width: 100%;
+    border-radius: 10px;
 }
 
-/* Footer personalizado */
-footer {
-    margin-top: auto;
+/* ==============================
+   FOOTER
+============================== */
+.main-footer {
+    background-color: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    text-align: center;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .navbar-brand {
-        font-size: 1.25rem;
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.footer-center a {
+    color: white;
+    text-decoration: none;
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+@media (max-width: 600px) {
+    .filters {
+        flex-direction: column;
     }
-    
-    .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
+
+    .buttons-group {
+        flex-direction: column;
     }
-    
-    .table-responsive {
-        border-radius: 0.375rem;
+
+    .title-container {
+        flex-direction: column;
+        align-items: start;
+        gap: 1rem;
     }
-}
-
-/* Animaciones */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Utilidades personalizadas */
-.text-primary-custom {
-    color: var(--primary-color) !important;
-}
-
-.bg-primary-custom {
-    background-color: var(--primary-color) !important;
-}
-
-.border-primary-custom {
-    border-color: var(--primary-color) !important;
-}
-
-/* Loading spinner personalizado */
-.spinner-custom {
-    width: 3rem;
-    height: 3rem;
-    border: 0.25rem solid #f3f3f3;
-    border-top: 0.25rem solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Modales personalizados */
-.modal-content {
-    border: none;
-    border-radius: 0.75rem;
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-}
-
-.modal-header {
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 0.75rem 0.75rem 0 0;
-}
-
-.modal-footer {
-    border-top: 1px solid #dee2e6;
-    border-radius: 0 0 0.75rem 0.75rem;
 }

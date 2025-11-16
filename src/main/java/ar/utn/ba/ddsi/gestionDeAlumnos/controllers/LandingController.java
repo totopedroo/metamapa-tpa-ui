@@ -1,16 +1,16 @@
-package ar.utn.ba.ddsi.gestionDeAlumnos.controllers;
+/*package ar.utn.ba.ddsi.gestionDeAlumnos.controllers;
 
 // Importa tu nuevo servicio
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.services.ColeccionService;
-import ar.utn.ba.ddsi.gestionDeAlumnos.services.HechoService;
+import ar.utn.ba.ddsi.gestionDeAlumnos.services.ColeccionUiService;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO; // Importa el DTO
 
+import ar.utn.ba.ddsi.gestionDeAlumnos.services.HechosUiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import java.time.LocalDate;
+
 import java.util.List;
 
 @Controller
@@ -18,8 +18,8 @@ import java.util.List;
 public class LandingController {
 
     // 1. Inyectamos el nuevo servicio
-    private final ColeccionService coleccionService;
-    private final HechoService hechoService;
+    private final ColeccionUiService coleccionService;
+    private final HechosUiService hechoService;
 
 
     @GetMapping("/landing.html")
@@ -37,4 +37,4 @@ public class LandingController {
 
         return "landing/landing";
     }
-}
+}*/

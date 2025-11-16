@@ -1,4 +1,4 @@
-package ar.utn.ba.ddsi.gestionDeAlumnos.services;
+/*package ar.utn.ba.ddsi.gestionDeAlumnos.services;
 
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
@@ -13,15 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * Servicio para gestión de alumnos y autenticación delegada
- */
+
 @Service
 public class GestionAlumnosApiService {
 
@@ -139,7 +138,7 @@ public class GestionAlumnosApiService {
 
     /**
      * Obtiene una lista pública de hechos, filtrada por modo.
-     */
+     *//*
     public List<HechoDTO> getPublicHechos(String modo, int limit) {
         String url = alumnosServiceUrl + "/hechos?modo=" + modo + "&limit=" + limit;
 
@@ -164,4 +163,4 @@ public class GestionAlumnosApiService {
             .collect(java.util.stream.Collectors.toList());
     }
 
-}
+}*/

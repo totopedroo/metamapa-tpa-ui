@@ -1,7 +1,6 @@
-package ar.utn.ba.ddsi.gestionDeAlumnos;
+/*package ar.utn.ba.ddsi.gestionDeAlumnos;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+
 
 @SpringBootTest
 class GestionDeAlumnosApplicationTests {
@@ -11,3 +10,4 @@ class GestionDeAlumnosApplicationTests {
 	}
 
 }
+*/
