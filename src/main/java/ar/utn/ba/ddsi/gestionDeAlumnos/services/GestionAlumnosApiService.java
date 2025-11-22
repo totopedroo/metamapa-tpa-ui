@@ -1,5 +1,6 @@
 package ar.utn.ba.ddsi.gestionDeAlumnos.services;
 
+import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO; // Importar esto
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.UsuarioDTO;
@@ -23,6 +24,23 @@ public class GestionAlumnosApiService {
   // URL base de tu backend (ej: http://localhost:8080)
   @Value("${api.base.url:http://localhost:8080}")
   private String backendBaseUrl;
+
+  /**
+   * Realiza el login contra el Backend.
+   * Método agregado para que funcione el CustomAuthProvider.
+   */
+  public AuthResponseDTO login(String username, String password) {
+    String url = backendBaseUrl + "/api/auth/login";
+
+    // El backend espera: { "username": "...", "password": "..." }
+    var body = Map.of(
+        "username", username,
+        "password", password
+    );
+
+    // Llamada POST pública que devuelve el token
+    return webApiCallerService.postPublic(url, body, AuthResponseDTO.class);
+  }
 
   /**
    * Registra un nuevo usuario en el backend.

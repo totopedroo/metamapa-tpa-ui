@@ -1,19 +1,15 @@
-/*package ar.utn.ba.ddsi.gestionDeAlumnos.providers;
+package ar.utn.ba.ddsi.gestionDeAlumnos.providers;
 
+import ar.utn.ba.ddsi.gestionDeAlumnos.services.GestionAlumnosApiService;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.RolesPermisosDTO;
-//import ar.utn.ba.ddsi.gestionDeAlumnos.services.GestionAlumnosApiService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import java.util.ArrayList;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -21,58 +17,41 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthProvider implements AuthenticationProvider {
-    private static final Logger log = LoggerFactory.getLogger(CustomAuthProvider.class);
-    private final GestionUsuariosApiService externalAuthService;
 
-    public CustomAuthProvider(GestionUsuariosApiService externalAuthService) {
-        this.externalAuthService = externalAuthService;
+  private final GestionAlumnosApiService apiService;
+
+  @Override
+  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    String username = authentication.getName();
+    String password = authentication.getCredentials().toString();
+
+    System.out.println(">>> Intentando loguear usuario: " + username);
+
+    try {
+      // 1. Llamamos al Backend real
+      AuthResponseDTO response = apiService.login(username, password);
+      System.out.println(">>> Login exitoso en Backend. Token recibido.");
+
+      // 2. Guardamos el token en sesión
+      HttpSession session = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getSession();
+      session.setAttribute("accessToken", response.getAccessToken());
+
+      // 3. Asignamos roles (Hardcodeado por ahora)
+      List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CONTRIBUYENTE"));
+
+      return new UsernamePasswordAuthenticationToken(username, password, authorities);
+
+    } catch (Exception e) {
+      System.err.println(">>> ERROR EN LOGIN: " + e.getMessage());
+      e.printStackTrace();
+      throw new BadCredentialsException("Error de autenticación: " + e.getMessage());
     }
+  }
 
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
-
-        try {
-            // Llamada a servicio externo para obtener tokens
-            AuthResponseDTO authResponse = externalAuthService.login(username, password);
-
-            if (authResponse == null) {
-                throw new BadCredentialsException("Usuario o contraseña inválidos");
-            }
-
-            log.info("Usuario logeado! Configurando variables de sesión");
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-
-            request.getSession().setAttribute("accessToken", authResponse.getAccessToken());
-            request.getSession().setAttribute("refreshToken", authResponse.getRefreshToken());
-            request.getSession().setAttribute("username", username);
-
-            log.info("Buscando roles y permisos del usuario");
-            RolesPermisosDTO rolesPermisos = externalAuthService.getRolesPermisos(authResponse.getAccessToken());
-
-            log.info("Cargando roles y permisos del usuario en sesión");
-            request.getSession().setAttribute("rol", rolesPermisos.getRol());
-            request.getSession().setAttribute("permisos", rolesPermisos.getPermisos());
-
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            rolesPermisos.getPermisos().forEach(permiso -> {
-                authorities.add(new SimpleGrantedAuthority(permiso.name()));
-            });
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + rolesPermisos.getRol().name()));
-
-            return new UsernamePasswordAuthenticationToken(username, password, authorities);
-            
-        } catch (RuntimeException e) {
-            throw new BadCredentialsException("Error en el sistema de autenticación: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return authentication.equals(UsernamePasswordAuthenticationToken.class);
-    }
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+  }
 }
-*/
