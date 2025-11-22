@@ -1,40 +1,43 @@
-/*package ar.utn.ba.ddsi.gestionDeAlumnos.controllers;
+package ar.utn.ba.ddsi.gestionDeAlumnos.controllers;
 
-// Importa tu nuevo servicio
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.services.ColeccionUiService;
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO; // Importa el DTO
-
-import ar.utn.ba.ddsi.gestionDeAlumnos.services.HechosUiService;
+// import ar.utn.ba.ddsi.gestionDeAlumnos.services.ColeccionUiService; // Comentado
+// import ar.utn.ba.ddsi.gestionDeAlumnos.services.HechosUiService;    // Comentado
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.List;
+import java.util.ArrayList; // Importar ArrayList
 
 @Controller
 @RequiredArgsConstructor
 public class LandingController {
 
-    // 1. Inyectamos el nuevo servicio
-    private final ColeccionUiService coleccionService;
-    private final HechosUiService hechoService;
+  // Comentamos la inyección de dependencias por ahora
+  // private final ColeccionUiService coleccionService;
+  // private final HechosUiService hechoService;
 
+  @GetMapping(value = {"/", "/landing.html"})
+  public String showLandingPage(Model model) {
 
-    @GetMapping("/landing.html")
-    public String showLandingPage(Model model) {
+    // --- OPCIÓN TEMPORAL: LISTAS VACÍAS ---
+    // Pasamos listas vacías para que el HTML no falle en los th:each
+    model.addAttribute("coleccionesDestacadas", new ArrayList<>());
+    model.addAttribute("hechosDestacados", new ArrayList<>());
 
-        // Carga colecciones (como antes)
-        List<ColeccionDTO> colecciones = coleccionService.obtenerTodasLasColecciones();
+        /* --- LÓGICA ORIGINAL COMENTADA ---
+        try {
+            List<ColeccionDTO> colecciones = coleccionService.obtenerTodasLasColecciones();
+            model.addAttribute("coleccionesDestacadas", colecciones);
 
-        // 6. Carga hechos "irrestrictos" reales desde la API
-        List<HechoDTO> hechos = hechoService.obtenerHechosDestacados("irrestricto");
+            List<HechoDTO> hechos = hechoService.obtenerHechosDestacados("irrestricto");
+            model.addAttribute("hechosDestacados", hechos);
+        } catch (Exception e) {
+            model.addAttribute("coleccionesDestacadas", new ArrayList<>());
+            model.addAttribute("hechosDestacados", new ArrayList<>());
+        }
+        */
 
-        // Agregar los datos al modelo
-        model.addAttribute("coleccionesDestacadas", colecciones);
-        model.addAttribute("hechosDestacados", hechos); // Ahora contiene datos reales
-
-        return "landing/landing";
-    }
-}*/
+    return "landing/landing";
+  }
+}

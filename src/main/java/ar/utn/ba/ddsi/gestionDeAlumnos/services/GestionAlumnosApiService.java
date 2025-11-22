@@ -1,166 +1,77 @@
-/*package ar.utn.ba.ddsi.gestionDeAlumnos.services;
+package ar.utn.ba.ddsi.gestionDeAlumnos.services;
 
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.dto.HechoDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.exceptions.NotFoundException;
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AlumnoDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.AuthResponseDTO;
-import ar.utn.ba.ddsi.gestionDeAlumnos.dto.RolesPermisosDTO;
+import ar.utn.ba.ddsi.gestionDeAlumnos.dto.UsuarioDTO;
 import ar.utn.ba.ddsi.gestionDeAlumnos.services.internal.WebApiCallerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 
 import java.util.List;
 import java.util.Map;
-
-/**
- * Servicio para gestión de alumnos y autenticación delegada
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GestionAlumnosApiService {
 
-    private static final Logger log = LoggerFactory.getLogger(GestionAlumnosApiService.class);
-    private final WebClient webClient;
-    private final WebApiCallerService webApiCallerService;
-    private final String authServiceUrl;
-    private final String alumnosServiceUrl;
+  private final WebApiCallerService webApiCallerService;
 
-    @Autowired
-    public GestionAlumnosApiService(
-            WebApiCallerService webApiCallerService,
-            @Value("${auth.service.url}") String authServiceUrl,
-            @Value("${alumnos.service.url}") String alumnosServiceUrl) {
-        this.webClient = WebClient.builder().build();
-        this.webApiCallerService = webApiCallerService;
-        this.authServiceUrl = authServiceUrl;
-        this.alumnosServiceUrl = alumnosServiceUrl;
+  // URL base de tu backend (ej: http://localhost:8080)
+  @Value("${api.base.url:http://localhost:8080}")
+  private String backendBaseUrl;
+
+  /**
+   * Registra un nuevo usuario en el backend.
+   */
+  public void registrarUsuario(UsuarioDTO usuarioDTO) {
+    // 1. Preparamos el cuerpo del request tal como lo espera el Backend
+    // Backend espera: nombre, apellido, mail, password
+    var body = Map.of(
+        "nombre", usuarioDTO.getNombre(),
+        "apellido", usuarioDTO.getApellido(),
+        "mail", usuarioDTO.getEmail(),      // UI usa 'email', Backend usa 'mail'
+        "password", usuarioDTO.getContrasena() // UI usa 'contrasena', Backend usa 'password'
+    );
+
+    // 2. Definimos la URL (según tu UsuariosController del backend)
+    String url = backendBaseUrl + "/usuarios/register";
+
+    // 3. Hacemos el POST público
+    webApiCallerService.postPublic(url, body, Object.class);
+  }
+
+  /**
+   * Obtiene todas las colecciones (Público)
+   */
+  public List<ColeccionDTO> obtenerTodasLasColecciones() {
+    String url = backendBaseUrl + "/api/colecciones";
+    return webApiCallerService.getPublicList(url, ColeccionDTO.class);
+  }
+
+  /**
+   * Obtiene hechos destacados (Público)
+   * Maneja la respuesta { "items": [...] } del backend
+   */
+  public List<HechoDTO> getPublicHechos(String modo, int limit) {
+    String url = backendBaseUrl + "/api/hechos?modo=" + modo + "&limit=" + limit;
+
+    Map responseMap = webApiCallerService.getPublicMap(url);
+
+    if (responseMap == null || !responseMap.containsKey("items")) {
+      return List.of();
     }
 
-    public AuthResponseDTO login(String username, String password) {
-        try {
-            AuthResponseDTO response = webClient
-                    .post()
-                    .uri(authServiceUrl + "/auth")
-                    .bodyValue(Map.of(
-                            "username", username,
-                            "password", password
-                    ))
-                    .retrieve()
-                    .bodyToMono(AuthResponseDTO.class)
-                    .block();
-            return response;
-        } catch (WebClientResponseException e) {
-            log.error(e.getMessage());
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                // Login fallido - credenciales incorrectas
-                return null;
-            }
-            // Otros errores HTTP
-            throw new RuntimeException("Error en el servicio de autenticación: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new RuntimeException("Error de conexión con el servicio de autenticación: " + e.getMessage(), e);
-        }
-    }
+    List<?> rawList = (List<?>) responseMap.get("items");
 
-    public RolesPermisosDTO getRolesPermisos(String accessToken) {
-        try {
-            RolesPermisosDTO response = webApiCallerService.getWithAuth(
-                authServiceUrl + "/auth/user/roles-permisos",
-                accessToken,
-                RolesPermisosDTO.class
-            );
-            return response;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new RuntimeException("Error al obtener roles y permisos: " + e.getMessage(), e);
-        }
-    }
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
 
-    public List<AlumnoDTO> obtenerTodosLosAlumnos() {
-        List<AlumnoDTO> response = webApiCallerService.getList(alumnosServiceUrl + "/alumnos", AlumnoDTO.class);
-        return response != null ? response : List.of();
-    }
-
-    public AlumnoDTO obtenerAlumnoPorLegajo(String legajo) {
-        AlumnoDTO response = webApiCallerService.get(alumnosServiceUrl + "/alumnos/" + legajo, AlumnoDTO.class);
-        if (response == null) {
-            throw new NotFoundException("Alumno", legajo);
-        }
-        return response;
-    }
-
-    public AlumnoDTO crearAlumno(AlumnoDTO alumnoDTO) {
-        AlumnoDTO response = webApiCallerService.post(alumnosServiceUrl + "/alumnos", alumnoDTO, AlumnoDTO.class);
-        if (response == null) {
-            throw new RuntimeException("Error al crear alumno en el servicio externo");
-        }
-        return response;
-    }
-
-    public AlumnoDTO actualizarAlumno(String legajo, AlumnoDTO alumnoDTO) {
-        AlumnoDTO response = webApiCallerService.put(alumnosServiceUrl + "/alumnos/" + legajo, alumnoDTO, AlumnoDTO.class);
-        if (response == null) {
-            throw new RuntimeException("Error al actualizar alumno en el servicio externo");
-        }
-        return response;
-    }
-
-    public void eliminarAlumno(String legajo) {
-        webApiCallerService.delete(alumnosServiceUrl + "/alumnos/" + legajo);
-    }
-
-    public boolean existeAlumno(String legajo) {
-        try {
-            obtenerAlumnoPorLegajo(legajo);
-            return true;
-        } catch (NotFoundException e) {
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException("Error al verificar existencia del alumno: " + e.getMessage(), e);
-        }
-    }
-
-
-
-    public List<ColeccionDTO> obtenerTodasLasColecciones() {
-        // Usamos el método público que no pide token
-        List<ColeccionDTO> response = webApiCallerService.getPublicList(
-            alumnosServiceUrl + "/colecciones",
-            ColeccionDTO.class
-        );
-        return response != null ? response : List.of();
-    }
-
-    /**
-     * Obtiene una lista pública de hechos, filtrada por modo.
-     *//*
-    public List<HechoDTO> getPublicHechos(String modo, int limit) {
-        String url = alumnosServiceUrl + "/hechos?modo=" + modo + "&limit=" + limit;
-
-        // 1. Llamar al nuevo método que espera un Map
-        Map responseMap = webApiCallerService.getPublicMap(url);
-
-        if (responseMap == null || !responseMap.containsKey("items")) {
-            return List.of();
-        }
-
-        // 2. Extraer la lista de "items"
-        // (Necesitamos convertirla manualmente, ya que Java no sabe qué tipo de lista es)
-        List<?> rawList = (List<?>) responseMap.get("items");
-
-        // 3. Mapear los Maps internos a HechoDTO
-        // Usamos Jackson ObjectMapper para una conversión robusta
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule()); // Para las fechas
-
-        return rawList.stream()
-            .map(item -> mapper.convertValue(item, HechoDTO.class))
-            .collect(java.util.stream.Collectors.toList());
-    }
-
-}*/
+    return rawList.stream()
+        .map(item -> mapper.convertValue(item, HechoDTO.class))
+        .collect(Collectors.toList());
+  }
+}
