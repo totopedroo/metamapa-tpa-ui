@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MetaMapa - Registro</title>
-
-  <link rel="stylesheet" th:href="@{/css/registro.css}"/> </head>
+  <link rel="stylesheet" th:href="@{/css/registro.css}"/>
+</head>
 <body>
 
 <header class="header">
   <div class="header-inner">
     <div class="logo">
-      <a th:href="@{/static}" aria-label="MetaMapa inicio">
+      <a th:href="@{/}" aria-label="MetaMapa inicio">
         <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
       </a>
     </div>
@@ -30,26 +30,25 @@
     <label for="nombre">Nombre <span style="color:red">*</span></label>
     <input type="text" id="nombre" th:field="*{nombre}" placeholder="Tu nombre" required />
 
-    <label for="apellido">apellido</label>
-    <input type="text" id="apellido" th:field="*{apellido}" placeholder="Nombre de usuario (opcional)" />
+    <label for="apellido">Apellido <span style="color:red">*</span></label>
+    <input type="text" id="apellido" th:field="*{apellido}" placeholder="Tu apellido" required />
 
-    <label for="email">Correo electrónico</label>
-    <input type="email" id="email" th:field="*{email}" placeholder="Email (opcional)" />
+    <label for="email">Correo electrónico <span style="color:red">*</span></label>
+    <input type="email" id="email" th:field="*{email}" placeholder="ejemplo@email.com" required />
 
-    <label for="contrasena">Contraseña</label>
-    <input type="contrasena" id="contrasena" th:field="*{contrasena}" placeholder="Contraseña (opcional)" />
+    <label for="contrasena">Contraseña <span style="color:red">*</span></label>
+    <input type="password" id="contrasena" th:field="*{contrasena}" placeholder="Crea una contraseña segura" required />
 
     <button type="submit" class="btn-register">Registrarme</button>
 
     <p class="login-text">
-      ¿Ya tienes una cuenta? <a th:href="@{/metamapaLogin}">Inicia sesión</a>
+      ¿Ya tienes una cuenta? <a th:href="@{/login}">Inicia sesión</a>
     </p>
 
-    <button type="button" class="btn-invitado">
-      <a th:href="@{/hechos}" style="color: white !important;text-decoration: none !important;">
-        Entrar como INVITADO
-      </a>
-    </button>
+    <a th:href="@{/hechos}" class="btn-invitado" style="display:block; text-align:center; text-decoration: none;">
+      Entrar como INVITADO
+    </a>
+
   </form>
 </main>
 
