@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitudes de Eliminación - MetaMapa</title>
+
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css}" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/solicitudesAdmin.css}">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <a href="#" aria-label="MetaMapa inicio">
+                <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
+            </a>
+        </div>
+        <nav>
+            <a th:href="@{/logout}" class="logout-btn">
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main class="container-xxl my-5">
+
+    <h3>Solicitudes de Eliminación de Hechos</h3>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-striped align-middle" id="tablaSolicitudes">
+            <thead>
+            <tr>
+                <th style="width: 20%">Hecho</th>
+
+                <th>Justificación</th>
+
+                <th style="width: 1%; white-space: nowrap;" class="text-center">Estado</th>
+
+                <th style="width: 1%; white-space: nowrap;" class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="solicitud : ${listaSolicitudes}">
+
+                <td th:text="${solicitud.tituloHecho}" class="fw-bold">Título del Hecho</td>
+
+                <td th:text="${solicitud.justificacion}">Razón...</td>
+
+                <td class="text-center">
+                    <span class="chip"
+                          th:classappend="${solicitud.estado.toString() == 'PENDIENTE' ? 'pendiente' :
+                                           (solicitud.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
+                          th:text="${solicitud.estado}">
+
+                    </span>
+                </td>
+
+                <td>
+                    <div class="d-flex gap-2 justify-content-center">
+
+                        <form th:action="@{/admin/solicitud/aprobar}" method="post">
+                            <input type="hidden" name="id" th:value="${solicitud.id}" />
+
+                            <button type="submit"
+                                    class="btn btn-aceptar px-3"
+                                    title="Aprobar"
+                                    th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">
+                                Aceptar
+                            </button>
+                        </form>
+
+                        <form th:action="@{/admin/solicitud/rechazar}" method="post">
+                            <input type="hidden" name="id" th:value="${solicitud.id}" />
+
+                            <button type="submit"
+                                    class="btn btn-rechazar px-3"
+                                    title="Rechazar"
+                                    th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">
+                                Rechazar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(listaSolicitudes) and error == null}">
+                <td colspan="4" class="text-center py-4 text-muted">
+                    No hay solicitudes pendientes.
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
