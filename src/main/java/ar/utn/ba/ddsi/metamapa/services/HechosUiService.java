@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -86,14 +87,12 @@ public class HechosUiService {
     /**
      * Llama a POST /crear en el backend
      */
-    public HechoDTO crearHecho(HechoDTO nuevoHecho) {
-        String url = BACKEND_API_URL + "/crear";
-        try {
-            return restTemplate.postForObject(url, nuevoHecho, HechoDTO.class);
-        } catch (Exception e) {
-            System.err.println("Error al crear hecho: " + e.getMessage());
-            return null; // Devuelve null si falla
-        }
+    public HechoDTO crearHecho(HechoDTO input) {
+        return backendClient.post()
+                .uri("/fuente-dinamica/hechos/crear")
+                .body(input)   // ✅ compatible con todas las versiones
+                .retrieve()
+                .body(HechoDTO.class);
     }
 
     /**

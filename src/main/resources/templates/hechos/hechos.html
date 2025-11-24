@@ -26,7 +26,7 @@
         }
 
         .btn-base {
-            @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium;
+            /* solo para usabilidad visual, tailwind hace el resto */
         }
 
         .btn-verde-oscuro {
@@ -57,8 +57,14 @@
         }
 
         .btn-icono {
-            @apply inline-flex items-center justify-center w-8 h-8 rounded-md bg-white border;
-            border-color: #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.375rem;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
         }
 
         .btn-icono.ver-mapa {
@@ -95,7 +101,7 @@
             margin: 5% auto;
             padding: 1.5rem;
             border-radius: 0.75rem;
-            max-width: 600px;
+            max-width: 650px;
             width: 95%;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
@@ -131,14 +137,13 @@
         <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
         <button type="button"
                 id="abrirModalCrear"
-                class="btn-base btn-verde-claro">
+                class="btn-base btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-plus mr-2"></i> Agregar Hecho
         </button>
     </div>
 
-    <!-- Tarjeta de filtros SOLO de hechos -->
+    <!-- (Opcional) Tarjeta de filtros que ya tenías, la dejo igual por si la seguís usando -->
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
-        <!-- GET /hechos/hechos -> el controller UI llama al back /hechos con estos params -->
         <form th:action="@{/hechos/hechos}" method="get" id="filtrosForm">
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
@@ -228,10 +233,12 @@
                 <div class="flex flex-col gap-2 mt-2 md:mt-0">
                     <span class="text-xs font-semibold text-gray-700">Acciones</span>
                     <div class="flex gap-3 mt-1">
-                        <button class="btn-base btn-verde-oscuro text-sm" type="submit">
+                        <button class="btn-base btn-verde-oscuro text-sm inline-flex items-center px-3 py-2 rounded-md"
+                                type="submit">
                             <i class="fas fa-search mr-1"></i> Buscar
                         </button>
-                        <button class="btn-base btn-rojo text-sm" type="button" id="btnLimpiarFiltros">
+                        <button class="btn-base btn-rojo text-sm inline-flex items-center px-3 py-2 rounded-md"
+                                type="button" id="btnLimpiarFiltros">
                             <i class="fas fa-broom mr-1"></i> Limpiar filtros
                         </button>
                     </div>
@@ -239,8 +246,6 @@
             </div>
         </form>
     </section>
-
-
 
     <!-- Tabla de hechos -->
     <section class="bg-white rounded-lg shadow-sm p-4">
@@ -259,7 +264,6 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!-- Itera hechos del modelo -->
                 <tr th:each="hecho : ${hechos}"
                     class="border-b last:border-0 hover:bg-gray-50">
                     <td class="py-2 px-2" th:text="${hecho.titulo}">Título</td>
@@ -286,7 +290,6 @@
                     </td>
                 </tr>
 
-                <!-- Mensaje si no hay hechos -->
                 <tr th:if="${hechos == null or #lists.isEmpty(hechos)}"
                     class="border-t">
                     <td class="py-4 px-2 text-center text-gray-500" colspan="6">
@@ -305,10 +308,9 @@
         <span class="close-btn" id="cerrarModalCrear">&times;</span>
         <h3 class="text-2xl font-bold mb-2 text-gray-800">Crear Nuevo Hecho</h3>
 
-        <!-- acá mostramos errores de creación -->
+        <!-- errores -->
         <div id="errorCrearHecho" class="text-sm text-red-600 mb-2"></div>
 
-        <!-- Formulario solo manejado por JS -->
         <form id="formCrearHecho" class="space-y-4">
             <!-- Título -->
             <div>
@@ -317,7 +319,16 @@
                        id="titulo"
                        name="titulo"
                        required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--color-verde-oscuro)]">
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                <textarea id="descripcion"
+                          name="descripcion"
+                          rows="3"
+                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
             </div>
 
             <!-- Categoría -->
@@ -327,7 +338,31 @@
                        id="categoria"
                        name="categoria"
                        required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--color-verde-oscuro)]">
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <!-- URL Contenido Multimedia (opcional) -->
+            <div>
+                <label for="urlMultimedia" class="block text-sm font-medium text-gray-700">
+                    URL contenido multimedia (opcional)
+                </label>
+                <input type="url"
+                       id="urlMultimedia"
+                       name="urlMultimedia"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="https://...">
+            </div>
+
+            <!-- Etiquetas (coma separadas, opcional) -->
+            <div>
+                <label for="etiquetas" class="block text-sm font-medium text-gray-700">
+                    Etiquetas (separadas por coma, opcional)
+                </label>
+                <input type="text"
+                       id="etiquetas"
+                       name="etiquetas"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="tránsito, lesiones">
             </div>
 
             <!-- Latitud / Longitud -->
@@ -339,7 +374,7 @@
                            id="latitud"
                            name="latitud"
                            required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--color-verde-oscuro)]">
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
                 </div>
                 <div>
                     <label for="longitud" class="block text-sm font-medium text-gray-700">Longitud</label>
@@ -348,29 +383,29 @@
                            id="longitud"
                            name="longitud"
                            required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--color-verde-oscuro)]">
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
                 </div>
             </div>
 
-            <!-- Fecha -->
+            <!-- Fecha acontecimiento -->
             <div>
-                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
                 <input type="date"
                        id="fecha"
                        name="fecha"
                        required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--color-verde-oscuro)]">
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
             </div>
 
             <!-- Botones -->
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button"
                         id="cancelarModalCrear"
-                        class="btn-base btn-rojo">
+                        class="btn-base btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                     Cancelar
                 </button>
                 <button type="submit"
-                        class="btn-base btn-verde-oscuro">
+                        class="btn-base btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                     Guardar
                 </button>
             </div>
@@ -378,9 +413,11 @@
     </div>
 </div>
 
-<!-- JS para modal + filtros -->
+<!-- JS: modal + POST al backend -->
 <script>
     (function () {
+        console.log("✅ hechos.html JS cargado");
+
         const modal = document.getElementById("modalCrearHecho");
         const btnAbrir = document.getElementById("abrirModalCrear");
         const btnCerrar = document.getElementById("cerrarModalCrear");
@@ -388,21 +425,18 @@
         const form = document.getElementById("formCrearHecho");
         const errorBox = document.getElementById("errorCrearHecho");
 
-        // Endpoint del back para crear hecho
+        // Endpoint REAL del backend de fuente dinámica
         const urlCrearHecho = "http://localhost:8080/fuente-dinamica/hechos/crear";
 
         function abrir() {
             modal.style.display = "block";
+            errorBox.textContent = "";
         }
 
         function cerrar() {
             modal.style.display = "none";
-            if (errorBox) {
-                errorBox.textContent = "";
-            }
-            if (form) {
-                form.reset();
-            }
+            errorBox.textContent = "";
+            form.reset();
         }
 
         if (btnAbrir)   btnAbrir.addEventListener("click", abrir);
@@ -419,18 +453,43 @@
             }
         });
 
-        // Envío del formulario por fetch
+        // Envío del formulario por fetch directamente al backend 8080
         if (form) {
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
 
+                const titulo = document.getElementById("titulo").value.trim();
+                const descripcion = document.getElementById("descripcion").value.trim();
+                const categoria = document.getElementById("categoria").value.trim();
+                const latitud = parseFloat(document.getElementById("latitud").value);
+                const longitud = parseFloat(document.getElementById("longitud").value);
+                const fecha = document.getElementById("fecha").value; // yyyy-MM-dd
+                const urlMultimedia = document.getElementById("urlMultimedia").value.trim();
+                const etiquetasTexto = document.getElementById("etiquetas").value.trim();
+
+                // Armamos etiquetas [{nombre: "tránsito"}, ...]
+                let etiquetas = [];
+                if (etiquetasTexto !== "") {
+                    etiquetas = etiquetasTexto
+                        .split(",")
+                        .map(t => t.trim())
+                        .filter(t => t.length > 0)
+                        .map(nombre => ({ nombre }));
+                }
+
                 const payload = {
-                    titulo:   document.getElementById("titulo").value,
-                    categoria: document.getElementById("categoria").value,
-                    latitud:  parseFloat(document.getElementById("latitud").value),
-                    longitud: parseFloat(document.getElementById("longitud").value),
-                    fecha:    document.getElementById("fecha").value
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    categoria: categoria,
+                    contenidoMultimedia: urlMultimedia ? { url: urlMultimedia } : { url: null },
+                    latitud: latitud,
+                    longitud: longitud,
+                    fechaAcontecimiento: fecha,
+                    etiquetas: etiquetas,
+                    contribuyente: null
                 };
+
+                console.log("📦 Payload a enviar:", payload);
 
                 fetch(urlCrearHecho, {
                     method: "POST",
@@ -447,24 +506,21 @@
                         }
                         return resp.json().catch(() => null);
                     })
-                    .then(() => {
+                    .then(data => {
+                        console.log("✅ Hecho creado:", data);
                         cerrar();
-                        // volvemos a la pantalla de hechos
+                        // refresco la pantalla de hechos para que aparezca el nuevo
                         window.location.href = "/hechos/hechos";
                     })
                     .catch(err => {
-                        console.error(err);
-                        if (errorBox) {
-                            errorBox.textContent = "Error al crear hecho: " + err.message;
-                        }
+                        console.error("❌ Error al crear hecho:", err);
+                        errorBox.textContent = "Error al crear hecho: " + err.message;
                     });
             });
         }
 
-        // ----- LÓGICA DE FILTROS -----
-        const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
-
         // Limpiar filtros => volver a /hechos/hechos sin parámetros
+        const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
         if (btnLimpiarFiltros) {
             btnLimpiarFiltros.addEventListener("click", function () {
                 window.location.href = "/hechos/hechos";

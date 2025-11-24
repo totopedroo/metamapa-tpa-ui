@@ -91,17 +91,11 @@ public class HechosUiController {
     /**
      * Procesa el envío del formulario para crear un nuevo hecho.
      */
-    @PostMapping("/hechos/crear")
-    public String crearHecho(@ModelAttribute HechoDTO nuevoHecho, RedirectAttributes redirectAttributes) {
-        HechoDTO hechoCreado = hechosService.crearHecho(nuevoHecho);
-
-        if (hechoCreado != null) {
-            redirectAttributes.addFlashAttribute("mensajeExito", "¡Hecho creado con éxito!");
-        } else {
-            redirectAttributes.addFlashAttribute("mensajeError", "Error al crear el hecho.");
-        }
-
-        return "redirect:/hechos"; // Redirige a la lista de hechos
+    @PostMapping("/crear")
+    @ResponseBody   // 👈 responde JSON al fetch
+    public ResponseEntity<HechoDTO> crearHechoDesdeUi(@RequestBody HechoDTO input) {
+        HechoDTO creado = hechosService.crearHecho(input);
+        return ResponseEntity.ok(creado);
     }
 
     /**
