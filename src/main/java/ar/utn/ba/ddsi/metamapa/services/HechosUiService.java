@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ public class HechosUiService {
     private final CookieForwarder cookies;
     private final RestTemplate restTemplate;
 
+    // Usamos la configuración de HEAD que inyecta la URL desde properties
     @Value("${api.base.url:http://localhost:8080}")
     private String apiBaseUrl;
 
@@ -36,10 +36,10 @@ public class HechosUiService {
         return obtenerListaDesdeApi(url);
     }
 
-
     /**
      * Llama a GET /api/hechos en el backend con filtros.
-     * Reutiliza la lógica de parseo de "items".
+     * FUSIONADO: Usa la lógica de construcción de URL de tu compañero (verificando nulos),
+     * pero llama a 'obtenerListaDesdeApi' para manejar el JSON correctamente.
      */
     public List<HechoDTO> filtrarHechos(String categoria,
                                         LocalDate fechaReporteDesde,
@@ -49,24 +49,40 @@ public class HechosUiService {
                                         Double latitud,
                                         Double longitud) {
 
-        String url = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/api/hechos")
-            .queryParam("categoria", categoria)
-            .queryParam("fechaReporteDesde", fechaReporteDesde)
-            .queryParam("fechaReporteHasta", fechaReporteHasta)
-            .queryParam("fechaAcontecimientoDesde", fechaAcontecimientoDesde)
-            .queryParam("fechaAcontecimientoHasta", fechaAcontecimientoHasta)
-            .queryParam("latitud", latitud)
-            .queryParam("longitud", longitud)
-            .toUriString();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/api/hechos");
 
-        return obtenerListaDesdeApi(url);
+        if (categoria != null && !categoria.isBlank()) {
+            builder.queryParam("categoria", categoria);
+        }
+        if (fechaReporteDesde != null) {
+            builder.queryParam("fechaReporteDesde", fechaReporteDesde);
+        }
+        if (fechaReporteHasta != null) {
+            builder.queryParam("fechaReporteHasta", fechaReporteHasta);
+        }
+        if (fechaAcontecimientoDesde != null) {
+            builder.queryParam("fechaAcontecimientoDesde", fechaAcontecimientoDesde);
+        }
+        if (fechaAcontecimientoHasta != null) {
+            builder.queryParam("fechaAcontecimientoHasta", fechaAcontecimientoHasta);
+        }
+        if (latitud != null) {
+            builder.queryParam("latitud", latitud);
+        }
+        if (longitud != null) {
+            builder.queryParam("longitud", longitud);
+        }
+
+        // Construimos la URL y usamos el método que sabe leer { items: ... }
+        return obtenerListaDesdeApi(builder.toUriString());
     }
 
     /**
      * Llama a POST /api/hechos/crear en el backend
      */
     public HechoDTO crearHecho(HechoDTO nuevoHecho) {
-        // Asumiendo que en el futuro el backend tendrá este endpoint
+        // Usamos tu ruta (/api/hechos/crear) que es consistente con el backend actual,
+        // en lugar de /fuente-dinamica/... que parece ser de otra versión.
         String url = apiBaseUrl + "/api/hechos/crear";
         try {
             return restTemplate.postForObject(url, nuevoHecho, HechoDTO.class);
@@ -97,11 +113,9 @@ public class HechosUiService {
             if (response != null && response.containsKey("items")) {
                 List<?> itemsRaw = (List<?>) response.get("items");
 
-                // Configuramos el mapper para entender fechas (LocalDate)
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.registerModule(new JavaTimeModule());
 
-                // Convertimos cada item del JSON a HechoDTO
                 List<HechoDTO> hechos = itemsRaw.stream()
                     .map(item -> mapper.convertValue(item, HechoDTO.class))
                     .collect(Collectors.toList());

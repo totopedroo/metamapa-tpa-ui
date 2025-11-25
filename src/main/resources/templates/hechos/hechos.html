@@ -4,278 +4,530 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaMapa - Hechos</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* Paleta de colores de tus capturas (SIN MODIFICAR) */
         :root {
-            --color-verde-oscuro: #4a5c36; /* Header/Footer/Botones */
-            --color-verde-claro: #8b9d62; /* Botón Agregar */
-            --color-beige-fondo: #f5f0e1; /* Fondo principal */
-            --color-rojo-boton: #a43f3f;  /* Botón Limpiar */
-            --color-blanco-tarjeta: #ffffff;
-            --color-gris-texto: #333333;
+            --color-verde-oscuro: #4a5c36;
+            --color-verde-claro: #8b9d62;
+            --color-beige-fondo: #f3ecd4;
+            --color-beige-tarjeta: #f7f1dd;
+            --color-rojo-boton: #b94a48;
         }
 
         body {
             background-color: var(--color-beige-fondo);
-            color: var(--color-gris-texto);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        /* Header y Footer */
-        .header-footer-bar {
-            background-color: var(--color-verde-oscuro);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .btn-base {
+            /* solo para usabilidad visual, tailwind hace el resto */
         }
 
-        /* Tarjetas (Filtros y Resultados) */
-        .card {
-            background-color: var(--color-blanco-tarjeta);
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        /* Botones */
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .btn:hover {
-            opacity: 0.85;
-        }
         .btn-verde-oscuro {
             background-color: var(--color-verde-oscuro);
-            color: white;
+            color: #fff;
         }
+
+        .btn-verde-oscuro:hover {
+            filter: brightness(0.95);
+        }
+
         .btn-verde-claro {
             background-color: var(--color-verde-claro);
-            color: white;
+            color: #fff;
         }
+
+        .btn-verde-claro:hover {
+            filter: brightness(0.95);
+        }
+
         .btn-rojo {
             background-color: var(--color-rojo-boton);
-            color: white;
+            color: #fff;
         }
 
-        /* Formulario de Filtros */
-        .filter-form {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-        }
-        .filter-form input[type="text"],
-        .filter-form select {
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 0.5rem;
-            background-color: #fcfcfc;
-        }
-        .filter-form .radio-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .filter-form .btn-verde-icono {
-            background-color: var(--color-verde-oscuro);
-            color: white;
-            border-radius: 6px;
-            padding: 0.6rem;
-            border: none;
-            cursor: pointer;
+        .btn-rojo:hover {
+            filter: brightness(0.95);
         }
 
-        /* Tabla de Resultados */
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        .btn-icono {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.375rem;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
         }
-        .results-table th,
-        .results-table td {
-            text-align: left;
-            padding: 1rem 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-        .results-table th {
-            color: #555;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-        }
-        .results-table tr:last-child td {
-            border-bottom: none;
-        }
-        .results-table .btn-icono {
-            background: none;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .results-table .btn-icono.mapa {
+
+        .btn-icono.ver-mapa {
             color: var(--color-verde-oscuro);
-            background-color: #e8f5e9;
-        }
-        .results-table .btn-icono.eliminar {
-            color: var(--color-rojo-boton);
-            background-color: #ffebee;
-        }
-        .results-table .btn-icono.editar {
-            color: #d68000;
-            background-color: #fff8e1;
         }
 
+        .btn-icono.eliminar {
+            color: var(--color-rojo-boton);
+        }
+
+        .btn-icono.editar {
+            color: var(--color-verde-claro);
+        }
+
+        .btn-icono:hover {
+            filter: brightness(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            max-width: 650px;
+            width: 95%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .close-btn:hover {
+            color: #111827;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-<!-- HEADER (Color de captura 1) -->
-<header class="header-footer-bar">
-    <h1 class="text-xl font-bold">MetaMapa</h1>
-    <span class="text-sm">Español (AR)</span>
+<!-- HEADER -->
+<header class="bg-[var(--color-verde-oscuro)] text-white py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4">
+        <div class="flex items-center gap-2">
+            <span class="font-bold text-xl">MetaMapa</span>
+        </div>
+        <span class="text-sm">Español (AR)</span>
+    </div>
 </header>
 
-<!-- Contenido Principal -->
-<main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
-
+<main class="max-w-6xl mx-auto mt-8 px-4 pb-10">
+    <!-- Título + botón agregar -->
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold">Hechos</h2>
-        <a th:href="@{/hechos/nuevo}" class="btn btn-verde-claro">
-            <i class="fas fa-plus mr-1"></i> Agregar Hecho
-        </a>
+        <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
+        <button type="button"
+                id="abrirModalCrear"
+                class="btn-base btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+            <i class="fas fa-plus mr-2"></i> Agregar Hecho
+        </button>
     </div>
 
-    <!-- FILTROS (Diseño de captura 1) -->
-    <div class="card">
-        <form th:action="@{/hechos}" method="get" class="filter-form">
+    <!-- (Opcional) Tarjeta de filtros que ya tenías, la dejo igual por si la seguís usando -->
+    <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
+        <form th:action="@{/hechos/hechos}" method="get" id="filtrosForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
-            <!-- Filtro Título Colección -->
-            <!-- SOLUCIÓN #request: Usamos 'tituloColeccionParam' del Model -->
-            <input type="text" name="tituloColeccion" placeholder="Buscar por Título de Colección"
-                   th:value="${tituloColeccionParam}">
-            <button type="submit" class="btn-verde-icono" aria-label="Buscar por título">
-                <i class="fas fa-search"></i>
-            </button>
+                <!-- Categoría -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Categoría
+                    </label>
+                    <input type="text"
+                           name="categoria"
+                           th:value="${param.categoria}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
+                           placeholder="Categoría">
+                </div>
 
-            <!-- Filtro ID Colección -->
-            <select name="coleccionId">
-                <option value="">Colección (ID)</option>
-                <!--
-                  SOLUCIÓN 'col.nombre': Usamos col.titulo (del DTO)
-                  SOLUCIÓN #request: Usamos coleccionIdParam (del Model)
-                -->
-                <option th:each="col : ${colecciones}"
-                        th:value="${col.id}"
-                        th:text="${col.titulo}"
-                        th:selected="${coleccionIdParam == col.id}">
-                </option>
-            </select>
+                <!-- Fecha reporte desde -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Fecha reporte desde
+                    </label>
+                    <input type="date"
+                           name="fechaReporteDesde"
+                           th:value="${param.fechaReporteDesde}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                </div>
 
-            <!-- Filtro Nombre Hecho -->
-            <input type="text" name="nombre" placeholder="Nombre"
-                   th:value="${nombreParam}">
-            <button type="submit" class="btn-verde-icono" aria-label="Buscar por nombre">
-                <i class="fas fa-search"></i>
-            </button>
+                <!-- Fecha reporte hasta -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Fecha reporte hasta
+                    </label>
+                    <input type="date"
+                           name="fechaReporteHasta"
+                           th:value="${param.fechaReporteHasta}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                </div>
 
-            <!-- Filtro Navegación -->
-            <div class="radio-group">
-                <span>Navegación:</span>
-                <label>
-                    <input type="radio" name="nav" value="curada" th:checked="${navParam == 'curada'}"> Curada
-                </label>
-                <label>
-                    <input type="radio" name="nav" value="irrestricta" th:checked="${navParam == 'irrestricta'}"> Irrestricta
-                </label>
-            </div>
+                <!-- Fecha acontecimiento desde -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Fecha acontecimiento desde
+                    </label>
+                    <input type="date"
+                           name="fechaAcontecimientoDesde"
+                           th:value="${param.fechaAcontecimientoDesde}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                </div>
 
-            <!-- Botones de Acción -->
-            <div class="ml-auto flex gap-2">
-                <button type="submit" class="btn btn-verde-oscuro">
-                    <i class="fas fa-search mr-1"></i> Buscar
-                </button>
-                <a th:href="@{/hechos}" class="btn btn-rojo">
-                    <i class="fas fa-broom mr-1"></i> Limpiar Filtros
-                </a>
+                <!-- Fecha acontecimiento hasta -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Fecha acontecimiento hasta
+                    </label>
+                    <input type="date"
+                           name="fechaAcontecimientoHasta"
+                           th:value="${param.fechaAcontecimientoHasta}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                </div>
+
+                <!-- Latitud -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Latitud
+                    </label>
+                    <input type="number"
+                           step="any"
+                           name="latitud"
+                           th:value="${param.latitud}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
+                           placeholder="Latitud">
+                </div>
+
+                <!-- Longitud -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">
+                        Longitud
+                    </label>
+                    <input type="number"
+                           step="any"
+                           name="longitud"
+                           th:value="${param.longitud}"
+                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
+                           placeholder="Longitud">
+                </div>
+
+                <!-- Botones -->
+                <div class="flex flex-col gap-2 mt-2 md:mt-0">
+                    <span class="text-xs font-semibold text-gray-700">Acciones</span>
+                    <div class="flex gap-3 mt-1">
+                        <button class="btn-base btn-verde-oscuro text-sm inline-flex items-center px-3 py-2 rounded-md"
+                                type="submit">
+                            <i class="fas fa-search mr-1"></i> Buscar
+                        </button>
+                        <button class="btn-base btn-rojo text-sm inline-flex items-center px-3 py-2 rounded-md"
+                                type="button" id="btnLimpiarFiltros">
+                            <i class="fas fa-broom mr-1"></i> Limpiar filtros
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
-    </div>
+    </section>
 
-    <!-- RESULTADOS (Diseño de captura 2) -->
-    <div class="card">
-        <h3 class="text-xl font-semibold mb-4">Hechos encontrados:</h3>
+    <!-- Tabla de hechos -->
+    <section class="bg-white rounded-lg shadow-sm p-4">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800">Hechos encontrados:</h3>
 
         <div class="overflow-x-auto">
-            <table class="results-table">
-                <thead>
-                <tr>
-                    <th>Título</th>
-                    <th>Descripción</th>
-                    <th>Tags</th>
-                    <th>Ver en Mapa</th>
-                    <th>Solicitar eliminación</th>
-                    <th>Editar</th>
+            <table class="min-w-full text-sm">
+                <thead class="border-b">
+                <tr class="text-left text-gray-600">
+                    <th class="py-2 px-2">Título</th>
+                    <th class="py-2 px-2">Descripción</th>
+                    <th class="py-2 px-2">Tags</th>
+                    <th class="py-2 px-2 text-center">Ver en mapa</th>
+                    <th class="py-2 px-2 text-center">Solicitar eliminación</th>
+                    <th class="py-2 px-2 text-center">Editar</th>
                 </tr>
                 </thead>
                 <tbody>
-                <!-- Loop de Thymeleaf -->
-                <tr th:each="hecho : ${hechos}">
-                    <td th:text="${hecho.titulo}">Foco activo en cordón serrano</td>
-                    <td th:text="${hecho.descripcion}">Columna de humo visible desde ruta provincial.</td>
-
-                    <!-- SOLUCIÓN 'hecho.etiquetas': El DTO ahora tiene este campo -->
-                    <td th:text="${hecho.etiquetas != null ? #strings.listJoin(hecho.etiquetas, ', ') : ''}">
-                        Incendio forestal - Córdoba
+                <tr th:each="hecho : ${hechos}"
+                    class="border-b last:border-0 hover:bg-gray-50">
+                    <td class="py-2 px-2" th:text="${hecho.titulo}">Título</td>
+                    <td class="py-2 px-2" th:text="${hecho.descripcion}">Descripción</td>
+                    <td class="py-2 px-2">
+                        <span th:each="tag : ${hecho.etiquetas}"
+                              class="inline-block bg-gray-200 text-xs px-2 py-1 rounded mr-1 mb-1"
+                              th:text="${tag}">tag</span>
                     </td>
-                    <td>
-                        <button class="btn-icono mapa" aria-label="Ver en mapa">
+                    <td class="py-2 px-2 text-center">
+                        <button class="btn-icono ver-mapa" title="Ver en mapa" type="button">
                             <i class="fas fa-map-marker-alt"></i>
                         </button>
                     </td>
-                    <td>
-                        <button class="btn-icono eliminar" aria-label="Solicitar eliminación">
+                    <td class="py-2 px-2 text-center">
+                        <button class="btn-icono eliminar" title="Solicitar eliminación" type="button">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
-                    <td>
-                        <button class="btn-icono editar" aria-label="Editar">
-                            <i class="fas fa-pencil-alt"></i>
+                    <td class="py-2 px-2 text-center">
+                        <button class="btn-icono editar" title="Editar" type="button">
+                            <i class="fas fa-pen"></i>
                         </button>
                     </td>
                 </tr>
 
-                <!-- Mensaje si no hay resultados -->
-                <tr th:if="${hechos == null || hechos.isEmpty()}">
-                    <td colspan="6" class="text-center text-gray-500 py-6">
+                <tr th:if="${hechos == null or #lists.isEmpty(hechos)}"
+                    class="border-t">
+                    <td class="py-4 px-2 text-center text-gray-500" colspan="6">
                         No se encontraron hechos para los filtros seleccionados.
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-
+    </section>
 </main>
 
-<!-- FOOTER (Color de captura 1) -->
-<footer class="header-footer-bar mt-auto">
-    <span>MetaMapa 2025</span>
-    <span>Información legal y de privacidad</span>
-</footer>
+<!-- MODAL: AGREGAR HECHO -->
+<div id="modalCrearHecho" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalCrear">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Crear Nuevo Hecho</h3>
+
+        <!-- errores -->
+        <div id="errorCrearHecho" class="text-sm text-red-600 mb-2"></div>
+
+        <form id="formCrearHecho" class="space-y-4">
+            <!-- Título -->
+            <div>
+                <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
+                <input type="text"
+                       id="titulo"
+                       name="titulo"
+                       required
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                <textarea id="descripcion"
+                          name="descripcion"
+                          rows="3"
+                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
+            </div>
+
+            <!-- Categoría -->
+            <div>
+                <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                <input type="text"
+                       id="categoria"
+                       name="categoria"
+                       required
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <!-- URL Contenido Multimedia (opcional) -->
+            <div>
+                <label for="urlMultimedia" class="block text-sm font-medium text-gray-700">
+                    URL contenido multimedia (opcional)
+                </label>
+                <input type="url"
+                       id="urlMultimedia"
+                       name="urlMultimedia"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="https://...">
+            </div>
+
+            <!-- Etiquetas (coma separadas, opcional) -->
+            <div>
+                <label for="etiquetas" class="block text-sm font-medium text-gray-700">
+                    Etiquetas (separadas por coma, opcional)
+                </label>
+                <input type="text"
+                       id="etiquetas"
+                       name="etiquetas"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="tránsito, lesiones">
+            </div>
+
+            <!-- Latitud / Longitud -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="latitud" class="block text-sm font-medium text-gray-700">Latitud</label>
+                    <input type="number"
+                           step="any"
+                           id="latitud"
+                           name="latitud"
+                           required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                </div>
+                <div>
+                    <label for="longitud" class="block text-sm font-medium text-gray-700">Longitud</label>
+                    <input type="number"
+                           step="any"
+                           id="longitud"
+                           name="longitud"
+                           required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                </div>
+            </div>
+
+            <!-- Fecha acontecimiento -->
+            <div>
+                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
+                <input type="date"
+                       id="fecha"
+                       name="fecha"
+                       required
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button"
+                        id="cancelarModalCrear"
+                        class="btn-base btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="btn-base btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JS: modal + POST al backend -->
+<script>
+    (function () {
+        console.log("✅ hechos.html JS cargado");
+
+        const modal = document.getElementById("modalCrearHecho");
+        const btnAbrir = document.getElementById("abrirModalCrear");
+        const btnCerrar = document.getElementById("cerrarModalCrear");
+        const btnCancelar = document.getElementById("cancelarModalCrear");
+        const form = document.getElementById("formCrearHecho");
+        const errorBox = document.getElementById("errorCrearHecho");
+
+        // Endpoint REAL del backend de fuente dinámica
+        const urlCrearHecho = "http://localhost:8080/fuente-dinamica/hechos/crear";
+
+        function abrir() {
+            modal.style.display = "block";
+            errorBox.textContent = "";
+        }
+
+        function cerrar() {
+            modal.style.display = "none";
+            errorBox.textContent = "";
+            form.reset();
+        }
+
+        if (btnAbrir)   btnAbrir.addEventListener("click", abrir);
+        if (btnCerrar)  btnCerrar.addEventListener("click", cerrar);
+        if (btnCancelar) btnCancelar.addEventListener("click", function (e) {
+            e.preventDefault();
+            cerrar();
+        });
+
+        // Cerrar haciendo clic fuera del contenido
+        window.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                cerrar();
+            }
+        });
+
+        // Envío del formulario por fetch directamente al backend 8080
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const titulo = document.getElementById("titulo").value.trim();
+                const descripcion = document.getElementById("descripcion").value.trim();
+                const categoria = document.getElementById("categoria").value.trim();
+                const latitud = parseFloat(document.getElementById("latitud").value);
+                const longitud = parseFloat(document.getElementById("longitud").value);
+                const fecha = document.getElementById("fecha").value; // yyyy-MM-dd
+                const urlMultimedia = document.getElementById("urlMultimedia").value.trim();
+                const etiquetasTexto = document.getElementById("etiquetas").value.trim();
+
+                // Armamos etiquetas [{nombre: "tránsito"}, ...]
+                let etiquetas = [];
+                if (etiquetasTexto !== "") {
+                    etiquetas = etiquetasTexto
+                        .split(",")
+                        .map(t => t.trim())
+                        .filter(t => t.length > 0)
+                        .map(nombre => ({ nombre }));
+                }
+
+                const payload = {
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    categoria: categoria,
+                    contenidoMultimedia: urlMultimedia ? { url: urlMultimedia } : { url: null },
+                    latitud: latitud,
+                    longitud: longitud,
+                    fechaAcontecimiento: fecha,
+                    etiquetas: etiquetas,
+                    contribuyente: null
+                };
+
+                console.log("📦 Payload a enviar:", payload);
+
+                fetch(urlCrearHecho, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                })
+                    .then(resp => {
+                        if (!resp.ok) {
+                            return resp.text().then(t => {
+                                throw new Error(t || ("HTTP " + resp.status));
+                            });
+                        }
+                        return resp.json().catch(() => null);
+                    })
+                    .then(data => {
+                        console.log("✅ Hecho creado:", data);
+                        cerrar();
+                        // refresco la pantalla de hechos para que aparezca el nuevo
+                        window.location.href = "/hechos/hechos";
+                    })
+                    .catch(err => {
+                        console.error("❌ Error al crear hecho:", err);
+                        errorBox.textContent = "Error al crear hecho: " + err.message;
+                    });
+            });
+        }
+
+        // Limpiar filtros => volver a /hechos/hechos sin parámetros
+        const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
+        if (btnLimpiarFiltros) {
+            btnLimpiarFiltros.addEventListener("click", function () {
+                window.location.href = "/hechos/hechos";
+            });
+        }
+    })();
+</script>
 
 </body>
 </html>

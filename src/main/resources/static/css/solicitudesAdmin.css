@@ -1,0 +1,175 @@
+:root {
+    --primary: #688549;
+    --secondary: #a95038;
+    --background: #EBE5DD;
+    --text: #333333;
+    --yellow: #f0ad4e;
+    --green: #5cb85c;
+    --red: #d9534f;
+}
+
+/* BODY */
+body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+/* HEADER */
+.header {
+    background: #688549;
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    height: 50px;
+}
+
+/* NAV LINKS MODERNOS */
+nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    position: relative;
+    padding: 0.7rem 0.9rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+nav a.logout-btn i {
+    transition: transform 0.3s ease;
+}
+
+nav a.logout-btn:hover i {
+    transform: rotate(-20deg);
+}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+    nav a { margin-left: 0.5rem; font-size: 0.9rem; }
+}
+
+.btn-volver {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    font-weight: 500;
+}
+
+.btn-volver:hover {
+    background-color: #54713b;
+    color: white;
+}
+
+
+/* Chips de estado */
+.chip {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    min-width: 90%;
+    text-align: center;
+}
+
+.chip.pendiente { background-color: #f0ad4e2e;
+    color: var(--yellow);
+    font-weight: bold;
+}
+.chip.aprobada { background-color: #5cb85c24;
+    color: var(--green);
+    font-weight: bold;
+}
+.chip.rechazada { background-color: #d9534f26;
+    color: var(--red);
+    font-weight: bold; }
+
+/* Botones aceptar/rechazar */
+.btn-aceptar {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+}
+
+.btn-aceptar:hover {
+    background-color: #54713b;
+}
+
+.btn-rechazar {
+    background-color: var(--secondary);
+    color: white;
+    border: none;
+}
+
+.btn-rechazar:hover {
+    background-color: #87352b;
+}
+
+.badge-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    z-index: 2000;
+}
+
+.badge-confirm {
+    background: var(--primary);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+
+.btn-aceptar:disabled, .btn-rechazar:disabled {
+    background-color: #cccccc; /* Gris */
+    color: #666666;            /* Texto gris oscuro */
+    cursor: not-allowed;       /* Muestra el ícono de "prohibido" */
+    border: 1px solid #999;
+    opacity: 0.6;
+}
+
+.badge-confirm.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Ajuste para botones con texto */
+.btn-aceptar, .btn-rechazar {
+    font-weight: bold;       /* Letra más gordita */
+    min-width: 100px;        /* Ancho mínimo para que se vean uniformes */
+    padding-top: 8px;        /* Un poco más altos */
+    padding-bottom: 8px;
+}
+.badge-confirm.rechazada {
+    background: #dc3545; /* rojo */
+}
+
+.badge-confirm.aprobada {
+    background: #28a745; /* verde */
+}

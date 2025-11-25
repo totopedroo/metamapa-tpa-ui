@@ -35,6 +35,8 @@ public class HechosUiController {
     private HechosUiService hechosService;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private ColeccionUiService coleccionService;
+
     /**
      * Muestra la lista de hechos y el formulario de filtro.
      */
@@ -42,30 +44,38 @@ public class HechosUiController {
 
     private String backendBaseUrl;
 
-    @GetMapping("/hechosS")
-    public String mostrarHechos(
+
+    @GetMapping("/hechos")
+    public String listarHechos(
             @RequestParam(required = false) String categoria,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
             @RequestParam(required = false) Double latitud,
             @RequestParam(required = false) Double longitud,
-            Model model) {
-
+            Model model
+    ) {
         List<HechoDTO> hechos = hechosService.filtrarHechos(
-                categoria, fechaReporteDesde, fechaReporteHasta,
-                fechaAcontecimientoDesde, fechaAcontecimientoHasta, latitud, longitud);
+                categoria,
+                fechaReporteDesde,
+                fechaReporteHasta,
+                fechaAcontecimientoDesde,
+                fechaAcontecimientoHasta,
+                latitud,
+                longitud
+        );
 
         model.addAttribute("hechos", hechos);
-        // Añadimos los filtros al modelo para que el formulario los "recuerde"
-        model.addAttribute("filtros", new java.util.HashMap<String, Object>() {{
-            put("categoria", categoria);
-            put("fechaReporteDesde", fechaReporteDesde);
-            // ... agregar los demás filtros
-        }});
 
-        return "hechos/hechos"; // Nombre del archivo .html de Thymeleaf
+        // No hace falta pasar los filtros al modelo porque en el HTML los leemos con ${param.*},
+        // pero si quisieras, podrías agregarlos también acá.
+
+        return "hechos/hechos";
     }
 
     /**
@@ -81,22 +91,17 @@ public class HechosUiController {
     /**
      * Procesa el envío del formulario para crear un nuevo hecho.
      */
-    @PostMapping("/hechos/crear")
-    public String crearHecho(@ModelAttribute HechoDTO nuevoHecho, RedirectAttributes redirectAttributes) {
-        HechoDTO hechoCreado = hechosService.crearHecho(nuevoHecho);
-
-        if (hechoCreado != null) {
-            redirectAttributes.addFlashAttribute("mensajeExito", "¡Hecho creado con éxito!");
-        } else {
-            redirectAttributes.addFlashAttribute("mensajeError", "Error al crear el hecho.");
-        }
-
-        return "redirect:/hechos"; // Redirige a la lista de hechos
+    @PostMapping("/crear")
+    @ResponseBody   // 👈 responde JSON al fetch
+    public ResponseEntity<HechoDTO> crearHechoDesdeUi(@RequestBody HechoDTO input) {
+        HechoDTO creado = hechosService.crearHecho(input);
+        return ResponseEntity.ok(creado);
     }
 
     /**
      * Maneja el botón de "Importar desde API".
      */
+
     @PostMapping("/hechos/importar-api")
     public String importarHechos(RedirectAttributes redirectAttributes) {
         try {
@@ -108,31 +113,35 @@ public class HechosUiController {
         return "redirect:/hechos";
     }
 
-    @GetMapping("/hechos")
+  /*  @GetMapping("/hechoss")
     public String verHechos(
-            // --- Recibimos todos los filtros del formulario ---
-            @RequestParam(required = false) String tituloColeccion,
             @RequestParam(required = false) Long coleccionId,
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) String nav,
-            Model model) {
+            @RequestParam(required = false) String titulo,   // título del hecho
+            Model model
+    ) {
+        // Traemos colecciones para llenar el combo
+        List<ColeccionDTO> colecciones = coleccionService.listarTodas();
 
-        // --- 1. Pasamos los filtros de vuelta al Model ---
-        // ESTO SOLUCIONA EL ERROR de "IllegalArgumentException: The 'request'..."
-        model.addAttribute("tituloColeccionParam", tituloColeccion);
-        model.addAttribute("coleccionIdParam", coleccionId);
-        model.addAttribute("nombreParam", nombre);
-        model.addAttribute("navParam", nav);
+        // Si no mandan coleccionId, podés:
+        // - o mostrar lista vacía
+        // - o elegir una por defecto (ej: la primera)
+        List<HechoDTO> hechos;
+        if (coleccionId != null) {
+            hechos = hechosService.filtrarHechos(coleccionId, titulo);
+        } else {
+            // si querés mostrar nada hasta que elijan colección:
+            hechos = List.of();
+            // o si tenés un endpoint para listar todo, llamalo acá
+            // hechos = hechosUiService.listarTodos();
+        }
 
-        // --- 2. Obtenemos las colecciones para el dropdown ---
-        model.addAttribute("colecciones", obtenerColecciones());
+        model.addAttribute("colecciones", colecciones);
+        model.addAttribute("hechos", hechos);
+        model.addAttribute("coleccionId", coleccionId);
 
-        // --- 3. Obtenemos los hechos filtrados ---
-        model.addAttribute("hechos", obtenerHechosFiltrados(tituloColeccion, coleccionId, nombre, nav));
+        return "hechos/hechos";
+    }*/
 
-        // --- 4. Devolvemos la plantilla HTML ---
-        return "hechos/hechos"; // Busca /templates/hechos/hechos.html
-    }
 
     /**
      * Llama al Backend (8080) para obtener todas las colecciones para el dropdown.
@@ -186,6 +195,8 @@ public class HechosUiController {
         }
     }
 }
+
+
 
 // NO HAY OTROS MÉTODOS @GetMapping("/hechos")
 // Esto soluciona el error "Ambiguous mapping"

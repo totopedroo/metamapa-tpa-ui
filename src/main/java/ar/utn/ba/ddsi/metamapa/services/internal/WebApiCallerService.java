@@ -5,6 +5,7 @@ import ar.utn.ba.ddsi.metamapa.dto.RefreshTokenDTO; // Asegúrate de tener este 
 import ar.utn.ba.ddsi.metamapa.exceptions.NotFoundException; // Asegúrate de tener esta Exception
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -60,6 +61,45 @@ public class WebApiCallerService {
       // Manejo silencioso o logueo, dependiendo de tu necesidad
       System.err.println("Error en getPublicMap: " + e.getMessage());
       return null;
+    }
+  }
+
+  public <T> java.util.List<T> getListWithToken(String url, String token, Class<T> responseType) {
+    try {
+      return webClient
+              .get()
+              .uri(url)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token) // <--- AQUÍ ESTÁ LA CLAVE
+              .retrieve()
+              .bodyToFlux(responseType)
+              .collectList()
+              .block(); // Bloqueamos para esperar la respuesta (estilo sincrónico)
+
+    } catch (WebClientResponseException e) {
+      // Si el token venció (401) o no tiene permiso (403)
+      System.err.println("Error de permisos: " + e.getStatusCode());
+      throw e; // O podrías devolver lista vacía
+    } catch (Exception e) {
+      throw new RuntimeException("Error al consultar API protegida: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Ejecuta un POST enviando el Token Bearer.
+   * Se usa para aprobar/rechazar solicitudes.
+   */
+  public void postWithToken(String url, String token) {
+    try {
+      webClient
+              .post()
+              .uri(url)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+              .retrieve()
+              .toBodilessEntity() // No esperamos cuerpo de respuesta, solo que no de error
+              .block();
+
+    } catch (Exception e) {
+      throw new RuntimeException("Error al ejecutar acción protegida: " + e.getMessage(), e);
     }
   }
 
