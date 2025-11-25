@@ -32,7 +32,8 @@ public class SecurityConfig {
                 "/login/**",
                 "/registro",
                 "/api-proxy/**",
-                "/legal/**"
+                "/legal/**",
+                "/debug/**"
             ).permitAll()
             .anyRequest().authenticated()
         )

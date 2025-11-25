@@ -1,5 +1,6 @@
-/* Configurable: endpoints de tu API real */
+/* Configurable: endpoints del Proxy del Frontend */
 const API = {
+    // Apunta al controlador intermedio (HechoUiApiController) que crearemos/verificaremos luego
     hechosIrrestrictos: "/api-proxy/hechos?modo=irrestricto",
     hechosCurados:      "/api-proxy/hechos?modo=curado"
 };
@@ -7,7 +8,7 @@ const API = {
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-/* Mobile nav toggle (sin cambios) */
+/* Mobile nav toggle */
 const navBtn = $(".nav-toggle");
 const nav = $("#menu-principal");
 if (navBtn) {
@@ -18,20 +19,29 @@ if (navBtn) {
     });
 }
 
-/* ---- LÓGICA DE CARGA DINÁMICA (AJAX) PARA LAS PESTAÑAS ---- */
+/* ---- LÓGICA DE CARGA DINÁMICA (SOLO PARA TABS) ---- */
 
-// Funciones para crear el HTML de las tarjetas que se cargan con AJAX
+// Helper para formatear fechas (dd/mm/yyyy)
+function formatDate(fechaStr) {
+    if (!fechaStr) return "—";
+    // Asumiendo formato ISO yyyy-mm-dd
+    const [y, m, d] = fechaStr.split('-');
+    return `${d}/${m}/${y}`;
+}
+
 function badge(label) { return `<span class="badge">${label}</span>`; }
 
 function cardHecho({ titulo, descripcion, categoria, lugar, fecha }) {
-    const fechaFmt = fecha ? new Date(fecha).toLocaleDateString("es-AR") : "—";
+    const fechaFmt = formatDate(fecha);
     return `
     <article class="card" role="listitem">
         <div class="card-header">
             <h3>${titulo}</h3>
         </div>
         <div class="card-meta">
-            ${categoria ? badge(categoria) : ""} ${lugar ? badge(lugar) : ""} ${badge(fechaFmt)}
+            ${categoria ? badge(categoria) : ""} 
+            ${lugar ? badge(lugar) : ""} 
+            ${badge(fechaFmt)}
         </div>
         <div class="card-body">
             <p>${descripcion}</p>
@@ -39,40 +49,42 @@ function cardHecho({ titulo, descripcion, categoria, lugar, fecha }) {
     </article>`;
 }
 
-// Fetch que devuelve JSON o null si falla
+// Fetch seguro
 async function getJSON(url) {
     try {
         const r = await fetch(url, { headers: { Accept: "application/json" } });
         if (!r.ok) throw new Error("HTTP " + r.status);
         return await r.json();
     } catch (e) {
-        console.error("Error al hacer fetch:", e);
-        return null; // Devuelve null en caso de error
+        console.error("Error JS:", e);
+        return null;
     }
 }
 
-// Carga hechos de la API y los renderiza
-async function cargarHechos(modo = "irrestricto") {
+// Carga hechos vía AJAX (Solo se usa al cambiar de Tab)
+async function cargarHechos(modo) {
     const el = $("#hechos-grid");
     if (!el) return;
-    el.innerHTML = "<p>Cargando...</p>"; // Feedback para el usuario
+
+    el.innerHTML = "<p style='padding:1rem'>Cargando...</p>";
 
     const url = modo === "curado" ? API.hechosCurados : API.hechosIrrestrictos;
     const data = await getJSON(url);
 
-    // Si la API falla o no devuelve items, muestra un mensaje
+    // Validamos estructura { items: [...] }
     if (!data || !Array.isArray(data.items) || data.items.length === 0) {
-        el.innerHTML = "<p>No se pudieron cargar los hechos en este momento.</p>";
+        el.innerHTML = "<p style='padding:1rem'>No hay hechos para mostrar en esta categoría.</p>";
         return;
     }
 
     el.innerHTML = data.items.map(cardHecho).join("");
 }
 
-// Event listeners para las pestañas
+/* ---- EVENT LISTENERS ---- */
+
+// Tabs de modo de navegación
 $$(".tab").forEach(btn => {
     btn.addEventListener("click", () => {
-        // No hacer nada si el tab ya está activo
         if (btn.classList.contains("is-active")) return;
 
         $$(".tab").forEach(b => {
@@ -82,7 +94,12 @@ $$(".tab").forEach(btn => {
         btn.classList.add("is-active");
         btn.setAttribute("aria-selected", "true");
 
-        // Carga los hechos correspondientes al modo del botón
+        // Solo cargamos por AJAX si el usuario hace clic
         cargarHechos(btn.dataset.mode);
     });
 });
+
+/* IMPORTANTE:
+   Eliminamos el "DOMContentLoaded" que llamaba a cargarColecciones() y cargarHechos().
+   Ahora dejamos que Thymeleaf muestre el contenido inicial (SSR).
+*/

@@ -10,15 +10,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-
+// 👇 ESTA LÍNEA ES LA MAGIA: Evita que falle si el backend manda campos extra
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ColeccionDTO {
     private Long id;
-    private String titulo; // Usamos 'titulo' para que coincida con el JSON del Backend
+    private String titulo;
+    private String descripcion;
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
+    // No necesitamos mapear 'administradorId' ni listas de IDs aquí para la landing
 }
