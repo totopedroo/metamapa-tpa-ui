@@ -1,3 +1,4 @@
+
 package ar.utn.ba.ddsi.metamapa.services;
 
 import ar.utn.ba.ddsi.metamapa.API.CookieForwarder;
@@ -117,8 +118,8 @@ public class HechosUiService {
                 mapper.registerModule(new JavaTimeModule());
 
                 List<HechoDTO> hechos = itemsRaw.stream()
-                    .map(item -> mapper.convertValue(item, HechoDTO.class))
-                    .collect(Collectors.toList());
+                        .map(item -> mapper.convertValue(item, HechoDTO.class))
+                        .collect(Collectors.toList());
 
                 System.out.println(">>> FRONTEND: Hechos recuperados de " + url + ": " + hechos.size());
                 return hechos;

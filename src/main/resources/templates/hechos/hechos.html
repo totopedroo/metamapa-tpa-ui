@@ -26,7 +26,6 @@
         }
 
         .btn-base {
-            /* solo para usabilidad visual, tailwind hace el resto */
         }
 
         .btn-verde-oscuro {
@@ -83,7 +82,7 @@
             filter: brightness(0.95);
         }
 
-        /* Modal */
+        /* Modal genérico (crear hecho + solicitar eliminación) */
         .modal {
             display: none;
             position: fixed;
@@ -142,7 +141,7 @@
         </button>
     </div>
 
-    <!-- (Opcional) Tarjeta de filtros que ya tenías, la dejo igual por si la seguís usando -->
+    <!-- Filtros -->
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
         <form th:action="@{/hechos/hechos}" method="get" id="filtrosForm">
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
@@ -265,7 +264,8 @@
                 </thead>
                 <tbody>
                 <tr th:each="hecho : ${hechos}"
-                    class="border-b last:border-0 hover:bg-gray-50">
+                    class="border-b last:border-0 hover:bg-gray-50"
+                    th:data-hecho-id="${hecho.id}">
                     <td class="py-2 px-2" th:text="${hecho.titulo}">Título</td>
                     <td class="py-2 px-2" th:text="${hecho.descripcion}">Descripción</td>
                     <td class="py-2 px-2">
@@ -279,7 +279,8 @@
                         </button>
                     </td>
                     <td class="py-2 px-2 text-center">
-                        <button class="btn-icono eliminar" title="Solicitar eliminación" type="button">
+                        <button class="btn-icono eliminar btn-solicitar-eliminacion"
+                                title="Solicitar eliminación" type="button">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -413,49 +414,88 @@
     </div>
 </div>
 
-<!-- JS: modal + POST al backend -->
+<!-- MODAL: SOLICITAR ELIMINACIÓN -->
+<div id="modalSolicitudEliminacion" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalSolicitud">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Solicitar eliminación de hecho</h3>
+
+        <p class="text-sm text-gray-700 mb-2">
+            Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span>
+        </p>
+
+        <div id="errorSolicitudEliminacion" class="text-sm text-red-600 mb-2"></div>
+
+        <form id="formSolicitudEliminacion" class="space-y-4">
+            <input type="hidden" id="idHechoSolicitud" name="idHecho">
+
+            <div>
+                <label for="justificacionSolicitud"
+                       class="block text-sm font-medium text-gray-700">Justificación</label>
+                <textarea id="justificacionSolicitud"
+                          name="justificacion"
+                          rows="4"
+                          required
+                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                          placeholder="Explicá por qué debería eliminarse este hecho"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button"
+                        id="cancelarModalSolicitud"
+                        class="btn-base btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="btn-base btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JS: lógica crear hecho + solicitar eliminación -->
 <script>
     (function () {
         console.log("✅ hechos.html JS cargado");
 
-        const modal = document.getElementById("modalCrearHecho");
-        const btnAbrir = document.getElementById("abrirModalCrear");
-        const btnCerrar = document.getElementById("cerrarModalCrear");
-        const btnCancelar = document.getElementById("cancelarModalCrear");
-        const form = document.getElementById("formCrearHecho");
-        const errorBox = document.getElementById("errorCrearHecho");
+        /* ----------------- MODAL CREAR HECHO ----------------- */
+        const modalCrear = document.getElementById("modalCrearHecho");
+        const btnAbrirCrear = document.getElementById("abrirModalCrear");
+        const btnCerrarCrear = document.getElementById("cerrarModalCrear");
+        const btnCancelarCrear = document.getElementById("cancelarModalCrear");
+        const formCrear = document.getElementById("formCrearHecho");
+        const errorCrear = document.getElementById("errorCrearHecho");
 
-        // Endpoint REAL del backend de fuente dinámica
         const urlCrearHecho = "http://localhost:8080/fuente-dinamica/hechos/crear";
 
-        function abrir() {
-            modal.style.display = "block";
-            errorBox.textContent = "";
+        function abrirModalCrear() {
+            modalCrear.style.display = "block";
+            errorCrear.textContent = "";
         }
 
-        function cerrar() {
-            modal.style.display = "none";
-            errorBox.textContent = "";
-            form.reset();
+        function cerrarModalCrear() {
+            modalCrear.style.display = "none";
+            errorCrear.textContent = "";
+            formCrear.reset();
         }
 
-        if (btnAbrir)   btnAbrir.addEventListener("click", abrir);
-        if (btnCerrar)  btnCerrar.addEventListener("click", cerrar);
-        if (btnCancelar) btnCancelar.addEventListener("click", function (e) {
+        if (btnAbrirCrear)   btnAbrirCrear.addEventListener("click", abrirModalCrear);
+        if (btnCerrarCrear)  btnCerrarCrear.addEventListener("click", cerrarModalCrear);
+        if (btnCancelarCrear) btnCancelarCrear.addEventListener("click", function (e) {
             e.preventDefault();
-            cerrar();
+            cerrarModalCrear();
         });
 
-        // Cerrar haciendo clic fuera del contenido
         window.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                cerrar();
+            if (event.target === modalCrear) {
+                cerrarModalCrear();
             }
         });
 
-        // Envío del formulario por fetch directamente al backend 8080
-        if (form) {
-            form.addEventListener("submit", function (e) {
+        if (formCrear) {
+            formCrear.addEventListener("submit", function (e) {
                 e.preventDefault();
 
                 const titulo = document.getElementById("titulo").value.trim();
@@ -463,11 +503,10 @@
                 const categoria = document.getElementById("categoria").value.trim();
                 const latitud = parseFloat(document.getElementById("latitud").value);
                 const longitud = parseFloat(document.getElementById("longitud").value);
-                const fecha = document.getElementById("fecha").value; // yyyy-MM-dd
+                const fecha = document.getElementById("fecha").value;
                 const urlMultimedia = document.getElementById("urlMultimedia").value.trim();
                 const etiquetasTexto = document.getElementById("etiquetas").value.trim();
 
-                // Armamos etiquetas [{nombre: "tránsito"}, ...]
                 let etiquetas = [];
                 if (etiquetasTexto !== "") {
                     etiquetas = etiquetasTexto
@@ -489,7 +528,7 @@
                     contribuyente: null
                 };
 
-                console.log("📦 Payload a enviar:", payload);
+                console.log("📦 Payload a enviar (crear hecho):", payload);
 
                 fetch(urlCrearHecho, {
                     method: "POST",
@@ -508,18 +547,124 @@
                     })
                     .then(data => {
                         console.log("✅ Hecho creado:", data);
-                        cerrar();
-                        // refresco la pantalla de hechos para que aparezca el nuevo
+                        cerrarModalCrear();
                         window.location.href = "/hechos/hechos";
                     })
                     .catch(err => {
                         console.error("❌ Error al crear hecho:", err);
-                        errorBox.textContent = "Error al crear hecho: " + err.message;
+                        errorCrear.textContent = "Error al crear hecho: " + err.message;
                     });
             });
         }
 
-        // Limpiar filtros => volver a /hechos/hechos sin parámetros
+        /* -------------- MODAL SOLICITAR ELIMINACIÓN -------------- */
+        const modalSol = document.getElementById("modalSolicitudEliminacion");
+        const cerrarSol = document.getElementById("cerrarModalSolicitud");
+        const cancelarSol = document.getElementById("cancelarModalSolicitud");
+        const formSol = document.getElementById("formSolicitudEliminacion");
+        const errorSol = document.getElementById("errorSolicitudEliminacion");
+        const inputIdHechoSol = document.getElementById("idHechoSolicitud");
+        const tituloHechoSol = document.getElementById("tituloHechoSolicitud");
+
+        const urlCrearSolicitud = "http://localhost:8080/solicitudes";
+
+        function abrirModalSolicitud(idHecho, titulo) {
+            inputIdHechoSol.value = idHecho;
+            tituloHechoSol.textContent = titulo || "";
+            errorSol.textContent = "";
+            modalSol.style.display = "block";
+        }
+
+        function cerrarModalSolicitud() {
+            modalSol.style.display = "none";
+            errorSol.textContent = "";
+            inputIdHechoSol.value = "";
+            if (formSol) formSol.reset();
+        }
+
+        if (cerrarSol) {
+            cerrarSol.addEventListener("click", cerrarModalSolicitud);
+        }
+        if (cancelarSol) {
+            cancelarSol.addEventListener("click", function (e) {
+                e.preventDefault();
+                cerrarModalSolicitud();
+            });
+        }
+
+        window.addEventListener("click", function (event) {
+            if (event.target === modalSol) {
+                cerrarModalSolicitud();
+            }
+        });
+
+        // Click en los cestos de cada fila
+        document.querySelectorAll(".btn-solicitar-eliminacion").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const fila = btn.closest("tr");
+                if (!fila) {
+                    console.error("No se encontró la fila del hecho");
+                    return;
+                }
+                const idHecho = fila.getAttribute("data-hecho-id");
+                const titulo = fila.querySelector("td") ? fila.querySelector("td").textContent.trim() : "";
+                if (!idHecho) {
+                    console.error("No se encontró data-hecho-id en la fila");
+                    return;
+                }
+                console.log("🗑 Solicitar eliminación para hecho id =", idHecho);
+                abrirModalSolicitud(idHecho, titulo);
+            });
+        });
+
+        // Envío de la solicitud
+        if (formSol) {
+            formSol.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const idHecho = parseInt(inputIdHechoSol.value, 10);
+                const justificacion = document.getElementById("justificacionSolicitud").value.trim();
+
+                if (!justificacion) {
+                    errorSol.textContent = "La justificación es obligatoria.";
+                    return;
+                }
+
+                const payloadSol = {
+                    idHecho: idHecho,
+                    justificacion: justificacion
+                };
+
+                console.log("📦 Payload solicitud eliminación:", payloadSol);
+
+                fetch(urlCrearSolicitud, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payloadSol)
+                })
+                    .then(resp => {
+                        if (!resp.ok) {
+                            return resp.text().then(t => {
+                                throw new Error(t || ("HTTP " + resp.status));
+                            });
+                        }
+                        return resp.json().catch(() => null);
+                    })
+                    .then(data => {
+                        console.log("✅ Solicitud creada:", data);
+                        cerrarModalSolicitud();
+                        alert("Solicitud enviada. Estado: " + (data && data.estado ? data.estado : "PENDIENTE"));
+                    })
+                    .catch(err => {
+                        console.error("❌ Error al crear solicitud:", err);
+                        errorSol.textContent = "Error al crear solicitud: " + err.message;
+                    });
+            });
+        }
+
+        /* --------- Botón limpiar filtros --------- */
         const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
         if (btnLimpiarFiltros) {
             btnLimpiarFiltros.addEventListener("click", function () {
