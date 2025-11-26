@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true) // 👈 ESTO EVITA ERRORES SI EL JSON TIENE CAMPOS EXTRA
 public class HechoDTO {
-    private Long id;
+    private Long idHecho;
     private String titulo;
     private String descripcion;
     private String categoria;
