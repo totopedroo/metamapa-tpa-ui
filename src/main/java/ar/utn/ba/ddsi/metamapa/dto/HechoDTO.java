@@ -19,5 +19,7 @@ public class HechoDTO {
     private String descripcion;
     private String categoria;
     private LocalDate fechaAcontecimiento;
+    private Double latitud;
+    private Double longitud;
     private List<String> etiquetas;
 }
