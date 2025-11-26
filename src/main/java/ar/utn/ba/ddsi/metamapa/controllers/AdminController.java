@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin")
@@ -24,6 +25,40 @@ public class AdminController {
 
     private final ColeccionUiService coleccionService;
 
+    @GetMapping("/inicio")
+    public String inicioAdmin(Model model, HttpSession session) {
+        // validarAdmin(session); // Descomentar si usas validación por sesión manual
+
+        // NUEVO: Cargar listas para los selects del Modal de Consenso
+        model.addAttribute("listaColecciones", coleccionService.listarColecciones());
+        model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
+
+        // NUEVO: Datos dummy para dashboard (o conectar a servicio real)
+        model.addAttribute("numeroSolicitudes", 3);
+
+        return "admin/inicio";
+    }
+
+    // NUEVO: Procesa el formulario del modal para asociar un algoritmo
+    @PostMapping("/consenso/asociar")
+    public String asociarAlgoritmo(@RequestParam Long coleccionId,
+                                   @RequestParam(required = false) Long algoritmoId,
+                                   RedirectAttributes redirectAttrs) {
+        try {
+            coleccionService.asociarAlgoritmo(coleccionId, algoritmoId);
+            redirectAttrs.addFlashAttribute("mensajeExito", "Algoritmo actualizado correctamente.");
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("mensajeError", "Error al actualizar algoritmo: " + e.getMessage());
+        }
+        return "redirect:/admin/inicio";
+    }
+
+    @GetMapping("/colecciones")
+    public String administrarColecciones(Model model, HttpSession session) {
+        validarAdmin(session);
+        model.addAttribute("colecciones", coleccionService.listarColecciones());
+        return "admin/colecciones";
+    }
 
     @PostMapping("/importar-csv-upload")
     public ResponseEntity<?> subirCsv(@RequestParam("file") MultipartFile file) {
@@ -41,19 +76,6 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/inicio")
-    public String inicioAdmin() {
-        return "admin/inicio";
-    }
-
-    @GetMapping("/colecciones")
-    public String administrarColecciones(Model model, HttpSession session) {
-
-        validarAdmin(session);
-
-        model.addAttribute("colecciones", coleccionService.listarColecciones());
-        return "admin/colecciones"; // tu template actual
-    }
 
     private void validarAdmin(HttpSession session) {
         String rol = (String) session.getAttribute("rol");

@@ -32,6 +32,22 @@
 <main class="container my-5">
     <h2 style="margin-bottom: 2rem;">Panel de Administración</h2>
 
+    <!-- BLOQUE ALERTAS DE ÉXITO O ERROR -->
+    <!-- Se muestra solo si 'mensajeExito' existe en el modelo -->
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${mensajeExito}">Operación realizada con éxito.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+
+    <!-- Se muestra solo si 'mensajeError' existe en el modelo -->
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${mensajeError}">Ocurrió un error.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    <!-- FIN BLOQUE ALERTAS -->
+
     <div class="row g-4">
 
         <div class="col-md-6 col-lg-4">
@@ -59,7 +75,7 @@
         </div>
 
         <div class="col-md-6 col-lg-4">
-            <a th:href="@{/admin/consenso}" class="text-decoration-none">
+            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#modalConsenso">
                 <div class="card admin-card">
                     <div class="card-body">
                         <i class="bi bi-gear card-icon"></i>
@@ -109,6 +125,7 @@
     </div>
 </main>
 
+<!-- MODAL CONSENSO -->
 <div class="modal fade" id="modalConsenso" tabindex="-1" aria-labelledby="modalConsensoLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -124,22 +141,22 @@
                             <option value="" disabled selected>Seleccione una colección</option>
                             <option th:each="coleccion : ${listaColecciones}"
                                     th:value="${coleccion.id}"
-                                    th:text="${coleccion.nombre}"></option>
+                                    th:text="${coleccion.titulo}"></option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="selectAlgoritmo" class="form-label">Algoritmo</label>
-                        <select class="form-select" id="selectAlgoritmo" name="algoritmoId" required>
-                            <option value="" disabled selected>Seleccione un algoritmo</option>
-                            <option th:each="algoritmo : ${listaAlgoritmos}"
-                                    th:value="${algoritmo.id}"
-                                    th:text="${algoritmo.nombre}"></option>
+                        <select class="form-select" id="selectAlgoritmo" name="algoritmoId">
+                            <option value="" selected>Ninguno</option>
+                            <option th:each="algo : ${listaAlgoritmos}"
+                                    th:value="${algo.id}"
+                                    th:text="${algo.nombre}"></option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Aceptar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
         </div>

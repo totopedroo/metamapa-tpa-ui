@@ -1,5 +1,6 @@
 package ar.utn.ba.ddsi.metamapa.services;
 
+import ar.utn.ba.ddsi.metamapa.dto.AlgoritmoDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,38 @@ public class ColeccionUiService {
 
     private String url(String path) {
         return apiBaseUrl + path;
+    }
+
+    // --- MÉTODOS PARA ALGORITMOS DE CONSENSO (MODAL) ---
+
+    /**
+     * Obtiene la lista de algoritmos disponibles desde el backend.
+     * GET /api/colecciones/algoritmos
+     */
+    public List<AlgoritmoDTO> listarAlgoritmos() {
+        try {
+            AlgoritmoDTO[] resp = restTemplate.getForObject(url("/api/colecciones/algoritmos"), AlgoritmoDTO[].class);
+            return resp != null ? Arrays.asList(resp) : Collections.emptyList();
+        } catch (Exception e) {
+            System.err.println("Error listando algoritmos: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Asocia un algoritmo a una colección.
+     * PUT /api/colecciones/{id}/asociar-algoritmo?algoritmoId={id}
+     */
+    public void asociarAlgoritmo(Long coleccionId, Long algoritmoId) {
+        String queryParam = (algoritmoId != null) ? "?algoritmoId=" + algoritmoId : "";
+        String uri = url("/api/colecciones/" + coleccionId + "/asociar-algoritmo" + queryParam);
+
+        try {
+            restTemplate.put(uri, null);
+        } catch (Exception e) {
+            System.err.println("Error asociando algoritmo: " + e.getMessage());
+            throw new RuntimeException("Error al asociar algoritmo");
+        }
     }
 
     // --- Últimas ---
