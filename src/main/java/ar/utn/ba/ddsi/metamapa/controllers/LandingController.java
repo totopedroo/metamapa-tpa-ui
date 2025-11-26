@@ -16,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LandingController {
 
-  // 👇 Descomentamos la inyección de dependencias para poder usarlas
   private final ColeccionUiService coleccionService;
   private final HechosUiService hechoService;
 

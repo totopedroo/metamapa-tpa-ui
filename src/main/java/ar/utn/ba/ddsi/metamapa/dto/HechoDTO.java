@@ -14,11 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HechoDTO {
-    private Long id;
+    private Long idHecho;
     private String titulo;
     private String descripcion;
     private String categoria;
-    private String lugar;
-    private LocalDate fecha;
+    private LocalDate fechaAcontecimiento;
+    private Double latitud;
+    private Double longitud;
     private List<String> etiquetas;
 }

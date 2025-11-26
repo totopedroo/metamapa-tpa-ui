@@ -7,9 +7,16 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
 
     <style>
         :root {
@@ -23,10 +30,6 @@
         body {
             background-color: var(--color-beige-fondo);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        .btn-base {
-            /* solo para usabilidad visual, tailwind hace el resto */
         }
 
         .btn-verde-oscuro {
@@ -83,11 +86,23 @@
             filter: brightness(0.95);
         }
 
-        /* Modal */
+        /* Mapa debajo de los modales */
+        #mapHechos {
+            height: 20rem;
+            z-index: 0;
+        }
+
+        .leaflet-pane,
+        .leaflet-top,
+        .leaflet-bottom {
+            z-index: 0 !important;
+        }
+
+        /* Modal genérico (crear / editar / solicitar eliminación) */
         .modal {
             display: none;
             position: fixed;
-            z-index: 50;
+            z-index: 9999; /* por encima del mapa y todo lo demás */
             left: 0;
             top: 0;
             width: 100%;
@@ -137,12 +152,12 @@
         <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
         <button type="button"
                 id="abrirModalCrear"
-                class="btn-base btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                class="btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-plus mr-2"></i> Agregar Hecho
         </button>
     </div>
 
-    <!-- (Opcional) Tarjeta de filtros que ya tenías, la dejo igual por si la seguís usando -->
+    <!-- Filtros -->
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
         <form th:action="@{/hechos/hechos}" method="get" id="filtrosForm">
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
@@ -233,11 +248,11 @@
                 <div class="flex flex-col gap-2 mt-2 md:mt-0">
                     <span class="text-xs font-semibold text-gray-700">Acciones</span>
                     <div class="flex gap-3 mt-1">
-                        <button class="btn-base btn-verde-oscuro text-sm inline-flex items-center px-3 py-2 rounded-md"
+                        <button class="btn-verde-oscuro text-sm inline-flex items-center px-3 py-2 rounded-md"
                                 type="submit">
                             <i class="fas fa-search mr-1"></i> Buscar
                         </button>
-                        <button class="btn-base btn-rojo text-sm inline-flex items-center px-3 py-2 rounded-md"
+                        <button class="btn-rojo text-sm inline-flex items-center px-3 py-2 rounded-md"
                                 type="button" id="btnLimpiarFiltros">
                             <i class="fas fa-broom mr-1"></i> Limpiar filtros
                         </button>
@@ -245,6 +260,12 @@
                 </div>
             </div>
         </form>
+    </section>
+
+    <!-- Mapa de hechos -->
+    <section class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800">Mapa de hechos</h3>
+        <div id="mapHechos" class="w-full rounded-md"></div>
     </section>
 
     <!-- Tabla de hechos -->
@@ -255,6 +276,7 @@
             <table class="min-w-full text-sm">
                 <thead class="border-b">
                 <tr class="text-left text-gray-600">
+                    <th class="py-2 px-2">ID</th>
                     <th class="py-2 px-2">Título</th>
                     <th class="py-2 px-2">Descripción</th>
                     <th class="py-2 px-2">Tags</th>
@@ -265,26 +287,32 @@
                 </thead>
                 <tbody>
                 <tr th:each="hecho : ${hechos}"
-                    class="border-b last:border-0 hover:bg-gray-50">
-                    <td class="py-2 px-2" th:text="${hecho.titulo}">Título</td>
-                    <td class="py-2 px-2" th:text="${hecho.descripcion}">Descripción</td>
-                    <td class="py-2 px-2">
+                    class="border-b last:border-0 hover:bg-gray-50"
+                    th:data-hecho-id="${hecho.idHecho}"
+                    th:data-hecho-latitud="${hecho.latitud}"
+                    th:data-hecho-longitud="${hecho.longitud}"
+                    th:data-hecho-categoria="${hecho.categoria}">
+                    <td class="py-2 px-2 col-id" th:text="${hecho.idHecho}">1</td>
+                    <td class="py-2 px-2 col-titulo" th:text="${hecho.titulo}">Título</td>
+                    <td class="py-2 px-2 col-descripcion" th:text="${hecho.descripcion}">Descripción</td>
+                    <td class="py-2 px-2 col-etiquetas">
                         <span th:each="tag : ${hecho.etiquetas}"
                               class="inline-block bg-gray-200 text-xs px-2 py-1 rounded mr-1 mb-1"
                               th:text="${tag}">tag</span>
                     </td>
                     <td class="py-2 px-2 text-center">
-                        <button class="btn-icono ver-mapa" title="Ver en mapa" type="button">
+                        <button class="btn-icono ver-mapa btn-ver-mapa" title="Ver en mapa" type="button">
                             <i class="fas fa-map-marker-alt"></i>
                         </button>
                     </td>
                     <td class="py-2 px-2 text-center">
-                        <button class="btn-icono eliminar" title="Solicitar eliminación" type="button">
+                        <button class="btn-icono eliminar btn-solicitar-eliminacion"
+                                title="Solicitar eliminación" type="button">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
                     <td class="py-2 px-2 text-center">
-                        <button class="btn-icono editar" title="Editar" type="button">
+                        <button class="btn-icono editar btn-editar-hecho" title="Editar" type="button">
                             <i class="fas fa-pen"></i>
                         </button>
                     </td>
@@ -292,7 +320,7 @@
 
                 <tr th:if="${hechos == null or #lists.isEmpty(hechos)}"
                     class="border-t">
-                    <td class="py-4 px-2 text-center text-gray-500" colspan="6">
+                    <td class="py-4 px-2 text-center text-gray-500" colspan="7">
                         No se encontraron hechos para los filtros seleccionados.
                     </td>
                 </tr>
@@ -308,11 +336,9 @@
         <span class="close-btn" id="cerrarModalCrear">&times;</span>
         <h3 class="text-2xl font-bold mb-2 text-gray-800">Crear Nuevo Hecho</h3>
 
-        <!-- errores -->
         <div id="errorCrearHecho" class="text-sm text-red-600 mb-2"></div>
 
         <form id="formCrearHecho" class="space-y-4">
-            <!-- Título -->
             <div>
                 <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
                 <input type="text"
@@ -322,7 +348,6 @@
                        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
             </div>
 
-            <!-- Descripción -->
             <div>
                 <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
                 <textarea id="descripcion"
@@ -331,7 +356,6 @@
                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
             </div>
 
-            <!-- Categoría -->
             <div>
                 <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
                 <input type="text"
@@ -341,7 +365,6 @@
                        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
             </div>
 
-            <!-- URL Contenido Multimedia (opcional) -->
             <div>
                 <label for="urlMultimedia" class="block text-sm font-medium text-gray-700">
                     URL contenido multimedia (opcional)
@@ -353,7 +376,6 @@
                        placeholder="https://...">
             </div>
 
-            <!-- Etiquetas (coma separadas, opcional) -->
             <div>
                 <label for="etiquetas" class="block text-sm font-medium text-gray-700">
                     Etiquetas (separadas por coma, opcional)
@@ -365,7 +387,6 @@
                        placeholder="tránsito, lesiones">
             </div>
 
-            <!-- Latitud / Longitud -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label for="latitud" class="block text-sm font-medium text-gray-700">Latitud</label>
@@ -387,7 +408,6 @@
                 </div>
             </div>
 
-            <!-- Fecha acontecimiento -->
             <div>
                 <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
                 <input type="date"
@@ -397,15 +417,14 @@
                        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
             </div>
 
-            <!-- Botones -->
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button"
                         id="cancelarModalCrear"
-                        class="btn-base btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                     Cancelar
                 </button>
                 <button type="submit"
-                        class="btn-base btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                     Guardar
                 </button>
             </div>
@@ -413,49 +432,196 @@
     </div>
 </div>
 
-<!-- JS: modal + POST al backend -->
+<!-- MODAL: SOLICITAR ELIMINACIÓN -->
+<div id="modalSolicitudEliminacion" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalSolicitud">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Solicitar eliminación de hecho</h3>
+
+        <p class="text-sm text-gray-700 mb-2">
+            Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span>
+        </p>
+
+        <div id="errorSolicitudEliminacion" class="text-sm text-red-600 mb-2"></div>
+
+        <form id="formSolicitudEliminacion" class="space-y-4">
+            <input type="hidden" id="idHechoSolicitud" name="idHecho">
+
+            <div>
+                <label for="justificacionSolicitud"
+                       class="block text-sm font-medium text-gray-700">Justificación</label>
+                <textarea id="justificacionSolicitud"
+                          name="justificacion"
+                          rows="4"
+                          required
+                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                          placeholder="Explicá por qué debería eliminarse este hecho"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button"
+                        id="cancelarModalSolicitud"
+                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDITAR HECHO -->
+<div id="modalEditarHecho" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalEditar">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Editar Hecho</h3>
+
+        <div id="errorEditarHecho" class="text-sm text-red-600 mb-2"></div>
+
+        <form id="formEditarHecho" class="space-y-4">
+            <input type="hidden" id="idHechoEditar" name="idHechoEditar">
+
+            <div>
+                <label for="tituloEditar" class="block text-sm font-medium text-gray-700">Título</label>
+                <input type="text"
+                       id="tituloEditar"
+                       name="tituloEditar"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <div>
+                <label for="descripcionEditar" class="block text-sm font-medium text-gray-700">Descripción</label>
+                <textarea id="descripcionEditar"
+                          name="descripcionEditar"
+                          rows="3"
+                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
+            </div>
+
+            <div>
+                <label for="categoriaEditar" class="block text-sm font-medium text-gray-700">Categoría</label>
+                <input type="text"
+                       id="categoriaEditar"
+                       name="categoriaEditar"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <div>
+                <label for="urlMultimediaEditar" class="block text-sm font-medium text-gray-700">
+                    URL contenido multimedia (opcional)
+                </label>
+                <input type="url"
+                       id="urlMultimediaEditar"
+                       name="urlMultimediaEditar"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="https://...">
+            </div>
+
+            <div>
+                <label for="etiquetasEditar" class="block text-sm font-medium text-gray-700">
+                    Etiquetas (separadas por coma, opcional)
+                </label>
+                <input type="text"
+                       id="etiquetasEditar"
+                       name="etiquetasEditar"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                       placeholder="tránsito, lesiones">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="latitudEditar" class="block text-sm font-medium text-gray-700">Latitud</label>
+                    <input type="number"
+                           step="any"
+                           id="latitudEditar"
+                           name="latitudEditar"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                </div>
+                <div>
+                    <label for="longitudEditar" class="block text-sm font-medium text-gray-700">Longitud</label>
+                    <input type="number"
+                           step="any"
+                           id="longitudEditar"
+                           name="longitudEditar"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                </div>
+            </div>
+
+            <div>
+                <label for="fechaEditar" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
+                <input type="date"
+                       id="fechaEditar"
+                       name="fechaEditar"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button"
+                        id="cancelarModalEditar"
+                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<!-- JS principal -->
 <script>
     (function () {
         console.log("✅ hechos.html JS cargado");
 
-        const modal = document.getElementById("modalCrearHecho");
-        const btnAbrir = document.getElementById("abrirModalCrear");
-        const btnCerrar = document.getElementById("cerrarModalCrear");
-        const btnCancelar = document.getElementById("cancelarModalCrear");
-        const form = document.getElementById("formCrearHecho");
-        const errorBox = document.getElementById("errorCrearHecho");
+        /* ================== URLS BACK ================== */
+        const urlBaseFuenteDinamica = "http://localhost:8080/fuente-dinamica";
+        const urlCrearHecho = urlBaseFuenteDinamica + "/hechos/crear";
+        const urlEditarHechoBase = urlBaseFuenteDinamica + "/hechos/editar/";
+        const urlCrearSolicitud = "http://localhost:8080/solicitudes";
 
-        // Endpoint REAL del backend de fuente dinámica
-        const urlCrearHecho = "http://localhost:8080/fuente-dinamica/hechos/crear";
+        /* ================== MODAL CREAR HECHO ================== */
+        const modalCrear = document.getElementById("modalCrearHecho");
+        const btnAbrirCrear = document.getElementById("abrirModalCrear");
+        const btnCerrarCrear = document.getElementById("cerrarModalCrear");
+        const btnCancelarCrear = document.getElementById("cancelarModalCrear");
+        const formCrear = document.getElementById("formCrearHecho");
+        const errorCrear = document.getElementById("errorCrearHecho");
 
-        function abrir() {
-            modal.style.display = "block";
-            errorBox.textContent = "";
+        function abrirModalCrear() {
+            modalCrear.style.display = "block";
+            errorCrear.textContent = "";
         }
 
-        function cerrar() {
-            modal.style.display = "none";
-            errorBox.textContent = "";
-            form.reset();
+        function cerrarModalCrear() {
+            modalCrear.style.display = "none";
+            errorCrear.textContent = "";
+            formCrear.reset();
         }
 
-        if (btnAbrir)   btnAbrir.addEventListener("click", abrir);
-        if (btnCerrar)  btnCerrar.addEventListener("click", cerrar);
-        if (btnCancelar) btnCancelar.addEventListener("click", function (e) {
+        if (btnAbrirCrear) btnAbrirCrear.addEventListener("click", abrirModalCrear);
+        if (btnCerrarCrear) btnCerrarCrear.addEventListener("click", cerrarModalCrear);
+        if (btnCancelarCrear) btnCancelarCrear.addEventListener("click", function (e) {
             e.preventDefault();
-            cerrar();
+            cerrarModalCrear();
         });
 
-        // Cerrar haciendo clic fuera del contenido
         window.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                cerrar();
+            if (event.target === modalCrear) {
+                cerrarModalCrear();
             }
         });
 
-        // Envío del formulario por fetch directamente al backend 8080
-        if (form) {
-            form.addEventListener("submit", function (e) {
+        if (formCrear) {
+            formCrear.addEventListener("submit", function (e) {
                 e.preventDefault();
 
                 const titulo = document.getElementById("titulo").value.trim();
@@ -463,11 +629,10 @@
                 const categoria = document.getElementById("categoria").value.trim();
                 const latitud = parseFloat(document.getElementById("latitud").value);
                 const longitud = parseFloat(document.getElementById("longitud").value);
-                const fecha = document.getElementById("fecha").value; // yyyy-MM-dd
+                const fecha = document.getElementById("fecha").value;
                 const urlMultimedia = document.getElementById("urlMultimedia").value.trim();
                 const etiquetasTexto = document.getElementById("etiquetas").value.trim();
 
-                // Armamos etiquetas [{nombre: "tránsito"}, ...]
                 let etiquetas = [];
                 if (etiquetasTexto !== "") {
                     etiquetas = etiquetasTexto
@@ -489,7 +654,7 @@
                     contribuyente: null
                 };
 
-                console.log("📦 Payload a enviar:", payload);
+                console.log("📦 Payload a enviar (crear hecho):", payload);
 
                 fetch(urlCrearHecho, {
                     method: "POST",
@@ -508,24 +673,332 @@
                     })
                     .then(data => {
                         console.log("✅ Hecho creado:", data);
-                        cerrar();
-                        // refresco la pantalla de hechos para que aparezca el nuevo
+                        cerrarModalCrear();
                         window.location.href = "/hechos/hechos";
                     })
                     .catch(err => {
                         console.error("❌ Error al crear hecho:", err);
-                        errorBox.textContent = "Error al crear hecho: " + err.message;
+                        errorCrear.textContent = "Error al crear hecho: " + err.message;
                     });
             });
         }
 
-        // Limpiar filtros => volver a /hechos/hechos sin parámetros
+        /* ================== MODAL SOLICITUD ELIMINACIÓN ================== */
+        const modalSol = document.getElementById("modalSolicitudEliminacion");
+        const cerrarSol = document.getElementById("cerrarModalSolicitud");
+        const cancelarSol = document.getElementById("cancelarModalSolicitud");
+        const formSol = document.getElementById("formSolicitudEliminacion");
+        const errorSol = document.getElementById("errorSolicitudEliminacion");
+        const inputIdHechoSol = document.getElementById("idHechoSolicitud");
+        const tituloHechoSol = document.getElementById("tituloHechoSolicitud");
+
+        function abrirModalSolicitud(idHecho, titulo) {
+            inputIdHechoSol.value = idHecho;
+            tituloHechoSol.textContent = titulo || "";
+            errorSol.textContent = "";
+            modalSol.style.display = "block";
+        }
+
+        function cerrarModalSolicitud() {
+            modalSol.style.display = "none";
+            errorSol.textContent = "";
+            inputIdHechoSol.value = "";
+            if (formSol) formSol.reset();
+        }
+
+        if (cerrarSol) {
+            cerrarSol.addEventListener("click", cerrarModalSolicitud);
+        }
+        if (cancelarSol) {
+            cancelarSol.addEventListener("click", function (e) {
+                e.preventDefault();
+                cerrarModalSolicitud();
+            });
+        }
+
+        window.addEventListener("click", function (event) {
+            if (event.target === modalSol) {
+                cerrarModalSolicitud();
+            }
+        });
+
+        document.querySelectorAll(".btn-solicitar-eliminacion").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const fila = btn.closest("tr");
+                if (!fila) {
+                    console.error("No se encontró la fila del hecho para solicitud");
+                    return;
+                }
+                const idHecho = fila.getAttribute("data-hecho-id");
+                const titulo = fila.querySelector(".col-titulo")
+                    ? fila.querySelector(".col-titulo").textContent.trim()
+                    : "";
+                if (!idHecho) {
+                    console.error("No se encontró data-hecho-id en la fila");
+                    return;
+                }
+                console.log("🗑 Solicitar eliminación para hecho id =", idHecho);
+                abrirModalSolicitud(idHecho, titulo);
+            });
+        });
+
+        if (formSol) {
+            formSol.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const idHecho = parseInt(inputIdHechoSol.value, 10);
+                const justificacion = document.getElementById("justificacionSolicitud").value.trim();
+
+                if (!justificacion) {
+                    errorSol.textContent = "La justificación es obligatoria.";
+                    return;
+                }
+
+                const payloadSol = {
+                    idHecho: idHecho,
+                    justificacion: justificacion
+                };
+
+                console.log("📦 Payload solicitud eliminación:", payloadSol);
+
+                fetch(urlCrearSolicitud, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payloadSol)
+                })
+                    .then(resp => {
+                        if (!resp.ok) {
+                            return resp.text().then(t => {
+                                throw new Error(t || ("HTTP " + resp.status));
+                            });
+                        }
+                        return resp.json().catch(() => null);
+                    })
+                    .then(data => {
+                        console.log("✅ Solicitud creada:", data);
+                        cerrarModalSolicitud();
+                        alert("Solicitud enviada. Estado: " + (data && data.estado ? data.estado : "PENDIENTE"));
+                    })
+                    .catch(err => {
+                        console.error("❌ Error al crear solicitud:", err);
+                        errorSol.textContent = "Error al crear solicitud: " + err.message;
+                    });
+            });
+        }
+
+        /* ================== MODAL EDITAR HECHO ================== */
+        const modalEditar = document.getElementById("modalEditarHecho");
+        const cerrarEditar = document.getElementById("cerrarModalEditar");
+        const cancelarEditar = document.getElementById("cancelarModalEditar");
+        const formEditar = document.getElementById("formEditarHecho");
+        const errorEditar = document.getElementById("errorEditarHecho");
+        const inputIdEditar = document.getElementById("idHechoEditar");
+
+        function abrirModalEditarDesdeFila(fila) {
+            const idHecho = fila.getAttribute("data-hecho-id");
+            if (!idHecho) {
+                console.error("No se encontró data-hecho-id en la fila para editar");
+                return;
+            }
+
+            inputIdEditar.value = idHecho;
+
+            const titulo = fila.querySelector(".col-titulo")?.textContent.trim() || "";
+            const descripcion = fila.querySelector(".col-descripcion")?.textContent.trim() || "";
+            const categoria = fila.getAttribute("data-hecho-categoria") || "";
+
+            // Armo las etiquetas como texto a partir de los span
+            const etiquetas = Array.from(fila.querySelectorAll(".col-etiquetas span"))
+                .map(s => s.textContent.trim())
+                .filter(s => s.length > 0)
+                .join(", ");
+
+            const latitud = fila.getAttribute("data-hecho-latitud") || "";
+            const longitud = fila.getAttribute("data-hecho-longitud") || "";
+
+            document.getElementById("tituloEditar").value = titulo;
+            document.getElementById("descripcionEditar").value = descripcion;
+            document.getElementById("categoriaEditar").value = categoria;
+            document.getElementById("etiquetasEditar").value = etiquetas;
+            document.getElementById("latitudEditar").value = latitud;
+            document.getElementById("longitudEditar").value = longitud;
+            document.getElementById("urlMultimediaEditar").value = "";
+            document.getElementById("fechaEditar").value = "";
+
+            errorEditar.textContent = "";
+            modalEditar.style.display = "block";
+        }
+
+        function cerrarModalEditar() {
+            modalEditar.style.display = "none";
+            errorEditar.textContent = "";
+            if (formEditar) formEditar.reset();
+        }
+
+        if (cerrarEditar) {
+            cerrarEditar.addEventListener("click", cerrarModalEditar);
+        }
+
+        if (cancelarEditar) {
+            cancelarEditar.addEventListener("click", function (e) {
+                e.preventDefault();
+                cerrarModalEditar();
+            });
+        }
+
+        window.addEventListener("click", function (event) {
+            if (event.target === modalEditar) {
+                cerrarModalEditar();
+            }
+        });
+
+        document.querySelectorAll(".btn-editar-hecho").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const fila = btn.closest("tr");
+                if (!fila) {
+                    console.error("No se encontró la fila del hecho para editar");
+                    return;
+                }
+                abrirModalEditarDesdeFila(fila);
+            });
+        });
+
+        if (formEditar) {
+            formEditar.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const idHecho = inputIdEditar.value;
+                if (!idHecho) {
+                    errorEditar.textContent = "No se pudo determinar el ID del hecho.";
+                    return;
+                }
+
+                const titulo = document.getElementById("tituloEditar").value.trim();
+                const descripcion = document.getElementById("descripcionEditar").value.trim();
+                const categoria = document.getElementById("categoriaEditar").value.trim();
+                const latitudVal = document.getElementById("latitudEditar").value;
+                const longitudVal = document.getElementById("longitudEditar").value;
+                const fecha = document.getElementById("fechaEditar").value;
+                const urlMultimedia = document.getElementById("urlMultimediaEditar").value.trim();
+                const etiquetasTexto = document.getElementById("etiquetasEditar").value.trim();
+
+                const latitud = latitudVal === "" ? null : parseFloat(latitudVal);
+                const longitud = longitudVal === "" ? null : parseFloat(longitudVal);
+
+                let etiquetas = [];
+                if (etiquetasTexto !== "") {
+                    etiquetas = etiquetasTexto
+                        .split(",")
+                        .map(t => t.trim())
+                        .filter(t => t.length > 0)
+                        .map(nombre => ({ nombre }));
+                }
+
+                const payloadEditar = {
+                    titulo: titulo || null,
+                    descripcion: descripcion || null,
+                    categoria: categoria || null,
+                    latitud: latitud,
+                    longitud: longitud,
+                    fechaAcontecimiento: fecha || null,
+                    contenidoMultimedia: urlMultimedia ? { url: urlMultimedia } : null,
+                    etiquetas: etiquetas.length > 0 ? etiquetas : null
+                };
+
+                console.log("✏️ Payload a enviar (editar hecho):", payloadEditar);
+
+                fetch(urlEditarHechoBase + idHecho, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payloadEditar)
+                })
+                    .then(resp => {
+                        if (!resp.ok) {
+                            return resp.text().then(t => {
+                                throw new Error(t || ("HTTP " + resp.status));
+                            });
+                        }
+                        return resp.json().catch(() => null);
+                    })
+                    .then(data => {
+                        console.log("✅ Hecho editado:", data);
+                        cerrarModalEditar();
+                        // Lo más simple: refrescamos la tabla
+                        window.location.href = "/hechos/hechos";
+                    })
+                    .catch(err => {
+                        console.error("❌ Error al editar hecho:", err);
+                        errorEditar.textContent = "Error al editar hecho: " + err.message;
+                    });
+            });
+        }
+
+        /* ================== LIMPIAR FILTROS ================== */
         const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
         if (btnLimpiarFiltros) {
             btnLimpiarFiltros.addEventListener("click", function () {
                 window.location.href = "/hechos/hechos";
             });
         }
+
+        /* ================== MAPA LEAFLET ================== */
+        const mapContainer = document.getElementById("mapHechos");
+        if (mapContainer) {
+            const map = L.map("mapHechos").setView([-34.6037, -58.3816], 11); // CABA
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors"
+            }).addTo(map);
+
+            const filasHechos = document.querySelectorAll("tbody tr[data-hecho-id]");
+            let bounds = [];
+
+            filasHechos.forEach(fila => {
+                const lat = parseFloat(fila.getAttribute("data-hecho-latitud"));
+                const lng = parseFloat(fila.getAttribute("data-hecho-longitud"));
+                const titulo = fila.querySelector(".col-titulo")?.textContent.trim() || "";
+                const id = fila.getAttribute("data-hecho-id");
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup(`<strong>#${id}</strong><br>${titulo}`);
+
+                    // Guardo el marker en la fila por si lo quiero usar luego
+                    fila._marker = marker;
+                    bounds.push([lat, lng]);
+                }
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [20, 20] });
+            }
+
+            // Botón "ver en mapa" por fila
+            document.querySelectorAll(".btn-ver-mapa").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const fila = btn.closest("tr");
+                    if (!fila) return;
+
+                    const lat = parseFloat(fila.getAttribute("data-hecho-latitud"));
+                    const lng = parseFloat(fila.getAttribute("data-hecho-longitud"));
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        map.setView([lat, lng], 15);
+                        if (fila._marker) {
+                            fila._marker.openPopup();
+                        }
+                    } else {
+                        alert("Este hecho no tiene coordenadas definidas.");
+                    }
+                });
+            });
+        }
+
     })();
 </script>
 
