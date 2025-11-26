@@ -75,7 +75,7 @@ public class ColeccionesUiController {
         form.setDescripcion(dto.getDescripcion());
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
 
-        form.setHechosIds(dto.getHechos().stream().map(h -> h.getId()).toList());
+        form.setHechosIds(dto.getHechos().stream().map(h -> h.getIdHecho()).toList());
         form.setCriteriosIds(dto.getCriterios().stream().map(c -> c.getId()).toList());
 
         model.addAttribute("form", form);
