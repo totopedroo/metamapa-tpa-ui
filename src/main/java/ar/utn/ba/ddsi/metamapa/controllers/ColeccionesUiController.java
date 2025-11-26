@@ -1,14 +1,14 @@
 package ar.utn.ba.ddsi.metamapa.controllers;
 
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
+import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
 import ar.utn.ba.ddsi.metamapa.services.ColeccionUiService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/colecciones")
@@ -17,76 +17,107 @@ public class ColeccionesUiController {
 
     private final ColeccionUiService coleccionService;
 
-    /**
-     * Muestra la lista de todas las colecciones.
-     * GET /colecciones
-     */
+    // --- LISTAR ---
     @GetMapping
     public String listarColecciones(Model model) {
-        // Llama al servicio para obtener la lista (asegúrate de tener este método en el servicio)
-        List<ColeccionDTO> colecciones = coleccionService.listarColecciones();
-        model.addAttribute("colecciones", colecciones);
-
-        // Asegúrate de tener este template: src/main/resources/templates/lista-colecciones.html
-        // O si está en carpeta: "colecciones/lista"
-        return "lista-colecciones";
+        model.addAttribute("colecciones", coleccionService.listarColecciones());
+        return "colecciones/inicio";
     }
 
-    /**
-     * Muestra el detalle de una colección.
-     * GET /colecciones/{id}
-     */
+    // --- DETALLE ---
     @GetMapping("/{id}")
-    public String verColeccion(@PathVariable Long id, Model model) {
-        ColeccionDTO coleccion = coleccionService.getColeccionPorId(id);
-
-        if (coleccion == null) {
-            return "redirect:/colecciones"; // Si no existe, vuelve a la lista
-        }
-
-        model.addAttribute("coleccion", coleccion);
-        return "detalle-coleccion"; // src/main/resources/templates/detalle-coleccion.html
+    public String verDetalle(@PathVariable Long id, Model model) {
+        model.addAttribute("coleccion", coleccionService.getColeccionPorId(id));
+        return "colecciones/detalle";
     }
 
-    /**
-     * Formulario para nueva colección.
-     * GET /colecciones/nueva
-     */
+    // --- FORM NUEVA COLECCIÓN ---
     @GetMapping("/nueva")
-    public String mostrarFormularioDeColeccion(Model model) {
-        model.addAttribute("nuevaColeccion", new ColeccionDTO());
-        return "formulario-coleccion"; // src/main/resources/templates/formulario-coleccion.html
+    public String mostrarFormNueva(Model model, HttpSession session) {
+
+        validarAdmin(session);
+
+        ColeccionFormDTO form = new ColeccionFormDTO();
+        form.setAdministradorId((Long) session.getAttribute("usuarioId"));
+
+        model.addAttribute("form", form);
+        return "colecciones/nueva";
     }
 
-    /**
-     * Procesa la creación.
-     * POST /colecciones/crear
-     */
+    // --- CREAR ---
     @PostMapping("/crear")
-    public String crearColeccion(@ModelAttribute ColeccionDTO nuevaColeccion, RedirectAttributes redirectAttributes) {
-        ColeccionDTO coleccionCreada = coleccionService.crearColeccion(nuevaColeccion);
+    public String crear(@ModelAttribute("form") ColeccionFormDTO form,
+                        RedirectAttributes redirect,
+                        HttpSession session) {
 
-        if (coleccionCreada != null) {
-            redirectAttributes.addFlashAttribute("mensajeExito", "¡Colección creada!");
-            return "redirect:/colecciones/" + coleccionCreada.getId();
-        } else {
-            redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la colección.");
-            return "redirect:/colecciones/nueva";
-        }
+        validarAdmin(session);
+
+        form.setAdministradorId((Long) session.getAttribute("usuarioId"));
+        coleccionService.crearColeccion(form);
+
+        redirect.addFlashAttribute("ok", "Colección creada correctamente");
+        return "redirect:/colecciones";
     }
 
-    /**
-     * Eliminar colección.
-     * GET /colecciones/eliminar/{id}
-     */
-    @GetMapping("/eliminar/{id}")
-    public String eliminarColeccion(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            coleccionService.eliminarColeccion(id);
-            redirectAttributes.addFlashAttribute("mensajeExito", "Colección eliminada.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensajeError", "Error al eliminar.");
-        }
+    // --- FORM EDITAR ---
+    @GetMapping("/editar/{id}")
+    public String mostrarFormEditar(@PathVariable Long id,
+                                    Model model,
+                                    HttpSession session) {
+
+        validarAdmin(session);
+
+        ColeccionDTO dto = coleccionService.getColeccionPorId(id);
+
+        ColeccionFormDTO form = new ColeccionFormDTO();
+        form.setId(dto.getId());
+        form.setTitulo(dto.getTitulo());
+        form.setDescripcion(dto.getDescripcion());
+        form.setAdministradorId((Long) session.getAttribute("usuarioId"));
+
+        form.setHechosIds(dto.getHechos().stream().map(h -> h.getId()).toList());
+        form.setCriteriosIds(dto.getCriterios().stream().map(c -> c.getId()).toList());
+
+        model.addAttribute("form", form);
+        return "colecciones/editar";
+    }
+
+    // --- EDITAR ---
+    @PostMapping("/editar/{id}")
+    public String editar(@PathVariable Long id,
+                         @ModelAttribute("form") ColeccionFormDTO form,
+                         RedirectAttributes redirect,
+                         HttpSession session) {
+
+        validarAdmin(session);
+
+        form.setAdministradorId((Long) session.getAttribute("usuarioId"));
+        coleccionService.editarColeccion(id, form);
+
+        redirect.addFlashAttribute("ok", "Colección actualizada");
         return "redirect:/colecciones";
+    }
+
+    // --- ELIMINAR ---
+    @PostMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable Long id,
+                           RedirectAttributes redirect,
+                           HttpSession session) {
+
+        validarAdmin(session);
+
+        coleccionService.eliminarColeccion(id);
+
+        redirect.addFlashAttribute("ok", "Colección eliminada");
+        return "redirect:/colecciones";
+    }
+
+
+    // --- Utilidad ---
+    private void validarAdmin(HttpSession session) {
+        String rol = (String) session.getAttribute("rol");
+        if (rol == null || !rol.equals("ADMIN")) {
+            throw new RuntimeException("403 - Acceso denegado");
+        }
     }
 }

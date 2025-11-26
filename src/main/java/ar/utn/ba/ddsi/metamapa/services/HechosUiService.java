@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,22 @@ public class HechosUiService {
             restTemplate.postForObject(url, null, String.class);
         } catch (Exception e) {
             System.err.println("Error al importar desde API: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Llama a GET /api/hechos/usuario/{id} en el backend
+     */
+    public List<HechoDTO> listarHechosDelUsuario(Long idUsuario) {
+        String url = apiBaseUrl + "/hechos/usuario/" + idUsuario;
+
+        try {
+            HechoDTO[] response = restTemplate.getForObject(url, HechoDTO[].class);
+            return response != null ? Arrays.asList(response) : List.of();
+
+        } catch (Exception e) {
+            System.err.println("Error obteniendo hechos del usuario: " + e.getMessage());
+            return List.of();
         }
     }
 

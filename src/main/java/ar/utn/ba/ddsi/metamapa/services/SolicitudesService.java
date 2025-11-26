@@ -1,80 +1,121 @@
 package ar.utn.ba.ddsi.metamapa.services;
 
 import ar.utn.ba.ddsi.metamapa.dto.SolicitudDTO;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class SolicitudesService {
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    /*
-        public List<SolicitudDTO> obtenerSolicitudes() {
-            try {
-                String url = "http://localhost:8080/solicitudes/admin";
-                ResponseEntity<SolicitudDTO[]> response = restTemplate.getForEntity(url, SolicitudDTO[].class);
-                if (response.getBody() != null) {
-                    return Arrays.asList(response.getBody());
-                }
+    @Value("${api.base.url:http://localhost:8080}")
+    private String apiBaseUrl;
 
-            } catch (Exception e) {
-                System.err.println("Error al conectar con el backend: " + e.getMessage());
-            }
+    private HttpEntity<Void> entityWithToken(HttpSession session) {
+        String token = (String) session.getAttribute("accessToken");
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
 
-            return new ArrayList<>();
-        }
-
-     */
-    public List<SolicitudDTO> obtenerSolicitudes() {
-        try {
-            String url = "http://localhost:8080/solicitudes/admin";
-            String token = "<JWT_REDACTED>";
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + token); // <--- La magia ocurre acá
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<SolicitudDTO[]> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,          // Pasamos el sobre
-                    SolicitudDTO[].class
-            );
-
-            if (response.getBody() != null) {
-                return Arrays.asList(response.getBody());
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-
-        return new ArrayList<>();
+        return new HttpEntity<>(headers); // sin body
     }
 
-    public void actualizarEstadoSolicitud(Long id, String accion) {
+    // =============================
+    // ADMIN - listar todas
+    // =============================
+    public List<SolicitudDTO> listarTodas(HttpSession session) {
         try {
-            String url = "http://localhost:8080/solicitudes/" + id + "/" + accion;
-            String token = "<JWT_REDACTED>";
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + token); // <--- La magia ocurre acá
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            restTemplate.postForEntity(url, entity, String.class);
-            System.out.println("Solicitud " + id + " -> " + accion + " exitosa.");
+            ResponseEntity<SolicitudDTO[]> response =
+                    restTemplate.exchange(
+                            apiBaseUrl + "/solicitudes/admin",
+                            HttpMethod.GET,
+                            entityWithToken(session),
+                            SolicitudDTO[].class
+                    );
+
+            return Arrays.asList(response.getBody());
+
         } catch (Exception e) {
-            System.err.println("Error al " + accion + " la solicitud: " + e.getMessage());
-            // Opcional: Lanzar una excepción para que el Controller se entere y muestre error en pantalla
+            System.err.println("Error obteniendo solicitudes de admin: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    // =============================
+    // CONTRIBUYENTE - listar por usuario
+    // =============================
+    public List<SolicitudDTO> listarPorUsuario(Long usuarioId, HttpSession session) {
+        try {
+            ResponseEntity<SolicitudDTO[]> response =
+                    restTemplate.exchange(
+                            apiBaseUrl + "/solicitudes/usuarios/" + usuarioId,
+                            HttpMethod.GET,
+                            entityWithToken(session),
+                            SolicitudDTO[].class
+                    );
+
+            return Arrays.asList(response.getBody());
+
+        } catch (Exception e) {
+            System.err.println("Error listando solicitudes usuario: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    // =============================
+    // CONTRIBUYENTE - crear solicitud
+    // =============================
+    public void crearSolicitud(Long idHecho, Long usuarioId, HttpSession session) {
+        try {
+            var body = Map.of(
+                    "idHecho", idHecho,
+                    "idUsuario", usuarioId,
+                    "justificacion", "Solicitud de eliminación"
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + session.getAttribute("accessToken"));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Object> entity = new HttpEntity<>(body, headers);
+
+            restTemplate.postForEntity(
+                    apiBaseUrl + "/solicitudes",
+                    entity,
+                    Void.class
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error creando solicitud: " + e.getMessage());
+        }
+    }
+
+    // =============================
+    // ADMIN - actualizar estado
+    // =============================
+    public void actualizarEstado(Long id, String accion, HttpSession session) {
+        try {
+            restTemplate.exchange(
+                    apiBaseUrl + "/solicitudes/" + id + "/" + accion,
+                    HttpMethod.POST,
+                    entityWithToken(session),
+                    Void.class
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error actualizando estado: " + e.getMessage());
         }
     }
 }

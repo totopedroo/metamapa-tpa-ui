@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Solicitud - MetaMapa</title>
+
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css}" rel="stylesheet">
+
+    <!-- CSS unificado -->
+    <link rel="stylesheet" th:href="@{/css/inicioAdminYContribuyente.css}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <a th:href="@{/contribuyente/inicio}">
+                <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
+            </a>
+        </div>
+
+        <nav>
+            <a th:href="@{/contribuyente/solicitudes}" class="btn btn-outline-light me-3">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+
+            <form th:action="@{/logout}" method="post">
+                <button class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<main class="container my-5">
+
+    <h3 class="mb-4">Nueva Solicitud</h3>
+
+    <form th:action="@{/contribuyente/nueva-solicitud}" method="post" class="card p-4 shadow-sm">
+
+        <!-- TIPO -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tipo de solicitud</label>
+            <select class="form-select" name="tipo" id="tipoSolicitud" required>
+                <option value="" disabled selected>Seleccione...</option>
+                <option value="ELIMINACION">Eliminación</option>
+                <option value="MODIFICACION">Modificación</option>
+            </select>
+            <small id="tipoInfo" class="text-muted"></small>
+        </div>
+
+        <!-- SELECCIÓN PARA ELIMINACIÓN -->
+        <div id="bloqueEliminar" style="display:none;">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Hecho a eliminar</label>
+                <select class="form-select" name="idHechoEliminar">
+                    <option disabled selected value="">Seleccione un hecho...</option>
+                    <option th:each="h : ${hechosParaEliminar}"
+                            th:value="${h.idHecho}"
+                            th:text="${h.titulo}">
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- SELECCIÓN PARA MODIFICACIÓN -->
+        <div id="bloqueModificar" style="display:none;">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Hecho a modificar</label>
+                <select class="form-select" name="idHechoModificar" id="selectHechoModificar">
+                    <option value="" disabled selected>Seleccione uno de sus hechos...</option>
+                    <option th:each="h : ${misHechos}"
+                            th:value="${h.idHecho}"
+                            th:text="${h.titulo}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- CAMPOS PARA EDITAR EL HECHO -->
+            <div id="camposModificacion" style="display:none;">
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nuevo título</label>
+                    <input class="form-control" name="nuevoTitulo" id="nuevoTitulo">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nueva descripción</label>
+                    <textarea class="form-control" rows="4" name="nuevaDescripcion" id="nuevaDescripcion"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nueva categoría</label>
+                    <input class="form-control" name="nuevaCategoria" id="nuevaCategoria">
+                </div>
+            </div>
+        </div>
+
+        <!-- JUSTIFICACIÓN -->
+        <div class="mb-3 mt-3">
+            <label class="form-label fw-bold">Justificación</label>
+            <textarea class="form-control" name="justificacion" rows="4" id="textareaJustificacion" required></textarea>
+
+            <div class="d-flex justify-content-between">
+                <small id="mensaje500" class="text-muted">
+                    Debe contener al menos 500 caracteres o se considerará spam.
+                </small>
+
+                <small id="contadorChars" class="text-muted" style="display:none;">
+                    0 / 500
+                </small>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Enviar Solicitud
+            </button>
+        </div>
+
+    </form>
+
+</main>
+
+<!-- JS para lógica de tipo -->
+<script>
+    const tipo = document.getElementById("tipoSolicitud");
+    const info = document.getElementById("tipoInfo");
+
+    const bloqueEliminar = document.getElementById("bloqueEliminar");
+    const bloqueModificar = document.getElementById("bloqueModificar");
+    const camposModificacion = document.getElementById("camposModificacion");
+
+    const selectHechoModificar = document.getElementById("selectHechoModificar");
+
+    const mensaje500 = document.getElementById("mensaje500");
+    const textareaJustificacion = document.getElementById("textareaJustificacion");
+    const contador = document.getElementById("contadorChars");
+
+
+    tipo.addEventListener("change", () => {
+
+        if (tipo.value === "ELIMINACION") {
+
+            info.innerHTML = "Podés solicitar eliminar <b>cualquier hecho del sistema</b>.";
+
+            bloqueEliminar.style.display = "block";
+            bloqueModificar.style.display = "none";
+            camposModificacion.style.display = "none";
+
+            // Justificación: obligatoria + mínimo 500
+            mensaje500.style.display = "block";
+            textareaJustificacion.setAttribute("minlength", "500");
+
+            // Mostrar contador
+            contador.style.display = "inline";
+            actualizarContador(); // actualizar al instante
+
+        } else if (tipo.value === "MODIFICACION") {
+
+            info.innerHTML = "Solo podés modificar <b>hechos creados por vos</b>.";
+
+            bloqueEliminar.style.display = "none";
+            bloqueModificar.style.display = "block";
+
+            // Justificación: obligatoria sin mínimo
+            mensaje500.style.display = "none";
+            textareaJustificacion.removeAttribute("minlength");
+
+            // Ocultar contador
+            contador.style.display = "none";
+
+        } else {
+            bloqueEliminar.style.display = "none";
+            bloqueModificar.style.display = "none";
+            camposModificacion.style.display = "none";
+
+            mensaje500.style.display = "none";
+            contador.style.display = "none";
+
+            textareaJustificacion.removeAttribute("minlength");
+        }
+    });
+
+    // Carga automática al seleccionar hecho propio
+    selectHechoModificar?.addEventListener("change", async () => {
+        const id = selectHechoModificar.value;
+        if (!id) return;
+
+        camposModificacion.style.display = "block";
+
+        const resp = await fetch(`/contribuyente/api/mis-hechos/${id}`);
+        if (!resp.ok) {
+            console.warn("No se pudo cargar el hecho.");
+            return;
+        }
+
+        const hecho = await resp.json();
+
+        document.getElementById("nuevoTitulo").value = hecho.titulo || "";
+        document.getElementById("nuevaDescripcion").value = hecho.descripcion || "";
+        document.getElementById("nuevaCategoria").value = hecho.categoria || "";
+    });
+
+    function actualizarContador() {
+        const max = 500;
+        const actual = textareaJustificacion.value.length;
+        contador.textContent = `${actual} / ${max}`;
+
+        // Color dinámico
+        if (actual < 500) {
+            contador.style.color = "#b02a37"; // rojo Bootstrap danger
+        } else {
+            contador.style.color = "#198754"; // verde Bootstrap success
+        }
+    }
+
+    textareaJustificacion.addEventListener("input", () => {
+        if (tipo.value === "ELIMINACION") {
+            actualizarContador();
+        }
+    });
+</script>
+
+</body>
+</html>

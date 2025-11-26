@@ -27,26 +27,37 @@ public class CustomAuthProvider implements AuthenticationProvider {
     String username = authentication.getName();
     String password = authentication.getCredentials().toString();
 
-    System.out.println(">>> Intentando loguear usuario: " + username);
-
     try {
-      // 1. Llamamos al Backend real
+      // 1. Login contra el backend
       AuthResponseDTO response = apiService.login(username, password);
-      System.out.println(">>> Login exitoso en Backend. Token recibido.");
 
-      // 2. Guardamos el token en sesión
-      HttpSession session = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getSession();
+      if (response == null || response.getUsuario() == null) {
+        throw new BadCredentialsException("Respuesta inválida del servidor");
+      }
+
+      // Usuario del backend
+      var userData = response.getUsuario(); // ← contiene id, username, rol, permisos
+
+      // 2. Guardar en sesión local
+      HttpSession session = ((ServletRequestAttributes)
+              RequestContextHolder.currentRequestAttributes())
+              .getRequest()
+              .getSession();
+
       session.setAttribute("accessToken", response.getAccessToken());
+      session.setAttribute("usuarioId", userData.getId());
+      session.setAttribute("usuario", userData.getUsername());
+      session.setAttribute("rol", userData.getRol());
+      session.setAttribute("permisos", userData.getPermisos());
 
-      // 3. Asignamos roles (Hardcodeado por ahora)
-      List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CONTRIBUYENTE"));
+      // 3. Authorities para Spring Security
+      List<SimpleGrantedAuthority> authorities =
+              List.of(new SimpleGrantedAuthority("ROLE_" + userData.getRol().toUpperCase()));
 
       return new UsernamePasswordAuthenticationToken(username, password, authorities);
 
     } catch (Exception e) {
-      System.err.println(">>> ERROR EN LOGIN: " + e.getMessage());
-      e.printStackTrace();
-      throw new BadCredentialsException("Error de autenticación: " + e.getMessage());
+      throw new BadCredentialsException("Credenciales inválidas");
     }
   }
 

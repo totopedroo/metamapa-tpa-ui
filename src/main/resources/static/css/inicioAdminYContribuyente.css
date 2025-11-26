@@ -72,7 +72,9 @@ nav a.logout-btn:hover i {
     background-color: white;
     border-radius: 20px;
     padding: 1rem 0.5rem;
-    height: 180px;
+    /* Alto flexible, pero con mínimo para que no queden enanas */
+    height: auto;
+    min-height: 180px;
     width: 100%;
     text-align: center;
     transition: transform 0.4s, box-shadow 0.4s, background 0.3s;
