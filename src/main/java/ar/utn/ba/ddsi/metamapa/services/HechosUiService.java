@@ -3,15 +3,25 @@ package ar.utn.ba.ddsi.metamapa.services;
 
 import ar.utn.ba.ddsi.metamapa.API.CookieForwarder;
 import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
+import ar.utn.ba.ddsi.metamapa.utils.MultipartInputStreamFileResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class HechosUiService {
-    private final RestClient api;
+    private final RestClient client;
     private final CookieForwarder cookies;
     private final RestTemplate restTemplate;
 
@@ -122,7 +132,25 @@ public class HechosUiService {
         }
     }
 
-    // --- MÉTODO PRIVADO AUXILIAR PARA EVITAR REPETIR LÓGICA DE MAPEO ---
+    /**
+     * Llama a POST /api/hechos/importar-csv en el backend
+     */
+    public void importarCsv(MultipartFile file) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", file.getResource());
+
+        String token = cookies.getTokenFromCurrentRequest();
+
+        client.post()
+                .uri("/api/hechos/importar-csv")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    // --- METODO PRIVADO AUXILIAR PARA EVITAR REPETIR LÓGICA DE MAPEO ---
     private List<HechoDTO> obtenerListaDesdeApi(String url) {
         try {
             // Solicitamos un Map porque el backend devuelve { "items": [...] }

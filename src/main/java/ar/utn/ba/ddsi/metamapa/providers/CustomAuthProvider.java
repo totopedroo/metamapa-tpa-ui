@@ -2,6 +2,8 @@ package ar.utn.ba.ddsi.metamapa.providers;
 
 import ar.utn.ba.ddsi.metamapa.services.GestionAlumnosApiService;
 import ar.utn.ba.ddsi.metamapa.dto.AuthResponseDTO;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -44,7 +46,7 @@ public class CustomAuthProvider implements AuthenticationProvider {
               .getRequest()
               .getSession();
 
-      session.setAttribute("accessToken", response.getAccessToken());
+      session.setAttribute("jwt", response.getAccessToken());
       session.setAttribute("usuarioId", userData.getId());
       session.setAttribute("usuario", userData.getUsername());
       session.setAttribute("rol", userData.getRol());
@@ -57,9 +59,13 @@ public class CustomAuthProvider implements AuthenticationProvider {
       return new UsernamePasswordAuthenticationToken(username, password, authorities);
 
     } catch (Exception e) {
-      throw new BadCredentialsException("Credenciales inválidas");
-    }
+    e.printStackTrace();
+
+    throw new BadCredentialsException(
+            "Error al autenticar con backend: " + e.getMessage()
+    );
   }
+}
 
   @Override
   public boolean supports(Class<?> authentication) {

@@ -2,6 +2,8 @@ package ar.utn.ba.ddsi.metamapa.controllers;
 
 import ar.utn.ba.ddsi.metamapa.API.HechosApiClient;
 import ar.utn.ba.ddsi.metamapa.services.ColeccionUiService;
+import ar.utn.ba.ddsi.metamapa.services.HechosUiService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class AdminController {
 
-    @Autowired
-    private HechosApiClient hechosApi;
-
+    private final HechosUiService hechosService;
     private final ColeccionUiService coleccionService;
 
     @GetMapping("/inicio")
@@ -63,19 +63,9 @@ public class AdminController {
     @PostMapping("/importar-csv-upload")
     public ResponseEntity<?> subirCsv(@RequestParam("file") MultipartFile file) {
 
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("El archivo está vacío");
-        }
-        try {
-           // hechosApi.importarHechosCsv(file);
-            return ResponseEntity.ok().body("Importación iniciada");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error al procesar: " + e.getMessage());
-        }
+        hechosService.importarCsv(file);
+        return ResponseEntity.ok("Importado OK");
     }
-
 
     private void validarAdmin(HttpSession session) {
         String rol = (String) session.getAttribute("rol");

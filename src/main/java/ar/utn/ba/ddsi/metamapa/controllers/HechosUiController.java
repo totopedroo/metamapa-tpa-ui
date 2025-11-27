@@ -28,15 +28,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/hechos")
+@RequiredArgsConstructor
+@RequestMapping("/api")
 public class HechosUiController {
 
-
-    @Autowired
-    private HechosUiService hechosService;
+    private final HechosUiService hechosService;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private ColeccionUiService coleccionService;
+    private final ColeccionUiService coleccionService;
 
     /**
      * Muestra la lista de hechos y el formulario de filtro.

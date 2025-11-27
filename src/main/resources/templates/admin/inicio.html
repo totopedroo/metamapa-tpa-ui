@@ -173,8 +173,8 @@
             </div>
 
             <div class="modal-body">
-                <form id="formCSV" novalidate>
-                    <div class="mb-3">
+                <form id="formCSV" enctype="multipart/form-data" novalidate>
+                <div class="mb-3">
                         <label for="inputCSV" class="form-label">Archivo CSV</label>
                         <input class="form-control" type="file" id="inputCSV" accept=".csv" required>
                         <div class="invalid-feedback">Debe seleccionar un archivo en formato .csv</div>

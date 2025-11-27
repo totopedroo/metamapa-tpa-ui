@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api-proxy") // 👈 ESTA ES LA RUTA QUE LLAMA TU JS
+@RequestMapping("/api-proxy")
 @RequiredArgsConstructor
 public class HechoUiApiController {
 

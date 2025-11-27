@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             fetch('/admin/importar-csv-upload', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: "include"
             })
                 .then(response => {
                     progressBar.style.width = '100%';
