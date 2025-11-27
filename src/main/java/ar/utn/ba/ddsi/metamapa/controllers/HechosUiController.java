@@ -29,7 +29,7 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/hechos")
 public class HechosUiController {
 
     private final HechosUiService hechosService;
