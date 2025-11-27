@@ -5,9 +5,11 @@ import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
 import ar.utn.ba.ddsi.metamapa.services.ColeccionUiService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -58,6 +60,30 @@ public class ColeccionesUiController {
         redirect.addFlashAttribute("ok", "Colección creada correctamente");
         return "redirect:/colecciones";
     }
+    //importar hechos desde el csv
+    @PostMapping("/importar-csv-upload")
+    public ResponseEntity<?> subirCsv(@RequestParam("file") MultipartFile file) {
+
+        // --- AGREGA ESTO ---
+        System.out.println(">>> [FRONT-CONTROLLER] ¡Llegó la petición del navegador!");
+        System.out.println(">>> Archivo recibido: " + file.getOriginalFilename());
+        // -------------------
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Archivo vacío");
+        }
+        try {
+            // Llamamos al servicio
+            System.out.println(">>> [FRONT-CONTROLLER] Llamando al servicio...");
+            coleccionService.importarHechosCsv(file);
+
+            return ResponseEntity.ok("OK");
+        } catch (Exception e) {
+            e.printStackTrace(); // Para ver el error en consola
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
 
     // --- FORM EDITAR ---
     @GetMapping("/editar/{id}")

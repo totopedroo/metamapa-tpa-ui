@@ -5,9 +5,13 @@ import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -116,6 +120,52 @@ public class ColeccionUiService {
             return null;
         }
     }
+
+
+    //Importar desde csv
+    // En HechosApiClient (Frontend)
+
+    public void importarHechosCsv(MultipartFile file) {
+        try {
+            // 1. Auth Headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            // 2. Preparar el Recurso CON NOMBRE (El truco mágico)
+            // Leemos los bytes del archivo y sobreescribimos getFilename()
+            ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    // Forzamos a que envíe el nombre original.
+                    // Sin esto, a veces llega como null y el backend lo ignora.
+                    return file.getOriginalFilename();
+                }
+            };
+
+            // 3. Cuerpo
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", fileResource); // <--- Usamos nuestro recurso especial
+
+            // 4. Entidad
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            System.out.println(">>> [FRONT] Enviando archivo: " + file.getOriginalFilename());
+
+            // 5. Ejecutar
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url("/api/colecciones/importar"),
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+
+            System.out.println(">>> [FRONT] Respuesta del Backend: " + response.getBody());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Fallo al enviar CSV: " + e.getMessage());
+        }
+    }
+
 
     // --- Eliminar ---
     public void eliminarColeccion(Long id) {
