@@ -25,7 +25,7 @@ public class AdminController {
     private final HechosUiService hechosService;
     private final ColeccionUiService coleccionService;
 
-    @GetMapping("/inicio")
+    @GetMapping(value = {"", "/", "/inicio"})
     public String inicioAdmin(Model model, HttpSession session) {
         // validarAdmin(session); // Descomentar si usas validación por sesión manual
 

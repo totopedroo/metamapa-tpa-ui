@@ -22,33 +22,6 @@ body {
 }
 
 /* ==============================
-   HEADER
-============================== */
-.main-header {
-    background-color: var(--primary);
-    color: white;
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.main-header .brand {
-    color: white;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.brand-logo {
-    font-size: 1.8rem;
-}
-
-.brand-text {
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-/* ==============================
    MAIN CONTENT WRAPPER
 ============================== */
 .content {
@@ -127,14 +100,12 @@ input[type="date"] {
     font-size: 15px;
 }
 
-/* Small group of filters */
 .search-box {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-/* Radio Buttons */
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -145,7 +116,6 @@ input[type="date"] {
     transform: scale(1.2);
 }
 
-/* Buttons layout */
 .buttons-group {
     display: flex;
     align-items: center;
@@ -167,27 +137,6 @@ input[type="date"] {
     height: 500px;
     width: 100%;
     border-radius: 10px;
-}
-
-/* ==============================
-   FOOTER
-============================== */
-.main-footer {
-    background-color: var(--primary);
-    color: white;
-    padding: 1rem 2rem;
-    text-align: center;
-}
-
-.footer-container {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.footer-center a {
-    color: white;
-    text-decoration: none;
 }
 
 /* ==============================

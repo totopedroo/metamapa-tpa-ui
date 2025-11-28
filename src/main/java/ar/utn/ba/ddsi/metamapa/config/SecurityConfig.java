@@ -24,22 +24,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Evitar problemas con el login
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authenticationProvider(customAuthProvider)
 
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) ->
+                                res.sendRedirect("/error?code=401"))
+                        .accessDeniedHandler((req, res, e) ->
+                                res.sendRedirect("/error?code=403"))
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/landing.html",
+                                "/", "/landing", "/landing.html",
+                                "/hechos", "/hechos/**",
+                                "/objetivos",
+                                "/accesos",
+                                "/colecciones", "/colecciones/**",
+                                "/legal/**",
                                 "/css/**", "/js/**", "/img/**",
+                                "/api-proxy/**",
                                 "/login/**",
                                 "/registro",
-                                "/api-proxy/**",
-                                "/legal/**",
                                 "/debug/**",
-                                "/colecciones",
-                                "/colecciones/", "/colecciones/{id}", "/colecciones/ultimas"
+                                "/error/**"
                         ).permitAll()
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -53,11 +62,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // LOGIN con éxito manejado por tu handler personalizado
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .successHandler(successHandler)   // ESTE MANDA SEGÚN EL ROL
+                        .successHandler(successHandler)
                         .failureUrl("/login?error")
                         .permitAll()
                 )

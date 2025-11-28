@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/contribuyente")
@@ -24,7 +25,7 @@ public class ContribuyenteController {
     private final SolicitudesService solicitudService;
     private final HechosUiService hechosService;
 
-    @GetMapping("/inicio")
+    @GetMapping(value = {"", "/", "/inicio"})
     public String inicio() {
         return "contribuyente/inicio";
     }
@@ -48,37 +49,43 @@ public class ContribuyenteController {
                                  HttpSession session,
                                  @RequestParam(required = false) String categoria,
                                  @RequestParam(required = false)
-                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
+                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
                                  @RequestParam(required = false)
-                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
+                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
                                  @RequestParam(required = false)
-                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
+                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
                                  @RequestParam(required = false)
-                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
+                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
                                  @RequestParam(required = false) Double latitud,
-                                 @RequestParam(required = false) Double longitud) {
+                                 @RequestParam(required = false) Double longitud,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size) {
+
         Long usuarioId = (Long) session.getAttribute("usuarioId");
 
-        List<HechoDTO> hechos = hechosService.filtrarHechos(
+        // nuevo: ahora el servicio devuelve Map
+        Map<String,Object> resultado = hechosService.filtrarHechos(
                 categoria,
                 fechaReporteDesde,
                 fechaReporteHasta,
                 fechaAcontecimientoDesde,
                 fechaAcontecimientoHasta,
                 latitud,
-                longitud
+                longitud,
+                page,
+                size
         );
 
+        // lista real de hechos
+        List<HechoDTO> hechos = (List<HechoDTO>) resultado.get("items");
+
+        // para la tabla en la vista
         model.addAttribute("hechosParaEliminar", hechos);
 
+        // tus hechos
         model.addAttribute("misHechos", hechosService.listarHechosDelUsuario(usuarioId));
 
         return "contribuyente/nueva-solicitud";
-    }
-
-    @GetMapping("/subir-hecho")
-    public String subirHechoForm() {
-        return "contribuyente/subir-hecho";
     }
 
     @GetMapping("/mis-hechos")

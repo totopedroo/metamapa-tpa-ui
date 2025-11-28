@@ -1,104 +1,114 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MetaMapa — Mapeo colaborativo y abierto</title>
-    <meta name="description" content="MetaMapa: plataforma abierta para recopilar, visibilizar y mapear información colaborativa con enfoque en veracidad, privacidad y disponibilidad." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <meta name="description"
+          content="MetaMapa: plataforma abierta para recopilar, visibilizar y mapear información colaborativa con enfoque en veracidad, privacidad y disponibilidad." />
+
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
     <link rel="stylesheet" th:href="@{/css/landing.css}" />
 </head>
 <body>
+
 <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-<header class="site-header" role="banner">
-    <div class="container header-inner">
+<!-- ==========================
+     HEADER GLOBAL
+========================== -->
+<th:block th:replace="fragments/header :: header"></th:block>
 
-        <a class="brand" th:href="@{/landing.html}" aria-label="MetaMapa inicio">
-            <img th:src="@{/img/logo.png}" alt="MetaMapa" class="brand-logo">
-        </a>
-
-        <button class="nav-toggle" aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menú">
-            <span class="nav-toggle-bar" aria-hidden="true"></span>
-            <span class="nav-toggle-bar" aria-hidden="true"></span>
-            <span class="nav-toggle-bar" aria-hidden="true"></span>
-        </button>
-
-        <nav class="site-nav" id="menu-principal" role="navigation" aria-label="Navegación principal">
-            <ul>
-                <li><a href="#proposito">Propósito</a></li>
-                <li><a href="#objetivos">Objetivos</a></li>
-                <li><a href="#colecciones">Colecciones</a></li>
-                <li><a href="#hechos">Hechos</a></li>
-                <li><a href="#accesos">Accesos</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
-
+<!-- ==========================
+     CONTENIDO PRINCIPAL
+========================== -->
 <main id="contenido" class="site-main" role="main">
+
+    <!-- HERO -->
     <section id="proposito" class="hero" aria-labelledby="hero-title">
         <div class="hero-backdrop" role="img" aria-label="Imagen de mapa con puntos"></div>
+
         <div class="container hero-content">
             <h1 id="hero-title">MetaMapa: Mapeo colaborativo, abierto y seguro</h1>
+
             <p class="hero-subtitle">
-                Ordenamos, etiquetamos y ubicamos información en tiempo y espacio para que ONG, universidades y organismos públicos
-                puedan visibilizar problemáticas y tomar mejores decisiones.
+                Ordenamos, etiquetamos y ubicamos información en tiempo y espacio para que ONG,
+                universidades y organismos públicos puedan visibilizar problemáticas y tomar mejores decisiones.
             </p>
+
             <div class="hero-ctas">
-                <a class="btn btn-primary" th:href="@{/hechos}" aria-label="Ir a la visualización pública de hechos">
+                <a class="btn btn-primary" th:href="@{/hechos}">
                     Ver Hechos
                 </a>
-                <a class="btn btn-secondary" th:href="@{/login}" aria-label="Ir a registro o inicio de sesión">
+                <a class="btn btn-secondary" th:href="@{/login}">
                     Iniciar Sesión / Registrarse
                 </a>
             </div>
         </div>
     </section>
 
+
+    <!-- OBJETIVOS -->
     <section id="objetivos" class="section" aria-labelledby="objetivos-title">
         <div class="container">
-                    <h2 id="objetivos-title">Propósito y objetivos</h2>
-                    <div class="features-grid">
-                      <div class="feature-card">
-                        <div class="feature-inner">
-                          <div class="feature-front"><h3>Disponibilidad y veracidad</h3></div>
-                          <div class="feature-back"><p>Información descentralizada en múltiples nodos y herramientas de consenso para minimizar datos dudosos.</p></div>
+            <h2 id="objetivos-title">Propósito y objetivos</h2>
+
+            <div class="features-grid">
+
+                <div class="feature-card">
+                    <div class="feature-inner">
+                        <div class="feature-front"><h3>Disponibilidad y veracidad</h3></div>
+                        <div class="feature-back">
+                            <p>Información descentralizada en múltiples nodos y herramientas de consenso para minimizar datos dudosos.</p>
                         </div>
-                      </div>
-                      <div class="feature-card">
-                        <div class="feature-inner">
-                          <div class="feature-front"><h3>Privacidad por diseño</h3></div>
-                          <div class="feature-back"><p>Sin rastreo de visitantes, control de identidad de contribuyentes y gestión de solicitudes de eliminación.</p></div>
-                        </div>
-                      </div>
-                      <div class="feature-card">
-                        <div class="feature-inner">
-                          <div class="feature-front"><h3>Interoperabilidad</h3></div>
-                          <div class="feature-back"><p>Fuentes estáticas, dinámicas y proxy; servicio de agregación y exposición vía API REST.</p></div>
-                        </div>
-                      </div>
-                      <div class="feature-card">
-                        <div class="feature-inner">
-                          <div class="feature-front"><h3>Colaboración</h3></div>
-                          <div class="feature-back"><p>Subida de hechos de texto y multimedia, etiquetado y revisión por administradores.</p></div>
-                        </div>
-                      </div>
                     </div>
                 </div>
+
+                <div class="feature-card">
+                    <div class="feature-inner">
+                        <div class="feature-front"><h3>Privacidad por diseño</h3></div>
+                        <div class="feature-back">
+                            <p>Sin rastreo de visitantes, control de identidad de contribuyentes y gestión de solicitudes de eliminación.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-inner">
+                        <div class="feature-front"><h3>Interoperabilidad</h3></div>
+                        <div class="feature-back">
+                            <p>Fuentes estáticas, dinámicas y proxy; servicio de agregación y exposición vía API REST.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-inner">
+                        <div class="feature-front"><h3>Colaboración</h3></div>
+                        <div class="feature-back">
+                            <p>Subida de hechos de texto y multimedia, etiquetado y revisión por administradores.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </section>
 
+
+    <!-- COLECCIONES -->
     <section id="colecciones" class="section" aria-labelledby="colecciones-title">
         <div class="container">
+
             <div class="section-head">
                 <h2 id="colecciones-title">Colecciones destacadas</h2>
                 <a class="link" th:href="@{/colecciones}">Ver todas →</a>
             </div>
 
             <div id="colecciones-grid" class="cards-grid" role="list" aria-live="polite">
-                <article class="card" role="listitem" th:each="coleccion : ${coleccionesDestacadas}">
+                <article class="card" role="listitem"
+                         th:each="coleccion : ${coleccionesDestacadas}">
                     <div class="card-header">
                         <h3 th:text="${coleccion.titulo}">Título de la Colección</h3>
                     </div>
@@ -107,18 +117,24 @@
                     </div>
                 </article>
             </div>
+
         </div>
     </section>
 
+
+    <!-- HECHOS -->
     <section id="hechos" class="section" aria-labelledby="hechos-title">
         <div class="container">
+
             <div class="section-head">
                 <h2 id="hechos-title">Hechos destacados</h2>
+
                 <div class="tabs" role="tablist" aria-label="Modo de navegación">
                     <button class="tab is-active" role="tab" aria-selected="true" data-mode="irrestricto">Irrestricto</button>
                     <button class="tab" role="tab" aria-selected="false" data-mode="curado">Curado</button>
                 </div>
             </div>
+
             <div id="hechos-grid" class="cards-grid" role="list" aria-live="polite">
                 <article class="card" role="listitem" th:each="hecho : ${hechosDestacados}">
                     <div class="card-header">
@@ -126,50 +142,60 @@
                     </div>
                     <div class="card-meta">
                         <span class="badge" th:if="${hecho.categoria}" th:text="${hecho.categoria}"></span>
-                        <span class="badge" th:if="${hecho.lugar}" th:text="${hecho.lugar}"></span>
-                        <span class="badge" th:text="${hecho.fecha != null ? #temporals.format(hecho.fecha, 'dd-MM-yyyy') : '—'}"></span>
+                        <span class="badge" th:if="${hecho.provincia}" th:text="${hecho.provincia}"></span>
+                        <span class="badge"
+                              th:text="${hecho.fechaAcontecimiento != null ? #temporals.format(hecho.fechaAcontecimiento, 'dd-MM-yyyy') : '—'}">
+                        </span>
                     </div>
                     <div class="card-body">
                         <p th:text="${hecho.descripcion}">Descripción del hecho...</p>
                     </div>
                 </article>
             </div>
+
         </div>
     </section>
 
+
+    <!-- ACCESOS -->
     <section id="accesos" class="section ctas" aria-labelledby="accesos-title">
         <div class="container">
+
             <h2 id="accesos-title">Acceso rápido</h2>
+
             <div class="cta-grid">
+
                 <a class="cta-card" th:href="@{/hechos}">
                     <h3>Visualizar hechos</h3>
                     <p>Explorá el mapa y filtrá por fecha, categoría, ubicación y más.</p>
                     <span class="cta-action">Abrir visualización</span>
                 </a>
+
                 <a class="cta-card" th:href="@{/login}">
                     <h3>Contribuyentes y administradores</h3>
                     <p>Registrate o iniciá sesión para subir y gestionar información.</p>
                     <span class="cta-action">Ir a login/registro</span>
                 </a>
+
                 <a class="cta-card" th:href="@{/legal/privacidad}">
                     <h3>Legal y privacidad</h3>
                     <p>Conocé cómo protegemos los datos y gestionamos denuncias.</p>
                     <span class="cta-action">Leer políticas</span>
                 </a>
+
             </div>
+
         </div>
     </section>
+
 </main>
 
-<footer class="site-footer" role="contentinfo">
-    <div class="container footer-inner">
-        <p>© <span th:text="${#dates.year(#dates.createNow())}">2025</span> MetaMapa · Sistema de mapeo colaborativo</p>
-        <nav aria-label="Enlaces legales">
-            <a th:href="@{/legal/privacidad}" style="text-decoration: none;">Información legal y de privacidad</a>
-        </nav>
-    </div>
-</footer>
+<!-- ==========================
+     FOOTER GLOBAL
+========================== -->
+<th:block th:replace="fragments/footer :: footer"></th:block>
 
 <script th:src="@{/js/landing.js}" defer></script>
+
 </body>
 </html>

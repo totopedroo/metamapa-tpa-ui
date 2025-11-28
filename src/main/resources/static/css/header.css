@@ -1,0 +1,121 @@
+/* ===================================================
+   MetaMapa - HEADER UNIFICADO
+=================================================== */
+
+.mm-header {
+    background: var(--primary);
+    color: white;
+    padding: 0.7rem 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.mm-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* IZQUIERDA */
+.mm-brand {
+    display: flex;
+    align-items: center;
+}
+.mm-logo {
+    height: 46px;
+}
+
+/* CENTRO */
+.mm-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.3rem;
+    margin: 0;
+    padding: 0;
+}
+
+.mm-nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+.mm-nav a:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+/* DERECHA */
+.mm-userpanel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mm-login-btn {
+    background: var(--secondary);
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: background .2s;
+}
+.mm-login-btn:hover {
+    background: #8a3f2d;
+}
+
+/* DROPDOWN */
+.mm-userdropdown {
+    position: relative;
+}
+
+.mm-user-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.mm-dropdown {
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background: white;
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+    display: none;
+    min-width: 190px;
+}
+.mm-dropdown.open {
+    display: block;
+}
+
+.mm-user-info {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+}
+
+.mm-dropdown-item {
+    display: block;
+    padding: 0.35rem 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.mm-dropdown-item:hover {
+    opacity: 0.7;
+}
+.logout {
+    color: var(--secondary);
+    font-weight: bold;
+}

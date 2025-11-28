@@ -1,33 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - MetaMapa</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
 
     <link rel="stylesheet" th:href="@{/css/inicioAdminYContribuyente.css}">
 </head>
 <body>
 
-<header class="header">
-    <div class="header-inner">
-        <div class="logo">
-            <a th:href="@{/landing.html}" aria-label="MetaMapa inicio">
-                <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
-            </a>
-        </div>
-        <nav>
-            <form th:action="@{/logout}" method="post" class="d-inline">
-                <button type="submit" class="logout-btn">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                </button>
-            </form>
-        </nav>
-    </div>
-</header>
+<th:block th:replace="fragments/header :: header"></th:block>
 
 <main class="container my-5">
     <h2 style="margin-bottom: 2rem;">Panel de Administración</h2>
@@ -56,7 +39,7 @@
                     <div class="card-body">
                         <i class="bi bi-collection card-icon"></i>
                         <h5 class="card-title">Administrar Colecciones</h5>
-                        <p class="card-subtitle">Crear, editar y eliminar colecciones</p>
+                        <p class="card-subtitle">Visualizar, crear, editar, eliminar colecciones</p>
                     </div>
                 </div>
             </a>
@@ -68,7 +51,7 @@
                     <div class="card-body">
                         <i class="bi bi-hdd-network card-icon"></i>
                         <h5 class="card-title">Configurar Fuente de Colección</h5>
-                        <p class="card-subtitle">Estáticas, dinámica y proxy</p>
+                        <p class="card-subtitle">Estática, dinámica y proxy</p>
                     </div>
                 </div>
             </a>
@@ -87,12 +70,12 @@
         </div>
 
         <div class="col-md-6 col-lg-4">
-            <a th:href="@{/admin/hechos}" class="text-decoration-none">
+            <a th:href="@{/hechos}" class="text-decoration-none">
                 <div class="card admin-card">
                     <div class="card-body">
                         <i class="bi bi-file-earmark-check card-icon"></i>
-                        <h5 class="card-title">Administrar Hechos subidos</h5>
-                        <p class="card-subtitle">Aprobar, rechazar o aceptar con modificaciones</p>
+                        <h5 class="card-title">Administrar Hechos</h5>
+                        <p class="card-subtitle">Visualizar, crear, editar, eliminar hechos</p>
                     </div>
                 </div>
             </a>
@@ -103,7 +86,8 @@
                 <div class="card admin-card">
                     <div class="card-body">
                         <i class="bi bi-trash card-icon"></i>
-                        <h5 class="card-title">Solicitudes de eliminación de Hechos</h5>
+                        <h5 class="card-title">Administrar Solicitudes</h5>
+                        <p class="card-subtitle">Visualizar, aceptar, rechazar solicitudes de hechos</p>
                         <span th:if="${numeroSolicitudes > 0}" class="badge-notification" th:text="${numeroSolicitudes}">3</span>
                     </div>
                 </div>
@@ -115,8 +99,8 @@
                 <div class="card admin-card">
                     <div class="card-body">
                         <i class="bi bi-file-earmark-arrow-up card-icon"></i>
-                        <h5 class="card-title">Importar hechos desde archivos CSV</h5>
-                        <p class="card-subtitle">Con más de 10.000 entradas</p>
+                        <h5 class="card-title">Importar hechos desde .CSV</h5>
+                        <p class="card-subtitle">Inclusive con más de 10.000 entradas</p>
                     </div>
                 </div>
             </a>
@@ -196,6 +180,8 @@
         </div>
     </div>
 </div>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/admin.js}"></script>
