@@ -126,7 +126,7 @@ public class HechosUiService {
      * Llama a GET /api/hechos/usuario/{id} en el backend
      */
     public List<HechoDTO> listarHechosDelUsuario(Long idUsuario) {
-        String url = apiBaseUrl + "/hechos/usuario/" + idUsuario;
+        String url = apiBaseUrl + "/api/hechos/usuario/" + idUsuario;
 
         try {
             HechoDTO[] response = restTemplate.getForObject(url, HechoDTO[].class);
@@ -141,22 +141,36 @@ public class HechosUiService {
     /**
      * Llama a POST /api/hechos/importar-csv en el backend
      */
-    public void importarCsv(MultipartFile file) {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", file.getResource());
+    public int importarCsv(MultipartFile file) {
+        try {
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", new MultipartInputStreamFileResource(
+                    file.getInputStream(),
+                    file.getOriginalFilename(),
+                    file.getSize()
+            ));
 
-        String token = cookies.getTokenFromCurrentRequest();
+            String token = cookies.getTokenFromCurrentRequest();
 
-        client.post()
-                .uri("/api/hechos/importar-csv")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
+            // Extraer cookie JSESSIONID
+            String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
+
+            Map response = client.post()
+                    .uri(apiBaseUrl + "/api/hechos/importar-csv")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .header("Cookie", cookieHeader)              // <-- ESTA ES LA CLAVE
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+
+            return (int) response.getOrDefault("importados", 0);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error leyendo archivo CSV", e);
+        }
     }
 
-    // --- METODO PRIVADO AUXILIAR PARA EVITAR REPETIR LÓGICA DE MAPEO ---
     // --- METODO PRIVADO AUXILIAR PARA EVITAR REPETIR LÓGICA DE MAPEO ---
     private List<HechoDTO> obtenerListaDesdeApi(String url) {
         try {

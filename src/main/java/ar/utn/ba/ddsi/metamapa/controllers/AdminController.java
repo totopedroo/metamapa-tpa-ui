@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -63,8 +65,12 @@ public class AdminController {
     @PostMapping("/importar-csv-upload")
     public ResponseEntity<?> subirCsv(@RequestParam("file") MultipartFile file) {
 
-        hechosService.importarCsv(file);
-        return ResponseEntity.ok("Importado OK");
+        int importados = hechosService.importarCsv(file); //debe devolver cantidad
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "importados", importados
+        ));
     }
 
     private void validarAdmin(HttpSession session) {
