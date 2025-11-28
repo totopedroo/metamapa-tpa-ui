@@ -24,7 +24,7 @@ public class SolicitudesService {
     private String apiBaseUrl;
 
     private HttpEntity<Void> entityWithToken(HttpSession session) {
-        String token = (String) session.getAttribute("accessToken");
+        String token = (String) session.getAttribute("jwt");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
