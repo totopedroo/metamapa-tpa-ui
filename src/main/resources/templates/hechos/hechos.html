@@ -124,17 +124,23 @@
 
                 <thead class="bg-[var(--color-beige-tarjeta)] border-b">
                 <tr class="bg-gray-200 text-gray-700 text-left">
-                    <th class="p-3 rounded-l-md w-12">ID</th>
-                    <th class="p-3 w-64">Título</th>
-                    <th class="p-3 w-[450px]">Descripción</th>
-                    <th class="p-3 w-40">Tags</th>
-                    <th class="p-3 text-center w-20">Ver Mapa</th>
-                    <th class="p-3 text-center w-20"
-                        th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminacion</th>
-                    <th class="p-3 text-center w-20"
+
+                    <th class="p-3 rounded-l-md">ID</th>
+                    <th class="p-3">Título</th>
+                    <th class="p-3">Descripción</th>
+                    <th class="p-3">Tags</th>
+
+                    <th class="p-3 text-center">Ver Mapa</th>
+
+                    <th class="p-3 text-center"
+                        th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
+
+                    <th class="p-3 text-center"
                         th:if="${session.rol == 'ADMIN'}">Eliminar</th>
-                    <th class="p-3 text-center w-20 rounded-r-md"
+
+                    <th class="p-3 text-center rounded-r-md"
                         th:if="${session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
+
                 </tr>
                 </thead>
 
@@ -147,8 +153,11 @@
                     th:data-hecho-categoria="${hecho.categoria}">
 
                     <td class="p-3 font-semibold" th:text="${hecho.idHecho}"></td>
-                    <td class="p-3 col-titulo leading-snug" th:text="${hecho.titulo}"></td>
-                    <td class="p-3 col-descripcion leading-snug" th:text="${hecho.descripcion}"></td>
+                    <td class="p-3 col-titulo leading-snug texto-justificado"
+                        th:text="${hecho.titulo}"></td>
+
+                    <td class="p-3 col-descripcion leading-snug texto-justificado"
+                        th:text="${hecho.descripcion}"></td>
 
                     <td class="p-3 col-etiquetas">
                 <span th:each="tag : ${hecho.etiquetas}"
@@ -191,14 +200,15 @@
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        <!-- Caso contrario: guion -->
+                        <!-- Caso contrario: guion, pero SOLO si está logueado -->
                         <span class="text-gray-400"
-                              th:if="${!(session.rol == 'ADMIN'
-                     or (session.rol == 'CONTRIBUYENTE'
-                         and hecho.idContribuyente != null
-                         and hecho.idContribuyente == session.usuarioId))}">
-        -
-    </span>
+                              th:if="${session.rol != null
+              and !(session.rol == 'ADMIN'
+                  or (session.rol == 'CONTRIBUYENTE'
+                      and hecho.idContribuyente != null
+                      and hecho.idContribuyente == session.usuarioId))}">
+                            -
+                        </span>
 
                     </td>
 

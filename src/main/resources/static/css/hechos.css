@@ -116,9 +116,24 @@ body {
     color: #111827;
 }
 
-/* Más espacio entre filas usando border-spacing-y */
 table {
+    width: 100%;
+    border-collapse: separate;
+}
+
+/* Quita el efecto de separación horizontal solo en el header */
+thead {
+    border-spacing: 0 !important;
+}
+
+thead tr > th {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+tbody {
     border-spacing: 0 8px !important;
+    display: table-row-group;
 }
 
 /* Tags */
@@ -190,4 +205,8 @@ thead th {
     background: var(--color-verde-oscuro);
     color: white !important;
     font-weight: 600;
+}
+
+.texto-justificado {
+    text-align: justify;
 }
