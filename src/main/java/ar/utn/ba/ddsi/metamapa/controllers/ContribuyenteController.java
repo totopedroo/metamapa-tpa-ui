@@ -39,7 +39,7 @@ public class ContribuyenteController {
     @GetMapping("/solicitar-eliminacion/{idHecho}")
     public String solicitarEliminacion(@PathVariable Long idHecho, HttpSession session) {
         Long idUsuario = (Long) session.getAttribute("usuarioId");
-        solicitudService.crearSolicitud(idHecho, idUsuario, session);
+        solicitudService.crearSolicitudEliminacion(idHecho, idUsuario, session);
         return "redirect:/contribuyente/solicitudes";
     }
 

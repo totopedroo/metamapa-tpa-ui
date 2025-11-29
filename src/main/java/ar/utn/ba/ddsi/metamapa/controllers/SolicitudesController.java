@@ -1,5 +1,6 @@
 package ar.utn.ba.ddsi.metamapa.controllers;
 import ar.utn.ba.ddsi.metamapa.dto.SolicitudDTO;
+import ar.utn.ba.ddsi.metamapa.dto.SolicitudModificacionInputDto;
 import ar.utn.ba.ddsi.metamapa.services.SolicitudesService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,18 +22,21 @@ public class SolicitudesController {
 
     @GetMapping("/admin/solicitudes")
     public String verSolicitudes(Model model, HttpSession session) {
+        List<SolicitudDTO> eliminaciones = solicitudesService.obtenerSolicitudesEliminacion(session);
+        model.addAttribute("listaEliminacion", eliminaciones);
 
-        List<SolicitudDTO> lista = solicitudesService.listarTodas(session);
-
-        model.addAttribute("listaSolicitudes", lista);
+        // 2. Cargar Modificaciones
+        List<SolicitudModificacionInputDto> modificaciones = solicitudesService.obtenerSolicitudesModificacion(session);
+        model.addAttribute("listaModificacion", modificaciones);
 
         return "admin/solicitudes";
     }
 
+
     @PostMapping("/admin/solicitud/aprobar")
     public String aprobarSolicitud(@RequestParam("id") Long id, HttpSession session) {
         // 1. Llamamos al servicio
-        solicitudesService.actualizarEstado(id, "aprobar", session);
+        solicitudesService.actualizarEstadoEliminacion(id, "aprobar", session);
 
         // 2. REDIRECCIONAMOS (Patrón Post-Redirect-Get)
         // Esto es clave: recarga la página limpia para ver el cambio de estado
@@ -42,9 +46,22 @@ public class SolicitudesController {
     @PostMapping("/admin/solicitud/rechazar")
     public String rechazarSolicitud(@RequestParam("id") Long id, HttpSession session) {
         // 1. Llamamos al servicio
-        solicitudesService.actualizarEstado(id, "rechazar", session);
+        solicitudesService.actualizarEstadoEliminacion(id, "rechazar", session);
 
         // 2. Redireccionamos
         return "redirect:/admin/solicitudes";
     }
+
+    @PostMapping("/admin/modificacion/aprobar")
+    public String aprobarModif(@RequestParam Long id, HttpSession session) {
+        solicitudesService.gestionarModificacion(id, "aprobar", session);
+        return "redirect:/admin/solicitudes";
+    }
+
+    @PostMapping("/admin/modificacion/rechazar")
+    public String rechazarModif(@RequestParam Long id, HttpSession session) {
+        solicitudesService.gestionarModificacion(id, "rechazar", session);
+        return "redirect:/admin/solicitudes";
+    }
+
 }

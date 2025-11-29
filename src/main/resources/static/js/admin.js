@@ -82,4 +82,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+
+    /* =========================================================
+ * LÓGICA PARA MANTENER LA PESTAÑA ACTIVA (LocalStorage)
+ * ========================================================= */
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const STORAGE_KEY = 'activeTabSolicitudes';
+
+        // --- 1. RECUPERAR ESTADO ---
+        const activeTabTarget = localStorage.getItem(STORAGE_KEY);
+
+        if (activeTabTarget) {
+            // A. Buscamos el botón y el contenido correspondientes
+            const tabButton = document.querySelector(`button[data-bs-target="${activeTabTarget}"]`);
+            const tabContent = document.querySelector(activeTabTarget); // ej: #modificacion
+
+            if (tabButton && tabContent) {
+                // B. LIMPIEZA: Quitamos 'active' y 'show' de TODAS las pestañas y contenidos
+                document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
+
+                // C. ACTIVACIÓN MANUAL: Forzamos las clases en el elemento guardado
+                tabButton.classList.add('active');
+                tabButton.setAttribute('aria-selected', 'true');
+
+                tabContent.classList.add('show', 'active');
+
+                console.log(">>> Pestaña restaurada:", activeTabTarget);
+            }
+        }
+
+        // --- 2. GUARDAR ESTADO AL CAMBIAR ---
+        const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function (event) {
+                const target = event.target.getAttribute('data-bs-target');
+                localStorage.setItem(STORAGE_KEY, target);
+                console.log(">>> Pestaña guardada:", target);
+            });
+        });
+
+    });
 });

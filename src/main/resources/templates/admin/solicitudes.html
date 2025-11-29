@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitudes de Eliminación - MetaMapa</title>
+    <title>Gestión de Solicitudes - MetaMapa</title>
 
     <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css}" rel="stylesheet">
     <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css}" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/solicitudesAdminYContribuyente.css}">
 </head>
 <body>
@@ -27,78 +26,138 @@
     </div>
 </header>
 
-<main class="container-xxl my-5">
+<h3 class="mb-4 text-center">Gestión de Solicitudes</h3>
 
-    <h3>Solicitudes de Eliminación de Hechos</h3>
+<ul class="nav nav-tabs mb-4 justify-content-center" id="solicitudesTabs" role="tablist">
 
-    <div class="table-responsive mt-4">
-        <table class="table table-striped align-middle" id="tablaSolicitudes">
-            <thead>
-            <tr>
-                <th style="width: 20%">Hecho</th>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="eliminacion-tab" data-bs-toggle="tab"
+                data-bs-target="#eliminacion" type="button" role="tab"
+                aria-controls="eliminacion" aria-selected="true">
+            <i class="bi bi-trash me-2"></i>Eliminación
+        </button>
+    </li>
 
-                <th>Justificación</th>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="modificacion-tab" data-bs-toggle="tab"
+                data-bs-target="#modificacion" type="button" role="tab"
+                aria-controls="modificacion" aria-selected="false">
+            <i class="bi bi-pencil-square me-2"></i>Modificación
+        </button>
+    </li>
+</ul>
 
-                <th style="width: 1%; white-space: nowrap;" class="text-center">Estado</th>
+    <div class="tab-content" id="myTabContent">
 
-                <th style="width: 1%; white-space: nowrap;" class="text-center">Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
+        <div class="tab-pane fade show active" id="eliminacion" role="tabpanel" aria-labelledby="eliminacion-tab">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                    <tr>
+                        <th style="width: 20%">Hecho</th>
+                        <th>Justificación</th>
+                        <th style="width: 1%; white-space: nowrap;" class="text-center">Estado</th>
+                        <th style="width: 1%; white-space: nowrap;" class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="solicitud : ${listaEliminacion}">
+                        <td th:text="${solicitud.tituloHecho}" class="fw-bold">Título</td>
+                        <td th:text="${solicitud.justificacion}">Razón...</td>
 
-            <tr th:each="solicitud : ${listaSolicitudes}">
+                        <td class="text-center">
+                            <span class="chip"
+                                  th:classappend="${solicitud.estado.toString() == 'PENDIENTE' ? 'pendiente' :
+                                                   (solicitud.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
+                                  th:text="${solicitud.estado}">
+                            </span>
+                        </td>
 
-                <td th:text="${solicitud.tituloHecho}" class="fw-bold">Título del Hecho</td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <form th:action="@{/admin/solicitud/aprobar}" method="post">
+                                    <input type="hidden" name="id" th:value="${solicitud.id}" />
+                                    <button type="submit" class="btn btn-aceptar px-3"
+                                            th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">Aceptar</button>
+                                </form>
+                                <form th:action="@{/admin/solicitud/rechazar}" method="post">
+                                    <input type="hidden" name="id" th:value="${solicitud.id}" />
+                                    <button type="submit" class="btn btn-rechazar px-3"
+                                            th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">Rechazar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
 
-                <td th:text="${solicitud.justificacion}">Razón...</td>
+                    <tr th:if="${#lists.isEmpty(listaEliminacion)}">
+                        <td colspan="4" class="text-center py-4 text-muted">No hay solicitudes de eliminación pendientes.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                <td class="text-center">
+        <div class="tab-pane fade" id="modificacion" role="tabpanel" aria-labelledby="modificacion-tab">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                    <tr>
+                        <th style="width: 5%" class="text-center">ID H.</th> <th style="width: 5%" class="text-center">ID U.</th> <th style="width: 10%">Campo</th>
+                        <th style="width: 20%">Valor Nuevo</th>
+                        <th>Justificación</th> <th style="width: 1%; white-space: nowrap;" class="text-center">Estado</th>
+                        <th style="width: 1%; white-space: nowrap;" class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr th:each="sol : ${listaModificacion}">
+
+                        <td class="text-center fw-bold text-muted" th:text="${sol.idHecho}">1</td>
+
+                        <td class="text-center text-muted" th:text="${sol.idContribuyente}">4</td>
+
+                        <td>
+                            <span class="badge bg-secondary" th:text="${sol.campo}">TITULO</span>
+                        </td>
+
+                        <td th:text="${sol.valorNuevo}" class="text-primary fw-bold">Valor...</td>
+
+                        <td th:text="${sol.justificacion}" class="small">Razón...</td>
+
+                        <td class="text-center">
                     <span class="chip"
-                          th:classappend="${solicitud.estado.toString() == 'PENDIENTE' ? 'pendiente' :
-                                           (solicitud.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
-                          th:text="${solicitud.estado}">
-
+                          th:classappend="${sol.estado.toString() == 'PENDIENTE' ? 'pendiente' :
+                                           (sol.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
+                          th:text="${sol.estado}">
+                        PENDIENTE
                     </span>
-                </td>
+                        </td>
 
-                <td>
-                    <div class="d-flex gap-2 justify-content-center">
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <form th:action="@{/admin/modificacion/aprobar}" method="post">
+                                    <input type="hidden" name="id" th:value="${sol.id}" />
+                                    <button type="submit" class="btn btn-aceptar px-3"
+                                            th:disabled="${sol.estado.toString() != 'PENDIENTE'}">Aceptar</button>
+                                </form>
+                                <form th:action="@{/admin/modificacion/rechazar}" method="post">
+                                    <input type="hidden" name="id" th:value="${sol.id}" />
+                                    <button type="submit" class="btn btn-rechazar px-3"
+                                            th:disabled="${sol.estado.toString() != 'PENDIENTE'}">Rechazar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
 
-                        <form th:action="@{/admin/solicitud/aprobar}" method="post">
-                            <input type="hidden" name="id" th:value="${solicitud.id}" />
+                    <tr th:if="${#lists.isEmpty(listaModificacion)}">
+                        <td colspan="7" class="text-center py-4 text-muted">No hay solicitudes de modificación pendientes.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                            <button type="submit"
-                                    class="btn btn-aceptar px-3"
-                                    title="Aprobar"
-                                    th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">
-                                Aceptar
-                            </button>
-                        </form>
-
-                        <form th:action="@{/admin/solicitud/rechazar}" method="post">
-                            <input type="hidden" name="id" th:value="${solicitud.id}" />
-
-                            <button type="submit"
-                                    class="btn btn-rechazar px-3"
-                                    title="Rechazar"
-                                    th:disabled="${solicitud.estado.toString() != 'PENDIENTE'}">
-                                Rechazar
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-
-            <tr th:if="${#lists.isEmpty(listaSolicitudes) and error == null}">
-                <td colspan="4" class="text-center py-4 text-muted">
-                    No hay solicitudes pendientes.
-                </td>
-            </tr>
-
-            </tbody>
-        </table>
-    </div>
-</main>
+    </div> </main>
 
 <script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js}"></script>
 </body>
