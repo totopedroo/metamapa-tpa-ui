@@ -1,0 +1,134 @@
+/* ================================================
+   MetaMapa - CORE GLOBAL STYLES
+   Carga base: variables, fuente, resets y helpers
+   NO incluir estilos de header, footer ni páginas.
+================================================ */
+
+/* ------------------------------
+   Variables globales
+------------------------------ */
+:root {
+    --primary: #688549;
+    --primary-dark: #536d3b;
+    --secondary: #a95038;
+    --secondary-dark: #8a4430;
+
+    --background: #EBE5DD;
+    --surface: #ffffff;
+
+    --text: #333333;
+    --text-light: #555555;
+
+    --radius: 10px;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ------------------------------
+   Reset CSS
+------------------------------ */
+/* Reset moderno + coherencia visual */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Quita subrayado por defecto y mantiene accesibilidad */
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+/* ------------------------------
+   Contenedores generales
+------------------------------ */
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ------------------------------
+   Botones genéricos
+------------------------------ */
+.btn {
+    padding: .6rem 1.1rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+.btn-secondary:hover {
+    background: var(--secondary-dark);
+}
+
+/* ------------------------------
+   Utilidades (helpers)
+------------------------------ */
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-light); }
+
+.m-0 { margin: 0 !important; }
+.mt-1 { margin-top: .5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.p-1 { padding: .5rem; }
+.p-2 { padding: 1rem; }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+
+/* ------------------------------
+   Accesibilidad
+------------------------------ */
+
+:focus {
+    outline: 3px solid var(--secondary);
+    outline-offset: 2px;
+}
+
+/* Evitar animaciones para usuarios con sensibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}

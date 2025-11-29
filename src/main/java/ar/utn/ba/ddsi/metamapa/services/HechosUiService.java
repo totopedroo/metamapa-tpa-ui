@@ -53,15 +53,20 @@ public class HechosUiService {
      * FUSIONADO: Usa la lógica de construcción de URL de tu compañero (verificando nulos),
      * pero llama a 'obtenerListaDesdeApi' para manejar el JSON correctamente.
      */
-    public List<HechoDTO> filtrarHechos(String categoria,
+    public Map<String, Object> filtrarHechos(String categoria,
                                         LocalDate fechaReporteDesde,
                                         LocalDate fechaReporteHasta,
                                         LocalDate fechaAcontecimientoDesde,
                                         LocalDate fechaAcontecimientoHasta,
                                         Double latitud,
-                                        Double longitud) {
+                                        Double longitud,
+                                        int page,
+                                        int size) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiBaseUrl + "/api/hechos");
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(apiBaseUrl + "/api/hechos")
+                .queryParam("page", page)
+                .queryParam("size", size);
 
         if (categoria != null && !categoria.isBlank()) {
             builder.queryParam("categoria", categoria);
@@ -85,8 +90,9 @@ public class HechosUiService {
             builder.queryParam("longitud", longitud);
         }
 
-        // Construimos la URL y usamos el método que sabe leer { items: ... }
-        return obtenerListaDesdeApi(builder.toUriString());
+        String url = builder.toUriString();
+        return obtenerHechosPaginadosDesdeApi(url);
+
     }
 
     /**
@@ -120,7 +126,7 @@ public class HechosUiService {
      * Llama a GET /api/hechos/usuario/{id} en el backend
      */
     public List<HechoDTO> listarHechosDelUsuario(Long idUsuario) {
-        String url = apiBaseUrl + "/hechos/usuario/" + idUsuario;
+        String url = apiBaseUrl + "/api/hechos/usuario/" + idUsuario;
 
         try {
             HechoDTO[] response = restTemplate.getForObject(url, HechoDTO[].class);
@@ -135,19 +141,34 @@ public class HechosUiService {
     /**
      * Llama a POST /api/hechos/importar-csv en el backend
      */
-    public void importarCsv(MultipartFile file) {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", file.getResource());
+    public int importarCsv(MultipartFile file) {
+        try {
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", new MultipartInputStreamFileResource(
+                    file.getInputStream(),
+                    file.getOriginalFilename(),
+                    file.getSize()
+            ));
 
-        String token = cookies.getTokenFromCurrentRequest();
+            String token = cookies.getTokenFromCurrentRequest();
 
-        client.post()
-                .uri("/api/hechos/importar-csv")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
+            // Extraer cookie JSESSIONID
+            String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
+
+            Map response = client.post()
+                    .uri(apiBaseUrl + "/api/hechos/importar-csv")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .header("Cookie", cookieHeader)              // <-- ESTA ES LA CLAVE
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+
+            return (int) response.getOrDefault("importados", 0);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error leyendo archivo CSV", e);
+        }
     }
 
     // --- METODO PRIVADO AUXILIAR PARA EVITAR REPETIR LÓGICA DE MAPEO ---
@@ -173,5 +194,43 @@ public class HechosUiService {
             System.err.println(">>> ERROR FRONTEND (Hechos) en " + url + ": " + e.getMessage());
         }
         return Collections.emptyList();
+    }
+
+    // METODO PARA PAGINACION
+    public Map<String, Object> obtenerHechosPaginadosDesdeApi(String url) {
+        try {
+            Map response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null && response.containsKey("items")) {
+
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.registerModule(new JavaTimeModule());
+
+                List<?> raw = (List<?>) response.get("items");
+
+                List<HechoDTO> hechos = raw.stream()
+                        .map(item -> mapper.convertValue(item, HechoDTO.class))
+                        .toList();
+
+                // armamos un map uniforme
+                return Map.of(
+                        "items", hechos,
+                        "page", response.get("page"),
+                        "totalPages", response.get("totalPages"),
+                        "totalItems", response.get("totalItems"),
+                        "size", response.get("size")
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR FRONTEND (Hechos) " + e.getMessage());
+        }
+
+        return Map.of(
+                "items", List.of(),
+                "page", 0,
+                "totalPages", 0,
+                "totalItems", 0,
+                "size", 10
+        );
     }
 }

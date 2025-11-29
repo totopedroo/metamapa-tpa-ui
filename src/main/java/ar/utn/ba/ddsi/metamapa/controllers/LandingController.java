@@ -19,7 +19,7 @@ public class LandingController {
   private final ColeccionUiService coleccionService;
   private final HechosUiService hechoService;
 
-  @GetMapping(value = {"/", "/landing.html"})
+  @GetMapping(value = {"/", "/landing"})
   public String showLandingPage(Model model) {
     try {
       // 1. Traer Últimas Colecciones (desde el backend)

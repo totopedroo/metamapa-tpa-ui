@@ -25,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -45,7 +46,7 @@ public class HechosUiController {
     private String backendBaseUrl;
 
 
-    @GetMapping("/hechos")
+    @GetMapping
     public String listarHechos(
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false)
@@ -58,19 +59,27 @@ public class HechosUiController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
             @RequestParam(required = false) Double latitud,
             @RequestParam(required = false) Double longitud,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Model model
     ) {
-        List<HechoDTO> hechos = hechosService.filtrarHechos(
+        Map<String, Object> resultado = hechosService.filtrarHechos(
                 categoria,
                 fechaReporteDesde,
                 fechaReporteHasta,
                 fechaAcontecimientoDesde,
                 fechaAcontecimientoHasta,
                 latitud,
-                longitud
+                longitud,
+                page,
+                size
         );
 
-        model.addAttribute("hechos", hechos);
+        model.addAttribute("hechos", resultado.get("items"));
+        model.addAttribute("page", (int) resultado.get("page") + 1);
+        model.addAttribute("totalPages", resultado.get("totalPages"));
+        model.addAttribute("size", resultado.get("size"));
+        model.addAttribute("totalItems", resultado.get("totalItems"));
 
         // No hace falta pasar los filtros al modelo porque en el HTML los leemos con ${param.*},
         // pero si quisieras, podrías agregarlos también acá.
@@ -81,7 +90,7 @@ public class HechosUiController {
     /**
      * Muestra el formulario para crear un nuevo hecho.
      */
-    @GetMapping("/hechos/nuevo")
+    @GetMapping("/nuevo")
     public String mostrarFormularioDeHecho(Model model) {
         // Objeto "vacío" para que Thymeleaf pueda enlazar con th:object
         model.addAttribute("nuevoHecho", new HechoDTO());
@@ -102,7 +111,7 @@ public class HechosUiController {
      * Maneja el botón de "Importar desde API".
      */
 
-    @PostMapping("/hechos/importar-api")
+    @PostMapping("/importar-api")
     public String importarHechos(RedirectAttributes redirectAttributes) {
         try {
             hechosService.importarHechosDesdeApi();

@@ -1,250 +1,95 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaMapa - Hechos</title>
 
-    <!-- Tailwind CSS -->
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- Leaflet CSS -->
+    <!-- Leaflet -->
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
 
-    <style>
-        :root {
-            --color-verde-oscuro: #4a5c36;
-            --color-verde-claro: #8b9d62;
-            --color-beige-fondo: #f3ecd4;
-            --color-beige-tarjeta: #f7f1dd;
-            --color-rojo-boton: #b94a48;
-        }
-
-        body {
-            background-color: var(--color-beige-fondo);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        .btn-verde-oscuro {
-            background-color: var(--color-verde-oscuro);
-            color: #fff;
-        }
-
-        .btn-verde-oscuro:hover {
-            filter: brightness(0.95);
-        }
-
-        .btn-verde-claro {
-            background-color: var(--color-verde-claro);
-            color: #fff;
-        }
-
-        .btn-verde-claro:hover {
-            filter: brightness(0.95);
-        }
-
-        .btn-rojo {
-            background-color: var(--color-rojo-boton);
-            color: #fff;
-        }
-
-        .btn-rojo:hover {
-            filter: brightness(0.95);
-        }
-
-        .btn-icono {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 0.375rem;
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-        }
-
-        .btn-icono.ver-mapa {
-            color: var(--color-verde-oscuro);
-        }
-
-        .btn-icono.eliminar {
-            color: var(--color-rojo-boton);
-        }
-
-        .btn-icono.editar {
-            color: var(--color-verde-claro);
-        }
-
-        .btn-icono:hover {
-            filter: brightness(0.95);
-        }
-
-        /* Mapa debajo de los modales */
-        #mapHechos {
-            height: 20rem;
-            z-index: 0;
-        }
-
-        .leaflet-pane,
-        .leaflet-top,
-        .leaflet-bottom {
-            z-index: 0 !important;
-        }
-
-        /* Modal genérico (crear / editar / solicitar eliminación) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999; /* por encima del mapa y todo lo demás */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            max-width: 650px;
-            width: 95%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .close-btn {
-            float: right;
-            font-size: 1.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: #6b7280;
-        }
-
-        .close-btn:hover {
-            color: #111827;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/hechos.css}">
 </head>
-<body>
 
-<!-- HEADER -->
-<header class="bg-[var(--color-verde-oscuro)] text-white py-3">
-    <div class="max-w-6xl mx-auto flex items-center justify-between px-4">
-        <div class="flex items-center gap-2">
-            <span class="font-bold text-xl">MetaMapa</span>
-        </div>
-        <span class="text-sm">Español (AR)</span>
-    </div>
-</header>
+<body class="min-h-screen flex flex-col">
 
-<main class="max-w-6xl mx-auto mt-8 px-4 pb-10">
-    <!-- Título + botón agregar -->
+<!-- HEADER UNIFICADO -->
+<th:block th:replace="fragments/header :: header"></th:block>
+
+<main class="flex-grow max-w-6xl mx-auto mt-8 px-4 pb-10">
+
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
-        <button type="button"
-                id="abrirModalCrear"
-                class="btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
-            <i class="fas fa-plus mr-2"></i> Agregar Hecho
-        </button>
+
+        <div th:if="${#authorization.expression('hasRole(''CONTRIBUYENTE'') or hasRole(''ADMIN'')')}">
+            <button id="abrirModalCrear"
+                    class="btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                <i class="fas fa-plus mr-2"></i> Agregar Hecho
+            </button>
+        </div>
     </div>
 
     <!-- Filtros -->
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
-        <form th:action="@{/hechos/hechos}" method="get" id="filtrosForm">
+        <form th:action="@{/hechos}" method="get" id="filtrosForm">
+
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
-                <!-- Categoría -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Categoría
-                    </label>
-                    <input type="text"
-                           name="categoria"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Categoría</label>
+                    <input type="text" name="categoria"
                            th:value="${param.categoria}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
-                           placeholder="Categoría">
+                           class="input-basic" placeholder="Categoría">
                 </div>
 
-                <!-- Fecha reporte desde -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Fecha reporte desde
-                    </label>
-                    <input type="date"
-                           name="fechaReporteDesde"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha reporte desde</label>
+                    <input type="date" name="fechaReporteDesde"
                            th:value="${param.fechaReporteDesde}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                           class="input-basic">
                 </div>
 
-                <!-- Fecha reporte hasta -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Fecha reporte hasta
-                    </label>
-                    <input type="date"
-                           name="fechaReporteHasta"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha reporte hasta</label>
+                    <input type="date" name="fechaReporteHasta"
                            th:value="${param.fechaReporteHasta}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                           class="input-basic">
                 </div>
 
-                <!-- Fecha acontecimiento desde -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Fecha acontecimiento desde
-                    </label>
-                    <input type="date"
-                           name="fechaAcontecimientoDesde"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha acontecimiento desde</label>
+                    <input type="date" name="fechaAcontecimientoDesde"
                            th:value="${param.fechaAcontecimientoDesde}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                           class="input-basic">
                 </div>
 
-                <!-- Fecha acontecimiento hasta -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Fecha acontecimiento hasta
-                    </label>
-                    <input type="date"
-                           name="fechaAcontecimientoHasta"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha acontecimiento hasta</label>
+                    <input type="date" name="fechaAcontecimientoHasta"
                            th:value="${param.fechaAcontecimientoHasta}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm">
+                           class="input-basic">
                 </div>
 
-                <!-- Latitud -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Latitud
-                    </label>
-                    <input type="number"
-                           step="any"
-                           name="latitud"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Latitud</label>
+                    <input type="number" step="any" name="latitud"
                            th:value="${param.latitud}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
-                           placeholder="Latitud">
+                           class="input-basic" placeholder="Latitud">
                 </div>
 
-                <!-- Longitud -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Longitud
-                    </label>
-                    <input type="number"
-                           step="any"
-                           name="longitud"
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Longitud</label>
+                    <input type="number" step="any" name="longitud"
                            th:value="${param.longitud}"
-                           class="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
-                           placeholder="Longitud">
+                           class="input-basic" placeholder="Longitud">
                 </div>
 
-                <!-- Botones -->
                 <div class="flex flex-col gap-2 mt-2 md:mt-0">
                     <span class="text-xs font-semibold text-gray-700">Acciones</span>
                     <div class="flex gap-3 mt-1">
@@ -258,79 +103,198 @@
                         </button>
                     </div>
                 </div>
+
             </div>
+
         </form>
     </section>
 
-    <!-- Mapa de hechos -->
+    <!-- Mapa -->
     <section class="bg-white rounded-lg shadow-sm p-4 mb-6">
         <h3 class="text-lg font-semibold mb-3 text-gray-800">Mapa de hechos</h3>
         <div id="mapHechos" class="w-full rounded-md"></div>
     </section>
 
-    <!-- Tabla de hechos -->
+    <!-- Tabla -->
     <section class="bg-white rounded-lg shadow-sm p-4">
         <h3 class="text-lg font-semibold mb-3 text-gray-800">Hechos encontrados:</h3>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="border-b">
-                <tr class="text-left text-gray-600">
-                    <th class="py-2 px-2">ID</th>
-                    <th class="py-2 px-2">Título</th>
-                    <th class="py-2 px-2">Descripción</th>
-                    <th class="py-2 px-2">Tags</th>
-                    <th class="py-2 px-2 text-center">Ver en mapa</th>
-                    <th class="py-2 px-2 text-center">Solicitar eliminación</th>
-                    <th class="py-2 px-2 text-center">Editar</th>
+            <table class="min-w-full border-separate border-spacing-y-1 text-sm">
+
+                <thead class="bg-[var(--color-beige-tarjeta)] border-b">
+                <tr class="bg-gray-200 text-gray-700 text-left">
+
+                    <th class="p-3 rounded-l-md">ID</th>
+                    <th class="p-3">Título</th>
+                    <th class="p-3">Descripción</th>
+                    <th class="p-3">Tags</th>
+
+                    <th class="p-3 text-center">Ver Mapa</th>
+
+                    <th class="p-3 text-center"
+                        th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
+
+                    <th class="p-3 text-center"
+                        th:if="${session.rol == 'ADMIN'}">Eliminar</th>
+
+                    <th class="p-3 text-center rounded-r-md"
+                        th:if="${session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
+
                 </tr>
                 </thead>
+
                 <tbody>
                 <tr th:each="hecho : ${hechos}"
-                    class="border-b last:border-0 hover:bg-gray-50"
+                    class="bg-white shadow-sm hover:bg-gray-50 transition-all hecho-row"
                     th:data-hecho-id="${hecho.idHecho}"
                     th:data-hecho-latitud="${hecho.latitud}"
                     th:data-hecho-longitud="${hecho.longitud}"
                     th:data-hecho-categoria="${hecho.categoria}">
-                    <td class="py-2 px-2 col-id" th:text="${hecho.idHecho}">1</td>
-                    <td class="py-2 px-2 col-titulo" th:text="${hecho.titulo}">Título</td>
-                    <td class="py-2 px-2 col-descripcion" th:text="${hecho.descripcion}">Descripción</td>
-                    <td class="py-2 px-2 col-etiquetas">
-                        <span th:each="tag : ${hecho.etiquetas}"
-                              class="inline-block bg-gray-200 text-xs px-2 py-1 rounded mr-1 mb-1"
-                              th:text="${tag}">tag</span>
+
+                    <td class="p-3 font-semibold" th:text="${hecho.idHecho}"></td>
+                    <td class="p-3 col-titulo leading-snug texto-justificado"
+                        th:text="${hecho.titulo}"></td>
+
+                    <td class="p-3 col-descripcion leading-snug texto-justificado"
+                        th:text="${hecho.descripcion}"></td>
+
+                    <td class="p-3 col-etiquetas">
+                <span th:each="tag : ${hecho.etiquetas}"
+                      class="tag"
+                      th:text="${tag}">
+                </span>
                     </td>
-                    <td class="py-2 px-2 text-center">
-                        <button class="btn-icono ver-mapa btn-ver-mapa" title="Ver en mapa" type="button">
-                            <i class="fas fa-map-marker-alt"></i>
+
+                    <td class="p-3 text-center">
+                        <button class="btn-icono btn-ver-mapa">
+                        <i class="fas fa-map-marker-alt"></i>
                         </button>
                     </td>
-                    <td class="py-2 px-2 text-center">
-                        <button class="btn-icono eliminar btn-solicitar-eliminacion"
-                                title="Solicitar eliminación" type="button">
+
+                    <td class="p-3 text-center" th:if="${session.rol == 'CONTRIBUYENTE'}">
+                        <button class="btn-icono eliminar btn-solicitar-eliminacion">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
-                    <td class="py-2 px-2 text-center">
-                        <button class="btn-icono editar btn-editar-hecho" title="Editar" type="button">
+
+                    <td class="p-3 text-center" th:if="${session.rol == 'ADMIN'}">
+                        <button class="btn-icono eliminar btn-eliminar-admin">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+
+                    <td class="p-3 text-center">
+
+                        <!-- ADMIN siempre puede editar -->
+                        <button class="btn-icono editar btn-editar-hecho"
+                                th:if="${session.rol == 'ADMIN'}">
                             <i class="fas fa-pen"></i>
                         </button>
+
+                        <!-- CONTRIBUYENTE solo si es dueño del hecho -->
+                        <button class="btn-icono editar btn-editar-hecho"
+                                th:if="${session.rol == 'CONTRIBUYENTE'
+                    and hecho.idContribuyente != null
+                    and hecho.idContribuyente == session.usuarioId}">
+                            <i class="fas fa-pen"></i>
+                        </button>
+
+                        <!-- Caso contrario: guion, pero SOLO si está logueado -->
+                        <span class="text-gray-400"
+                              th:if="${session.rol != null
+              and !(session.rol == 'ADMIN'
+                  or (session.rol == 'CONTRIBUYENTE'
+                      and hecho.idContribuyente != null
+                      and hecho.idContribuyente == session.usuarioId))}">
+                            -
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                <tr th:if="${hechos == null or #lists.isEmpty(hechos)}">
+                    <td colspan="7" class="text-center text-gray-500 py-4">
+                        No se encontraron hechos.
                     </td>
                 </tr>
 
-                <tr th:if="${hechos == null or #lists.isEmpty(hechos)}"
-                    class="border-t">
-                    <td class="py-4 px-2 text-center text-gray-500" colspan="7">
-                        No se encontraron hechos para los filtros seleccionados.
-                    </td>
-                </tr>
                 </tbody>
             </table>
         </div>
     </section>
+
+    <div class="flex flex-wrap items-center justify-between mt-6 gap-4">
+
+        <!-- Texto Página X de X -->
+        <span class="text-sm text-gray-700"
+              th:text="'Página ' + ${page} + ' de ' + ${totalPages}">
+    </span>
+
+        <!-- Selector de cantidad por página -->
+        <form method="get" class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Mostrar:</label>
+
+            <select name="size"
+                    class="border rounded-md px-2 py-1 text-sm"
+                    onchange="this.form.submit()">
+
+                <option th:selected="${size == 5}" value="5">5</option>
+                <option th:selected="${size == 10}" value="10">10</option>
+                <option th:selected="${size == 20}" value="20">20</option>
+                <option th:selected="${size == 50}" value="50">50</option>
+                <option th:selected="${size == 9999}" value="9999">Todos</option>
+
+            </select>
+
+            <!-- Mantener filtros -->
+            <input type="hidden" name="categoria" th:value="${param.categoria}">
+            <input type="hidden" name="fechaReporteDesde" th:value="${param.fechaReporteDesde}">
+            <input type="hidden" name="fechaReporteHasta" th:value="${param.fechaReporteHasta}">
+            <input type="hidden" name="fechaAcontecimientoDesde" th:value="${param.fechaAcontecimientoDesde}">
+            <input type="hidden" name="fechaAcontecimientoHasta" th:value="${param.fechaAcontecimientoHasta}">
+            <input type="hidden" name="latitud" th:value="${param.latitud}">
+            <input type="hidden" name="longitud" th:value="${param.longitud}">
+        </form>
+
+        <!-- Botones de paginación -->
+        <ul class="flex gap-2">
+            <li th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                class="page-item"
+                th:classappend="${page} == ${i + 1} ? ' active'">
+                <a th:href="@{/hechos(
+                       page=${i},
+                       size=${size},
+                       categoria=${param.categoria},
+                       fechaReporteDesde=${param.fechaReporteDesde},
+                       fechaReporteHasta=${param.fechaReporteHasta},
+                       fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+                       fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+                       latitud=${param.latitud},
+                       longitud=${param.longitud}
+                   )}">
+                    <span th:text="${i + 1}"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
 </main>
 
-<!-- MODAL: AGREGAR HECHO -->
+<!-- FOOTER -->
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+<!-- JWT -->
+<script th:inline="javascript">
+    const JWT = /*[[${session.jwt}]]*/ "";
+</script>
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- ========================================================= -->
+<!-- MODAL: CREAR HECHO                                        -->
+<!-- ========================================================= -->
 <div id="modalCrearHecho" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="cerrarModalCrear">&times;</span>
@@ -340,91 +304,55 @@
 
         <form id="formCrearHecho" class="space-y-4">
             <div>
-                <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
-                <input type="text"
-                       id="titulo"
-                       name="titulo"
-                       required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Título</label>
+                <input id="titulo" type="text" class="input-basic" required>
             </div>
 
             <div>
-                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea id="descripcion"
-                          name="descripcion"
-                          rows="3"
-                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
+                <label class="block text-sm font-medium text-gray-700">Descripción</label>
+                <textarea id="descripcion" rows="3" class="input-basic"></textarea>
             </div>
 
             <div>
-                <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                <input type="text"
-                       id="categoria"
-                       name="categoria"
-                       required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Categoría</label>
+                <input id="categoria" type="text" class="input-basic" required>
             </div>
 
             <div>
-                <label for="urlMultimedia" class="block text-sm font-medium text-gray-700">
-                    URL contenido multimedia (opcional)
-                </label>
-                <input type="url"
-                       id="urlMultimedia"
-                       name="urlMultimedia"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-                       placeholder="https://...">
+                <label class="block text-sm font-medium text-gray-700">URL multimedia (opcional)</label>
+                <input id="urlMultimedia" type="url" class="input-basic" placeholder="https://...">
             </div>
 
             <div>
-                <label for="etiquetas" class="block text-sm font-medium text-gray-700">
-                    Etiquetas (separadas por coma, opcional)
-                </label>
-                <input type="text"
-                       id="etiquetas"
-                       name="etiquetas"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-                       placeholder="tránsito, lesiones">
+                <label class="block text-sm font-medium text-gray-700">Etiquetas (separadas por coma)</label>
+                <input id="etiquetas" type="text" class="input-basic" placeholder="accidente, tránsito">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="latitud" class="block text-sm font-medium text-gray-700">Latitud</label>
-                    <input type="number"
-                           step="any"
-                           id="latitud"
-                           name="latitud"
-                           required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700">Latitud</label>
+                    <input id="latitud" type="number" step="any" class="input-basic" required>
                 </div>
+
                 <div>
-                    <label for="longitud" class="block text-sm font-medium text-gray-700">Longitud</label>
-                    <input type="number"
-                           step="any"
-                           id="longitud"
-                           name="longitud"
-                           required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700">Longitud</label>
+                    <input id="longitud" type="number" step="any" class="input-basic" required>
                 </div>
             </div>
 
             <div>
-                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
-                <input type="date"
-                       id="fecha"
-                       name="fecha"
-                       required
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
+                <input id="fecha" type="date" class="input-basic" required>
             </div>
 
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button"
-                        id="cancelarModalCrear"
-                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="cancelarModalCrear"
+                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
                     Cancelar
                 </button>
+
                 <button type="submit"
-                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
                     Guardar
                 </button>
             </div>
@@ -432,48 +360,9 @@
     </div>
 </div>
 
-<!-- MODAL: SOLICITAR ELIMINACIÓN -->
-<div id="modalSolicitudEliminacion" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" id="cerrarModalSolicitud">&times;</span>
-        <h3 class="text-2xl font-bold mb-2 text-gray-800">Solicitar eliminación de hecho</h3>
-
-        <p class="text-sm text-gray-700 mb-2">
-            Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span>
-        </p>
-
-        <div id="errorSolicitudEliminacion" class="text-sm text-red-600 mb-2"></div>
-
-        <form id="formSolicitudEliminacion" class="space-y-4">
-            <input type="hidden" id="idHechoSolicitud" name="idHecho">
-
-            <div>
-                <label for="justificacionSolicitud"
-                       class="block text-sm font-medium text-gray-700">Justificación</label>
-                <textarea id="justificacionSolicitud"
-                          name="justificacion"
-                          rows="4"
-                          required
-                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-                          placeholder="Explicá por qué debería eliminarse este hecho"></textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button"
-                        id="cancelarModalSolicitud"
-                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
-                    Cancelar
-                </button>
-                <button type="submit"
-                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
-                    Enviar solicitud
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL: EDITAR HECHO -->
+<!-- ========================================================= -->
+<!-- MODAL: EDITAR HECHO                                       -->
+<!-- ========================================================= -->
 <div id="modalEditarHecho" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="cerrarModalEditar">&times;</span>
@@ -482,89 +371,58 @@
         <div id="errorEditarHecho" class="text-sm text-red-600 mb-2"></div>
 
         <form id="formEditarHecho" class="space-y-4">
-            <input type="hidden" id="idHechoEditar" name="idHechoEditar">
+            <input type="hidden" id="idHechoEditar">
 
             <div>
-                <label for="tituloEditar" class="block text-sm font-medium text-gray-700">Título</label>
-                <input type="text"
-                       id="tituloEditar"
-                       name="tituloEditar"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Título</label>
+                <input id="tituloEditar" type="text" class="input-basic">
             </div>
 
             <div>
-                <label for="descripcionEditar" class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea id="descripcionEditar"
-                          name="descripcionEditar"
-                          rows="3"
-                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
+                <label class="block text-sm font-medium text-gray-700">Descripción</label>
+                <textarea id="descripcionEditar" rows="3" class="input-basic"></textarea>
             </div>
 
             <div>
-                <label for="categoriaEditar" class="block text-sm font-medium text-gray-700">Categoría</label>
-                <input type="text"
-                       id="categoriaEditar"
-                       name="categoriaEditar"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Categoría</label>
+                <input id="categoriaEditar" type="text" class="input-basic">
             </div>
 
             <div>
-                <label for="urlMultimediaEditar" class="block text-sm font-medium text-gray-700">
-                    URL contenido multimedia (opcional)
-                </label>
-                <input type="url"
-                       id="urlMultimediaEditar"
-                       name="urlMultimediaEditar"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-                       placeholder="https://...">
+                <label class="block text-sm font-medium text-gray-700">URL multimedia</label>
+                <input id="urlMultimediaEditar" type="url" class="input-basic" placeholder="https://...">
             </div>
 
             <div>
-                <label for="etiquetasEditar" class="block text-sm font-medium text-gray-700">
-                    Etiquetas (separadas por coma, opcional)
-                </label>
-                <input type="text"
-                       id="etiquetasEditar"
-                       name="etiquetasEditar"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-                       placeholder="tránsito, lesiones">
+                <label class="block text-sm font-medium text-gray-700">Etiquetas</label>
+                <input id="etiquetasEditar" type="text" class="input-basic">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="latitudEditar" class="block text-sm font-medium text-gray-700">Latitud</label>
-                    <input type="number"
-                           step="any"
-                           id="latitudEditar"
-                           name="latitudEditar"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700">Latitud</label>
+                    <input id="latitudEditar" type="number" step="any" class="input-basic">
                 </div>
+
                 <div>
-                    <label for="longitudEditar" class="block text-sm font-medium text-gray-700">Longitud</label>
-                    <input type="number"
-                           step="any"
-                           id="longitudEditar"
-                           name="longitudEditar"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700">Longitud</label>
+                    <input id="longitudEditar" type="number" step="any" class="input-basic">
                 </div>
             </div>
 
             <div>
-                <label for="fechaEditar" class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
-                <input type="date"
-                       id="fechaEditar"
-                       name="fechaEditar"
-                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
+                <input id="fechaEditar" type="date" class="input-basic">
             </div>
 
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button"
-                        id="cancelarModalEditar"
-                        class="btn-rojo inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="cancelarModalEditar"
+                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
                     Cancelar
                 </button>
+
                 <button type="submit"
-                        class="btn-verde-oscuro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
+                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
                     Guardar cambios
                 </button>
             </div>
@@ -572,435 +430,47 @@
     </div>
 </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
+<!-- ========================================================= -->
+<!-- MODAL: SOLICITAR ELIMINACIÓN                              -->
+<!-- ========================================================= -->
+<div id="modalSolicitudEliminacion" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalSolicitud">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Solicitar eliminación</h3>
 
-<!-- JS principal -->
-<script>
-    (function () {
-        console.log("✅ hechos.html JS cargado");
+        <p class="text-sm text-gray-700">
+            Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span>
+        </p>
 
-        /* ================== URLS BACK ================== */
-        const urlBaseFuenteDinamica = "http://localhost:8080/fuente-dinamica";
-        const urlCrearHecho = urlBaseFuenteDinamica + "/hechos/crear";
-        const urlEditarHechoBase = urlBaseFuenteDinamica + "/hechos/editar/";
-        const urlCrearSolicitud = "http://localhost:8080/solicitudes";
+        <div id="errorSolicitudEliminacion" class="text-sm text-red-600 mb-2"></div>
 
-        /* ================== MODAL CREAR HECHO ================== */
-        const modalCrear = document.getElementById("modalCrearHecho");
-        const btnAbrirCrear = document.getElementById("abrirModalCrear");
-        const btnCerrarCrear = document.getElementById("cerrarModalCrear");
-        const btnCancelarCrear = document.getElementById("cancelarModalCrear");
-        const formCrear = document.getElementById("formCrearHecho");
-        const errorCrear = document.getElementById("errorCrearHecho");
+        <form id="formSolicitudEliminacion" class="space-y-4">
+            <input type="hidden" id="idHechoSolicitud">
 
-        function abrirModalCrear() {
-            modalCrear.style.display = "block";
-            errorCrear.textContent = "";
-        }
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Justificación</label>
+                <textarea id="justificacionSolicitud" rows="4"
+                          class="input-basic" required
+                          placeholder="Explicá por qué debería eliminarse este hecho"></textarea>
+            </div>
 
-        function cerrarModalCrear() {
-            modalCrear.style.display = "none";
-            errorCrear.textContent = "";
-            formCrear.reset();
-        }
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="cancelarModalSolicitud"
+                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
+                    Cancelar
+                </button>
 
-        if (btnAbrirCrear) btnAbrirCrear.addEventListener("click", abrirModalCrear);
-        if (btnCerrarCrear) btnCerrarCrear.addEventListener("click", cerrarModalCrear);
-        if (btnCancelarCrear) btnCancelarCrear.addEventListener("click", function (e) {
-            e.preventDefault();
-            cerrarModalCrear();
-        });
+                <button type="submit"
+                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
+                    Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        window.addEventListener("click", function (event) {
-            if (event.target === modalCrear) {
-                cerrarModalCrear();
-            }
-        });
-
-        if (formCrear) {
-            formCrear.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const titulo = document.getElementById("titulo").value.trim();
-                const descripcion = document.getElementById("descripcion").value.trim();
-                const categoria = document.getElementById("categoria").value.trim();
-                const latitud = parseFloat(document.getElementById("latitud").value);
-                const longitud = parseFloat(document.getElementById("longitud").value);
-                const fecha = document.getElementById("fecha").value;
-                const urlMultimedia = document.getElementById("urlMultimedia").value.trim();
-                const etiquetasTexto = document.getElementById("etiquetas").value.trim();
-
-                let etiquetas = [];
-                if (etiquetasTexto !== "") {
-                    etiquetas = etiquetasTexto
-                        .split(",")
-                        .map(t => t.trim())
-                        .filter(t => t.length > 0)
-                        .map(nombre => ({ nombre }));
-                }
-
-                const payload = {
-                    titulo: titulo,
-                    descripcion: descripcion,
-                    categoria: categoria,
-                    contenidoMultimedia: urlMultimedia ? { url: urlMultimedia } : { url: null },
-                    latitud: latitud,
-                    longitud: longitud,
-                    fechaAcontecimiento: fecha,
-                    etiquetas: etiquetas,
-                    contribuyente: null
-                };
-
-                console.log("📦 Payload a enviar (crear hecho):", payload);
-
-                fetch(urlCrearHecho, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                })
-                    .then(resp => {
-                        if (!resp.ok) {
-                            return resp.text().then(t => {
-                                throw new Error(t || ("HTTP " + resp.status));
-                            });
-                        }
-                        return resp.json().catch(() => null);
-                    })
-                    .then(data => {
-                        console.log("✅ Hecho creado:", data);
-                        cerrarModalCrear();
-                        window.location.href = "/hechos/hechos";
-                    })
-                    .catch(err => {
-                        console.error("❌ Error al crear hecho:", err);
-                        errorCrear.textContent = "Error al crear hecho: " + err.message;
-                    });
-            });
-        }
-
-        /* ================== MODAL SOLICITUD ELIMINACIÓN ================== */
-        const modalSol = document.getElementById("modalSolicitudEliminacion");
-        const cerrarSol = document.getElementById("cerrarModalSolicitud");
-        const cancelarSol = document.getElementById("cancelarModalSolicitud");
-        const formSol = document.getElementById("formSolicitudEliminacion");
-        const errorSol = document.getElementById("errorSolicitudEliminacion");
-        const inputIdHechoSol = document.getElementById("idHechoSolicitud");
-        const tituloHechoSol = document.getElementById("tituloHechoSolicitud");
-
-        function abrirModalSolicitud(idHecho, titulo) {
-            inputIdHechoSol.value = idHecho;
-            tituloHechoSol.textContent = titulo || "";
-            errorSol.textContent = "";
-            modalSol.style.display = "block";
-        }
-
-        function cerrarModalSolicitud() {
-            modalSol.style.display = "none";
-            errorSol.textContent = "";
-            inputIdHechoSol.value = "";
-            if (formSol) formSol.reset();
-        }
-
-        if (cerrarSol) {
-            cerrarSol.addEventListener("click", cerrarModalSolicitud);
-        }
-        if (cancelarSol) {
-            cancelarSol.addEventListener("click", function (e) {
-                e.preventDefault();
-                cerrarModalSolicitud();
-            });
-        }
-
-        window.addEventListener("click", function (event) {
-            if (event.target === modalSol) {
-                cerrarModalSolicitud();
-            }
-        });
-
-        document.querySelectorAll(".btn-solicitar-eliminacion").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const fila = btn.closest("tr");
-                if (!fila) {
-                    console.error("No se encontró la fila del hecho para solicitud");
-                    return;
-                }
-                const idHecho = fila.getAttribute("data-hecho-id");
-                const titulo = fila.querySelector(".col-titulo")
-                    ? fila.querySelector(".col-titulo").textContent.trim()
-                    : "";
-                if (!idHecho) {
-                    console.error("No se encontró data-hecho-id en la fila");
-                    return;
-                }
-                console.log("🗑 Solicitar eliminación para hecho id =", idHecho);
-                abrirModalSolicitud(idHecho, titulo);
-            });
-        });
-
-        if (formSol) {
-            formSol.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const idHecho = parseInt(inputIdHechoSol.value, 10);
-                const justificacion = document.getElementById("justificacionSolicitud").value.trim();
-
-                if (!justificacion) {
-                    errorSol.textContent = "La justificación es obligatoria.";
-                    return;
-                }
-
-                const payloadSol = {
-                    idHecho: idHecho,
-                    justificacion: justificacion
-                };
-
-                console.log("📦 Payload solicitud eliminación:", payloadSol);
-
-                fetch(urlCrearSolicitud, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payloadSol)
-                })
-                    .then(resp => {
-                        if (!resp.ok) {
-                            return resp.text().then(t => {
-                                throw new Error(t || ("HTTP " + resp.status));
-                            });
-                        }
-                        return resp.json().catch(() => null);
-                    })
-                    .then(data => {
-                        console.log("✅ Solicitud creada:", data);
-                        cerrarModalSolicitud();
-                        alert("Solicitud enviada. Estado: " + (data && data.estado ? data.estado : "PENDIENTE"));
-                    })
-                    .catch(err => {
-                        console.error("❌ Error al crear solicitud:", err);
-                        errorSol.textContent = "Error al crear solicitud: " + err.message;
-                    });
-            });
-        }
-
-        /* ================== MODAL EDITAR HECHO ================== */
-        const modalEditar = document.getElementById("modalEditarHecho");
-        const cerrarEditar = document.getElementById("cerrarModalEditar");
-        const cancelarEditar = document.getElementById("cancelarModalEditar");
-        const formEditar = document.getElementById("formEditarHecho");
-        const errorEditar = document.getElementById("errorEditarHecho");
-        const inputIdEditar = document.getElementById("idHechoEditar");
-
-        function abrirModalEditarDesdeFila(fila) {
-            const idHecho = fila.getAttribute("data-hecho-id");
-            if (!idHecho) {
-                console.error("No se encontró data-hecho-id en la fila para editar");
-                return;
-            }
-
-            inputIdEditar.value = idHecho;
-
-            const titulo = fila.querySelector(".col-titulo")?.textContent.trim() || "";
-            const descripcion = fila.querySelector(".col-descripcion")?.textContent.trim() || "";
-            const categoria = fila.getAttribute("data-hecho-categoria") || "";
-
-            // Armo las etiquetas como texto a partir de los span
-            const etiquetas = Array.from(fila.querySelectorAll(".col-etiquetas span"))
-                .map(s => s.textContent.trim())
-                .filter(s => s.length > 0)
-                .join(", ");
-
-            const latitud = fila.getAttribute("data-hecho-latitud") || "";
-            const longitud = fila.getAttribute("data-hecho-longitud") || "";
-
-            document.getElementById("tituloEditar").value = titulo;
-            document.getElementById("descripcionEditar").value = descripcion;
-            document.getElementById("categoriaEditar").value = categoria;
-            document.getElementById("etiquetasEditar").value = etiquetas;
-            document.getElementById("latitudEditar").value = latitud;
-            document.getElementById("longitudEditar").value = longitud;
-            document.getElementById("urlMultimediaEditar").value = "";
-            document.getElementById("fechaEditar").value = "";
-
-            errorEditar.textContent = "";
-            modalEditar.style.display = "block";
-        }
-
-        function cerrarModalEditar() {
-            modalEditar.style.display = "none";
-            errorEditar.textContent = "";
-            if (formEditar) formEditar.reset();
-        }
-
-        if (cerrarEditar) {
-            cerrarEditar.addEventListener("click", cerrarModalEditar);
-        }
-
-        if (cancelarEditar) {
-            cancelarEditar.addEventListener("click", function (e) {
-                e.preventDefault();
-                cerrarModalEditar();
-            });
-        }
-
-        window.addEventListener("click", function (event) {
-            if (event.target === modalEditar) {
-                cerrarModalEditar();
-            }
-        });
-
-        document.querySelectorAll(".btn-editar-hecho").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const fila = btn.closest("tr");
-                if (!fila) {
-                    console.error("No se encontró la fila del hecho para editar");
-                    return;
-                }
-                abrirModalEditarDesdeFila(fila);
-            });
-        });
-
-        if (formEditar) {
-            formEditar.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const idHecho = inputIdEditar.value;
-                if (!idHecho) {
-                    errorEditar.textContent = "No se pudo determinar el ID del hecho.";
-                    return;
-                }
-
-                const titulo = document.getElementById("tituloEditar").value.trim();
-                const descripcion = document.getElementById("descripcionEditar").value.trim();
-                const categoria = document.getElementById("categoriaEditar").value.trim();
-                const latitudVal = document.getElementById("latitudEditar").value;
-                const longitudVal = document.getElementById("longitudEditar").value;
-                const fecha = document.getElementById("fechaEditar").value;
-                const urlMultimedia = document.getElementById("urlMultimediaEditar").value.trim();
-                const etiquetasTexto = document.getElementById("etiquetasEditar").value.trim();
-
-                const latitud = latitudVal === "" ? null : parseFloat(latitudVal);
-                const longitud = longitudVal === "" ? null : parseFloat(longitudVal);
-
-                let etiquetas = [];
-                if (etiquetasTexto !== "") {
-                    etiquetas = etiquetasTexto
-                        .split(",")
-                        .map(t => t.trim())
-                        .filter(t => t.length > 0)
-                        .map(nombre => ({ nombre }));
-                }
-
-                const payloadEditar = {
-                    titulo: titulo || null,
-                    descripcion: descripcion || null,
-                    categoria: categoria || null,
-                    latitud: latitud,
-                    longitud: longitud,
-                    fechaAcontecimiento: fecha || null,
-                    contenidoMultimedia: urlMultimedia ? { url: urlMultimedia } : null,
-                    etiquetas: etiquetas.length > 0 ? etiquetas : null
-                };
-
-                console.log("✏️ Payload a enviar (editar hecho):", payloadEditar);
-
-                fetch(urlEditarHechoBase + idHecho, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payloadEditar)
-                })
-                    .then(resp => {
-                        if (!resp.ok) {
-                            return resp.text().then(t => {
-                                throw new Error(t || ("HTTP " + resp.status));
-                            });
-                        }
-                        return resp.json().catch(() => null);
-                    })
-                    .then(data => {
-                        console.log("✅ Hecho editado:", data);
-                        cerrarModalEditar();
-                        // Lo más simple: refrescamos la tabla
-                        window.location.href = "/hechos/hechos";
-                    })
-                    .catch(err => {
-                        console.error("❌ Error al editar hecho:", err);
-                        errorEditar.textContent = "Error al editar hecho: " + err.message;
-                    });
-            });
-        }
-
-        /* ================== LIMPIAR FILTROS ================== */
-        const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
-        if (btnLimpiarFiltros) {
-            btnLimpiarFiltros.addEventListener("click", function () {
-                window.location.href = "/hechos/hechos";
-            });
-        }
-
-        /* ================== MAPA LEAFLET ================== */
-        const mapContainer = document.getElementById("mapHechos");
-        if (mapContainer) {
-            const map = L.map("mapHechos").setView([-34.6037, -58.3816], 11); // CABA
-
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                maxZoom: 19,
-                attribution: "&copy; OpenStreetMap contributors"
-            }).addTo(map);
-
-            const filasHechos = document.querySelectorAll("tbody tr[data-hecho-id]");
-            let bounds = [];
-
-            filasHechos.forEach(fila => {
-                const lat = parseFloat(fila.getAttribute("data-hecho-latitud"));
-                const lng = parseFloat(fila.getAttribute("data-hecho-longitud"));
-                const titulo = fila.querySelector(".col-titulo")?.textContent.trim() || "";
-                const id = fila.getAttribute("data-hecho-id");
-
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const marker = L.marker([lat, lng]).addTo(map)
-                        .bindPopup(`<strong>#${id}</strong><br>${titulo}`);
-
-                    // Guardo el marker en la fila por si lo quiero usar luego
-                    fila._marker = marker;
-                    bounds.push([lat, lng]);
-                }
-            });
-
-            if (bounds.length > 0) {
-                map.fitBounds(bounds, { padding: [20, 20] });
-            }
-
-            // Botón "ver en mapa" por fila
-            document.querySelectorAll(".btn-ver-mapa").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const fila = btn.closest("tr");
-                    if (!fila) return;
-
-                    const lat = parseFloat(fila.getAttribute("data-hecho-latitud"));
-                    const lng = parseFloat(fila.getAttribute("data-hecho-longitud"));
-
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        map.setView([lat, lng], 15);
-                        if (fila._marker) {
-                            fila._marker.openPopup();
-                        }
-                    } else {
-                        alert("Este hecho no tiene coordenadas definidas.");
-                    }
-                });
-            });
-        }
-
-    })();
-</script>
+<!-- JS para esta página -->
+<script th:src="@{/js/hechos.js}"></script>
 
 </body>
 </html>

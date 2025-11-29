@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<th:block th:fragment="header">
+
+    <header class="mm-header">
+        <div class="mm-header-inner">
+
+            <!-- IZQUIERDA: Logo -->
+            <a class="mm-brand" th:href="@{/}">
+                <img th:src="@{/img/logo.png}" alt="MetaMapa" class="mm-logo">
+            </a>
+
+            <!-- CENTRO: Menú -->
+            <nav class="mm-nav">
+                <ul>
+                    <li><a th:href="@{/}">Inicio</a></li>
+                    <li><a th:href="@{/colecciones}">Colecciones</a></li>
+                    <li><a th:href="@{/hechos}">Hechos</a></li>
+                    <li><a th:href="@{/landing#objetivos}">Objetivos</a></li>
+                    <li><a th:href="@{/legal/privacidad}">Legal</a></li>
+                </ul>
+            </nav>
+
+            <!-- DERECHA: Usuario -->
+            <div class="mm-userpanel">
+
+                <!-- No logueado -->
+                <a th:if="${session.usuario == null}"
+                   th:href="@{/login}"
+                   class="mm-login-btn">
+                    Acceder
+                </a>
+
+                <!-- Logueado -->
+                <div th:if="${session.usuario != null}" class="mm-userdropdown">
+
+                    <button class="mm-user-btn">
+                        <i class="fa-solid fa-user"></i>
+                        <span th:text="${session.usuario}">Usuario</span>
+                        <i class="fa-solid fa-caret-down"></i>
+                    </button>
+
+                    <div class="mm-dropdown">
+                        <p class="mm-user-info">
+                            <b th:text="${session.usuario}">Usuario</b><br>
+                            <span th:text="${session.rol}">Rol</span>
+                        </p>
+
+                        <!-- ADMINISTRAR dinámico -->
+                        <a class="mm-dropdown-item"
+                           th:if="${session.rol == 'ADMIN'}"
+                           th:href="@{/admin}">
+                            <i class="fa-solid fa-gear"></i> Administrar
+                        </a>
+
+                        <a class="mm-dropdown-item"
+                           th:if="${session.rol == 'CONTRIBUYENTE'}"
+                           th:href="@{/contribuyente}">
+                            <i class="fa-solid fa-gear"></i> Administrar
+                        </a>
+
+                        <!-- Logout -->
+                        <a class="mm-dropdown-item logout" th:href="@{/logout}">
+                            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </header>
+
+    <script>
+        /* Dropdown usuario */
+        document.addEventListener("click", e => {
+            const btn = document.querySelector(".mm-user-btn");
+            const menu = document.querySelector(".mm-dropdown");
+
+            if (!btn) return;
+
+            if (btn.contains(e.target)) {
+                menu.classList.toggle("open");
+            } else if (!menu.contains(e.target)) {
+                menu.classList.remove("open");
+            }
+        });
+    </script>
+
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+:root {
+    --primary: #688549;
+    --secondary: #a95038;
+    --background: #EBE5DD;
+    --text: #333;
+}
+
+.error-wrapper {
+    max-width: 750px;
+    margin: 4rem auto;
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 4.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: .8rem;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.error-btn {
+    padding: .8rem 1.2rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.error-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.error-btn-secondary {
+    background: var(--secondary);
+    color: #fff;
+}
+
+.error-grid {
+    margin-top: 2rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.error-hint {
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}

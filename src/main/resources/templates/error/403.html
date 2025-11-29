@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>403 — Acceso denegado</title>
+
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+
+<th:block th:replace="fragments/header :: header"></th:block>
+
+<main>
+    <div class="error-wrapper">
+
+        <div class="error-icon">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+
+        <h1 class="error-title" th:text="${titulo}">Acceso denegado</h1>
+        <p class="error-message" th:text="${mensaje}">
+            No tiene permisos suficientes para ingresar.
+        </p>
+
+        <div class="error-actions">
+            <a th:href="@{/}" class="error-btn error-btn-primary">Ir al inicio</a>
+            <a th:href="@{/login}" class="error-btn error-btn-secondary">Iniciar sesión</a>
+        </div>
+
+        <div class="error-grid">
+            <div class="error-hint">
+                <strong>Verificar permisos</strong><br>
+                Su cuenta podría no tener los privilegios necesarios.
+            </div>
+            <div class="error-hint">
+                <strong>Intentar nuevamente</strong><br>
+                Si llegó aquí por error, regrese a la página anterior.
+            </div>
+            <div class="error-hint">
+                <strong>Contactar administrador</strong><br>
+                Si cree que debería tener acceso, hable con un administrador.
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+</body>
+</html>

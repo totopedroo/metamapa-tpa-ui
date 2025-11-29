@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>404 — No encontrado</title>
+
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+
+<th:block th:replace="fragments/header :: header"></th:block>
+
+<main>
+    <div class="error-wrapper">
+
+        <div class="error-icon">
+            <i class="fa-solid fa-map-pin"></i>
+        </div>
+
+        <h1 class="error-title">Página no encontrada</h1>
+
+        <p class="error-message" th:text="${mensaje}">
+            El recurso que buscás no existe o fue movido.
+        </p>
+
+        <div class="error-actions">
+            <a th:href="@{/}" class="error-btn error-btn-primary">Volver al inicio</a>
+        </div>
+
+        <div class="error-grid">
+            <div class="error-hint">
+                <strong>Verificá la URL</strong><br>
+                Revisá que esté correctamente escrita.
+            </div>
+            <div class="error-hint">
+                <strong>Volvé atrás</strong><br>
+                Podés regresar usando el navegador.
+            </div>
+            <div class="error-hint">
+                <strong>Buscá desde inicio</strong><br>
+                Usá el menú superior para navegar.
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+</body>
+</html>

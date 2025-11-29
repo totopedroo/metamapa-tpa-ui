@@ -1,34 +1,16 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
     <title>Colección - MetaMapa</title>
 
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css}" rel="stylesheet">
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css}" rel="stylesheet">
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
     <link rel="stylesheet" th:href="@{/css/inicioAdminYContribuyente.css}">
 </head>
-
 <body>
 
-<header class="header">
-    <div class="header-inner">
-        <div class="logo">
-            <a th:href="@{/landing.html}">
-                <img th:src="@{/img/logo.png}" alt="Logo MetaMapa">
-            </a>
-        </div>
-        <nav>
-            <a th:href="@{/colecciones}" class="btn btn-outline-light me-3">Volver</a>
-
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="logout-btn">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                </button>
-            </form>
-        </nav>
-    </div>
-</header>
+<th:block th:replace="fragments/header :: header"></th:block>
 
 <main class="container my-5">
 
@@ -63,6 +45,8 @@
     </p>
 
 </main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
 
 </body>
 </html>

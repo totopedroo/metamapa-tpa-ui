@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>401 — No autenticado</title>
+
+    <!-- HEAD GLOBAL -->
+    <th:block th:replace="fragments/head :: head"></th:block>
+
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+
+<th:block th:replace="fragments/header :: header"></th:block>
+
+<main>
+    <div class="error-wrapper">
+
+        <div class="error-icon">
+            <i class="fa-solid fa-user-lock"></i>
+        </div>
+
+        <h1 class="error-title">Debe iniciar sesión</h1>
+        <p class="error-message">
+            Para acceder a este recurso debe autenticarse.
+        </p>
+
+        <div class="error-actions">
+            <a th:href="@{/login}" class="error-btn error-btn-primary">Iniciar sesión</a>
+            <a th:href="@{/}" class="error-btn error-btn-secondary">Volver al inicio</a>
+        </div>
+
+    </div>
+</main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+</body>
+</html>

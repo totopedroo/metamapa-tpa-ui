@@ -43,39 +43,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     progressBar.style.width = '100%';
                     progressBar.innerText = '100%';
 
-                    const textoRespuesta = await response.text(); // Leemos mensaje del servidor
+                    // Intentamos parsear JSON
+                    const json = await response.json().catch(() => null);
 
-                    if (response.ok) {
-                        // ÉXITO
+                    if (response.ok && json) {
                         statusMsg.className = 'mt-2 text-center text-success fw-bold';
-                        statusMsg.innerText = '¡Importación exitosa!';
+                        statusMsg.innerText = `¡Importación exitosa! Hechos importados: ${json.importados}`;
 
                         setTimeout(() => {
-                            // Cerrar modal
                             const modalEl = document.getElementById('modalCSV');
                             const modal = bootstrap.Modal.getInstance(modalEl);
                             modal.hide();
 
-                            // Resetear formulario
                             form.reset();
                             progressContainer.classList.add('d-none');
                             statusMsg.innerText = '';
                             this.disabled = false;
                             progressBar.style.width = '0%';
-
-                            // Opcional: Recargar página para ver nuevos hechos
-                            // window.location.reload();
-                        }, 2000);
+                        }, 5000);
 
                     } else {
-                        // ERROR DEL SERVIDOR (400, 500, etc)
-                        throw new Error(textoRespuesta || 'Error desconocido del servidor');
+                        throw new Error(json?.message || 'Error desconocido del servidor');
                     }
                 })
                 .catch(error => {
-                    // ERROR DE RED O LÓGICA
                     console.error('Error:', error);
-                    progressBar.className = 'progress-bar bg-danger'; // Barra roja
+                    progressBar.classList.add('bg-danger');
                     statusMsg.className = 'mt-2 text-center text-danger fw-bold';
                     statusMsg.innerText = 'Error: ' + error.message;
                     this.disabled = false;

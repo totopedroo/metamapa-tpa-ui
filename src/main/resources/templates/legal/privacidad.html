@@ -1,22 +1,16 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
   <title th:text="${titulo}">Información legal y de privacidad</title>
+
+  <!-- HEAD GLOBAL -->
+  <th:block th:replace="fragments/head :: head"></th:block>
 
   <link rel="stylesheet" th:href="@{/css/privacidad.css}">
 </head>
 <body>
-<header class="header">
-  <div class="header-inner">
-    <div class="logo">
-      <a class="brand" th:href="@{/}" aria-label="MetaMapa inicio">
-        <img th:src="@{/img/logo.png}" alt="MetaMapa" class="brand-logo">
-      </a>
-    </div>
-    <h1 th:text="${titulo}">Información legal y de privacidad</h1>
-  </div>
-</header>
+
+<th:block th:replace="fragments/header :: header"></th:block>
 
 <main class="content">
   <div class="card">
@@ -38,5 +32,8 @@
     <button th:onclick="|window.location.href='@{/}'|">Ir a Inicio</button>
   </div>
 </main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
 </body>
 </html>

@@ -16,16 +16,23 @@ public class CookieForwarder {
     }
 
     public String getTokenFromCurrentRequest() {
-        HttpServletRequest req =
-                ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-                        .getRequest();
-        if (req == null || req.getCookies() == null) return null;
+        var req = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes())
+                .getRequest();
 
-        for (Cookie c : req.getCookies()) {
-            if ("Authorization".equals(c.getName())) {
-                return c.getValue().replace("Bearer ", ""); // por si lo guardaste así
-            }
-        }
-        return null;
+        var session = req.getSession(false);
+        if (session == null) return null;
+
+        return (String) session.getAttribute("jwt");
     }
+
+    public String getCookieHeaderFromCurrentRequest() {
+        var req = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+
+        String cookie = req.getHeader("Cookie");
+        return cookie != null ? cookie : "";
+    }
+
 }

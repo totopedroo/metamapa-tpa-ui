@@ -30,4 +30,5 @@ public class HechoDTO {
     private List<String> consensos;
     private Boolean consensuado;
     private List<String> fuentes;
+    private Long idContribuyente;
 }
