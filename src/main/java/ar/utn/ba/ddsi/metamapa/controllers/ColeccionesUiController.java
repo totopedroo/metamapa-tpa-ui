@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Controller
 @RequestMapping("/colecciones")
 @RequiredArgsConstructor
@@ -35,14 +38,39 @@ public class ColeccionesUiController {
 
     // --- FORM NUEVA COLECCIÓN ---
     @GetMapping("/nueva")
-    public String mostrarFormNueva(Model model, HttpSession session) {
+    public String mostrarFormNueva(Model model,
+                                   HttpSession session,
+                                   @RequestParam(required = false) String hechos,
+                                   @RequestParam(required = false) String titulo,
+                                   @RequestParam(required = false) String descripcion,
+                                   @RequestParam(required = false) Long algoritmo) {
 
         validarAdmin(session);
 
         ColeccionFormDTO form = new ColeccionFormDTO();
+
+        // Si venís del pick mode
+        if (hechos != null) {
+            form.setHechosIds(
+                    Arrays.stream(hechos.split(","))
+                            .filter(s -> !s.isBlank())
+                            .map(Long::parseLong)
+                            .toList()
+            );
+        }
+
+        // Si venís con datos ya cargados del front (título, desc, etc.)
+        form.setTitulo(titulo);
+        form.setDescripcion(descripcion);
+
+        if (algoritmo != null)
+            form.setCriteriosIds(List.of(algoritmo));
+
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
 
         model.addAttribute("form", form);
+        model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
+
         return "colecciones/nueva";
     }
 

@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -61,8 +62,12 @@ public class HechosUiController {
             @RequestParam(required = false) Double longitud,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Boolean pick,
+            @RequestParam(required = false) String returnTo,
+            @RequestParam(required = false) String hechos,
             Model model
     ) {
+
         Map<String, Object> resultado = hechosService.filtrarHechos(
                 categoria,
                 fechaReporteDesde,
@@ -75,14 +80,17 @@ public class HechosUiController {
                 size
         );
 
-        model.addAttribute("hechos", resultado.get("items"));
+        List<HechoDTO> items = (List<HechoDTO>) resultado.get("items");
+        model.addAttribute("hechos", items);
+        model.addAttribute("hechosLista", items);
+
         model.addAttribute("page", (int) resultado.get("page") + 1);
         model.addAttribute("totalPages", resultado.get("totalPages"));
         model.addAttribute("size", resultado.get("size"));
         model.addAttribute("totalItems", resultado.get("totalItems"));
-
-        // No hace falta pasar los filtros al modelo porque en el HTML los leemos con ${param.*},
-        // pero si quisieras, podrías agregarlos también acá.
+        model.addAttribute("pick", pick);
+        model.addAttribute("returnTo", returnTo);
+        model.addAttribute("hechosSel", hechos);
 
         return "hechos/hechos";
     }
