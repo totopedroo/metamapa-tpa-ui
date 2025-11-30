@@ -27,8 +27,8 @@
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
 
-        <div th:if="${#authorization.expression('hasRole(''CONTRIBUYENTE'') or hasRole(''ADMIN'')')}">
-            <button id="abrirModalCrear"
+        <div th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
+        <button id="abrirModalCrear"
                     class="btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                 <i class="fas fa-plus mr-2"></i> Agregar Hecho
             </button>
@@ -38,6 +38,12 @@
     <!-- Filtros -->
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
         <form th:action="@{/hechos}" method="get" id="filtrosForm">
+
+            <!-- PRESERVAR PICK MODE DURANTE FILTROS                   -->
+            <input type="hidden" name="pick" th:if="${param.pick}" th:value="${param.pick}">
+            <input type="hidden" name="returnTo" th:if="${param.returnTo}" th:value="${param.returnTo}">
+            <input type="hidden" name="hechos" id="hechosHidden"
+                   th:value="${param.hechos}">
 
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
@@ -93,7 +99,7 @@
                 <div class="flex flex-col gap-2 mt-2 md:mt-0">
                     <span class="text-xs font-semibold text-gray-700">Acciones</span>
                     <div class="flex gap-3 mt-1">
-                        <button class="btn-verde-oscuro text-sm inline-flex items-center px-3 py-2 rounded-md"
+                        <button class="btn-verde-claro text-sm inline-flex items-center px-3 py-2 rounded-md"
                                 type="submit">
                             <i class="fas fa-search mr-1"></i> Buscar
                         </button>
@@ -125,6 +131,7 @@
                 <thead class="bg-[var(--color-beige-tarjeta)] border-b">
                 <tr class="bg-gray-200 text-gray-700 text-left">
 
+                    <th class="p-3 text-center" th:if="${param.pick}">Sel.</th>
                     <th class="p-3 rounded-l-md">ID</th>
                     <th class="p-3">Título</th>
                     <th class="p-3">Descripción</th>
@@ -133,13 +140,13 @@
                     <th class="p-3 text-center">Ver Mapa</th>
 
                     <th class="p-3 text-center"
-                        th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
+                        th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
 
                     <th class="p-3 text-center"
-                        th:if="${session.rol == 'ADMIN'}">Eliminar</th>
+                        th:if="${param.pick == null and session.rol == 'ADMIN'}">Eliminar</th>
 
                     <th class="p-3 text-center rounded-r-md"
-                        th:if="${session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
+                        th:if="${param.pick == null and session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
 
                 </tr>
                 </thead>
@@ -152,74 +159,90 @@
                     th:data-hecho-longitud="${hecho.longitud}"
                     th:data-hecho-categoria="${hecho.categoria}">
 
+                    <!-- PICK MODE: checkbox -->
+                    <td class="p-3 text-center" th:if="${param.pick}">
+                        <input type="checkbox" class="pick-checkbox"
+                               th:value="${hecho.idHecho}">
+                    </td>
+
+                    <!-- ID -->
                     <td class="p-3 font-semibold" th:text="${hecho.idHecho}"></td>
+
+                    <!-- Título -->
                     <td class="p-3 col-titulo leading-snug texto-justificado"
                         th:text="${hecho.titulo}"></td>
 
+                    <!-- Descripción -->
                     <td class="p-3 col-descripcion leading-snug texto-justificado"
                         th:text="${hecho.descripcion}"></td>
 
+                    <!-- Etiquetas -->
                     <td class="p-3 col-etiquetas">
-                <span th:each="tag : ${hecho.etiquetas}"
-                      class="tag"
-                      th:text="${tag}">
-                </span>
+                        <span th:each="tag : ${hecho.etiquetas}"
+                              class="tag"
+                              th:text="${tag}">
+                        </span>
                     </td>
 
+                    <!-- Ver mapa (SIEMPRE visible, incluso en pick mode) -->
                     <td class="p-3 text-center">
                         <button class="btn-icono btn-ver-mapa">
-                        <i class="fas fa-map-marker-alt"></i>
+                            <i class="fas fa-map-marker-alt"></i>
                         </button>
                     </td>
 
-                    <td class="p-3 text-center" th:if="${session.rol == 'CONTRIBUYENTE'}">
+                    <!-- Solicitar eliminación (solo contribuyente y NO en pick mode) -->
+                    <td class="p-3 text-center"
+                        th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">
                         <button class="btn-icono eliminar btn-solicitar-eliminacion">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
 
-                    <td class="p-3 text-center" th:if="${session.rol == 'ADMIN'}">
+                    <!-- Eliminar (solo admin y NO pick) -->
+                    <td class="p-3 text-center"
+                        th:if="${param.pick == null and session.rol == 'ADMIN'}">
                         <button class="btn-icono eliminar btn-eliminar-admin">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
 
-                    <td class="p-3 text-center">
+                    <!-- Editar (solo si no estamos en pick) -->
+                    <td class="p-3 text-center" th:if="${param.pick == null}">
 
-                        <!-- ADMIN siempre puede editar -->
+                        <!-- ADMIN siempre puede -->
                         <button class="btn-icono editar btn-editar-hecho"
                                 th:if="${session.rol == 'ADMIN'}">
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        <!-- CONTRIBUYENTE solo si es dueño del hecho -->
+                        <!-- CONTRIBUYENTE si es dueño -->
                         <button class="btn-icono editar btn-editar-hecho"
                                 th:if="${session.rol == 'CONTRIBUYENTE'
-                    and hecho.idContribuyente != null
-                    and hecho.idContribuyente == session.usuarioId}">
+                                        and hecho.idContribuyente != null
+                                        and hecho.idContribuyente == session.usuarioId}">
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        <!-- Caso contrario: guion, pero SOLO si está logueado -->
+                        <!-- caso contrario -->
                         <span class="text-gray-400"
                               th:if="${session.rol != null
-              and !(session.rol == 'ADMIN'
-                  or (session.rol == 'CONTRIBUYENTE'
-                      and hecho.idContribuyente != null
-                      and hecho.idContribuyente == session.usuarioId))}">
+                                     and !(session.rol == 'ADMIN'
+                                     or (session.rol == 'CONTRIBUYENTE'
+                                         and hecho.idContribuyente != null
+                                         and hecho.idContribuyente == session.usuarioId))}">
                             -
                         </span>
 
                     </td>
-
                 </tr>
 
+                <!-- Si no hay hechos -->
                 <tr th:if="${hechos == null or #lists.isEmpty(hechos)}">
                     <td colspan="7" class="text-center text-gray-500 py-4">
                         No se encontraron hechos.
                     </td>
                 </tr>
-
                 </tbody>
             </table>
         </div>
@@ -259,35 +282,139 @@
         </form>
 
         <!-- Botones de paginación -->
-        <ul class="flex gap-2">
-            <li th:each="i : ${#numbers.sequence(0, totalPages-1)}"
-                class="page-item"
-                th:classappend="${page} == ${i + 1} ? ' active'">
-                <a th:href="@{/hechos(
-                       page=${i},
-                       size=${size},
-                       categoria=${param.categoria},
-                       fechaReporteDesde=${param.fechaReporteDesde},
-                       fechaReporteHasta=${param.fechaReporteHasta},
-                       fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-                       fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-                       latitud=${param.latitud},
-                       longitud=${param.longitud}
-                   )}">
-                    <span th:text="${i + 1}"></span>
+        <ul class="pagination">
+
+            <!-- ANTERIOR -->
+            <li class="page-item"
+                th:classappend="${page == 1} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{/hechos(
+           page=${page-2}, size=${size},
+           categoria=${param.categoria},
+           fechaReporteDesde=${param.fechaReporteDesde},
+           fechaReporteHasta=${param.fechaReporteHasta},
+           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+           latitud=${param.latitud}, longitud=${param.longitud},
+           pick=${param.pick},
+           returnTo=${param.returnTo},
+           hechos=${param.hechos}
+       )}">
+                    «
+                </a>
+            </li>
+
+            <!-- PÁGINA 1 -->
+            <li class="page-item" th:if="${page > 3}">
+                <a class="page-link"
+                   th:href="@{/hechos(
+           page=0, size=${size},
+           categoria=${param.categoria},
+           fechaReporteDesde=${param.fechaReporteDesde},
+           fechaReporteHasta=${param.fechaReporteHasta},
+           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+           latitud=${param.latitud}, longitud=${param.longitud},
+           pick=${param.pick},
+           returnTo=${param.returnTo},
+           hechos=${param.hechos}
+       )}">
+                    1
+                </a>
+            </li>
+
+            <!-- "..." PREV -->
+            <li class="page-item disabled" th:if="${page > 4}">
+                <span class="page-link">…</span>
+            </li>
+
+            <!-- RANGO CENTRAL -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(page-3, page+3)}"
+                th:if="${i >= 0 and i < totalPages}"
+                th:classappend="${page} == ${i+1} ? ' active'">
+                <a class="page-link"
+                   th:text="${i+1}"
+                   th:href="@{/hechos(
+           page=${i}, size=${size},
+           categoria=${param.categoria},
+           fechaReporteDesde=${param.fechaReporteDesde},
+           fechaReporteHasta=${param.fechaReporteHasta},
+           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+           latitud=${param.latitud}, longitud=${param.longitud},
+           pick=${param.pick},
+           returnTo=${param.returnTo},
+           hechos=${param.hechos}
+       )}"></a>
+            </li>
+
+            <!-- "..." NEXT -->
+            <li class="page-item disabled" th:if="${page < totalPages - 3}">
+                <span class="page-link">…</span>
+            </li>
+
+            <!-- ÚLTIMA -->
+            <li class="page-item" th:if="${page < totalPages - 2}">
+                <a class="page-link"
+                   th:text="${totalPages}"
+                   th:href="@{/hechos(
+           page=${totalPages-1}, size=${size},
+           categoria=${param.categoria},
+           fechaReporteDesde=${param.fechaReporteDesde},
+           fechaReporteHasta=${param.fechaReporteHasta},
+           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+           latitud=${param.latitud}, longitud=${param.longitud},
+           pick=${param.pick},
+           returnTo=${param.returnTo},
+           hechos=${param.hechos}
+       )}">
+                </a>
+            </li>
+
+            <!-- SIGUIENTE -->
+            <li class="page-item"
+                th:classappend="${page == totalPages} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{/hechos(
+           page=${page}, size=${size},
+           categoria=${param.categoria},
+           fechaReporteDesde=${param.fechaReporteDesde},
+           fechaReporteHasta=${param.fechaReporteHasta},
+           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
+           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
+           latitud=${param.latitud}, longitud=${param.longitud},
+           pick=${param.pick},
+           returnTo=${param.returnTo},
+           hechos=${param.hechos}
+       )}">
+                    »
                 </a>
             </li>
         </ul>
+    </div>
+
+    <div th:if="${param.pick}" class="mt-6 flex justify-end">
+        <button id="btnConfirmarPick"
+                class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
+            Confirmar selección
+        </button>
     </div>
 </main>
 
 <!-- FOOTER -->
 <th:block th:replace="fragments/footer :: footer"></th:block>
 
-<!-- JWT -->
+<!-- PICK HECHOS Y JWT -->
 <script th:inline="javascript">
-    const JWT = /*[[${session.jwt}]]*/ "";
+    window.PICK_MODE = /*[[${param.pick != null}]]*/ false;
+    window.RETURN_TO = /*[[${param.returnTo}]]*/ null;
+    window.HECHOS_INICIALES = /*[[${param.hechos}]]*/ "";
+    window.JWT = /*[[${session.jwt}]]*/ "";
 </script>
+
+
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

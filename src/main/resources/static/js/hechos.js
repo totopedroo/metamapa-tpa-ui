@@ -2,6 +2,11 @@
 
     console.log("🟢 hechos.js cargado");
 
+    // VARIABLES GLOBALES (inyectadas por Thymeleaf)
+    const PICK_MODE = window.PICK_MODE ?? false;
+    const RETURN_TO = window.RETURN_TO ?? null;
+    const HECHOS_INICIALES = window.HECHOS_INICIALES ?? "";
+
     /* ================== URLS BACK ================== */
     const urlBaseFuenteDinamica = "http://localhost:8080/fuente-dinamica";
     const urlCrearHecho = `${urlBaseFuenteDinamica}/hechos/crear`;
@@ -252,7 +257,7 @@
     /* ------------------ LIMPIAR FILTROS ------------------ */
 
     document.getElementById("btnLimpiarFiltros")?.addEventListener("click", () =>
-        window.location.href = "hechos/hechos"
+        window.location.href = "/hechos"
     );
 
     /* ------------------ MAPA ------------------ */
@@ -304,4 +309,90 @@
         });
     }
 
+    /* ======================================================
+        PICK MODE
+       ====================================================== */
+
+    if (PICK_MODE) {
+
+        const hidden = document.getElementById("hechosHidden");
+
+        function obtenerSeleccionados() {
+            if (!hidden.value) return [];
+            return hidden.value.split(",").filter(x => x);
+        }
+
+        /** 1. Marcar los checkboxes al cargar */
+        function marcarCheckBoxes() {
+            const seleccionados = obtenerSeleccionados();
+            seleccionados.forEach(id => {
+                const cb = document.querySelector(`.pick-checkbox[value="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        marcarCheckBoxes();
+
+        /** 2. Cuando cambia un checkbox, actualizar el hidden */
+        document.addEventListener("change", e => {
+            if (!e.target.classList.contains("pick-checkbox")) return;
+
+            const prev = new Set(obtenerSeleccionados());
+
+            if (e.target.checked) {
+                prev.add(e.target.value);
+            } else {
+                prev.delete(e.target.value);
+            }
+
+            hidden.value = [...prev].join(",");
+        });
+
+        /** 3. Propagar HECHOS a todos los links de paginación */
+        document.querySelectorAll("a.page-link").forEach(a => {
+            a.addEventListener("click", e => {
+                const seleccionados = obtenerSeleccionados();
+                if (seleccionados.length === 0) return;
+
+                const url = new URL(a.href);
+                url.searchParams.set("hechos", seleccionados.join(","));
+                a.href = url.toString();
+            });
+        });
+
+        /** 4. Propagar HECHOS al enviar el formulario de filtros */
+        const formFiltros = document.getElementById("filtrosForm");
+        formFiltros.addEventListener("submit", () => {
+            const seleccionados = obtenerSeleccionados();
+            document.getElementById("hechosHidden").value = seleccionados.join(",");
+        });
+
+        /** 5. Propagar HECHOS al cambiar el selector "Mostrar X por página" */
+        document.querySelectorAll("form select[name='size']").forEach(sel => {
+            sel.addEventListener("change", function () {
+                const form = this.closest("form");
+                const seleccionados = obtenerSeleccionados();
+
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "hechos";
+                hiddenInput.value = seleccionados.join(",");
+
+                form.appendChild(hiddenInput);
+                form.submit();
+            });
+        });
+
+        /** 6. Confirmar selección */
+        const btn = document.getElementById("btnConfirmarPick");
+        if (btn) {
+            btn.addEventListener("click", () => {
+                const ids = obtenerSeleccionados();
+                if (!RETURN_TO) {
+                    alert("Error: returnTo no definido");
+                    return;
+                }
+                window.location.href = RETURN_TO + "?hechos=" + ids.join(",");
+            });
+        }
+    }
 })();
