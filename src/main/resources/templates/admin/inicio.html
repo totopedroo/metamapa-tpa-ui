@@ -46,12 +46,13 @@
         </div>
 
         <div class="col-md-6 col-lg-4">
-            <a th:href="@{/admin/fuentes}" class="text-decoration-none">
+            <!-- APUNTA AL MODAL #modalFuente -->
+            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#modalFuente">
                 <div class="card admin-card">
                     <div class="card-body">
                         <i class="bi bi-hdd-network card-icon"></i>
                         <h5 class="card-title">Configurar Fuente de Colección</h5>
-                        <p class="card-subtitle">Estática, dinámica y proxy</p>
+                        <p class="card-subtitle">Estáticas, dinámica y proxy</p>
                     </div>
                 </div>
             </a>
@@ -177,6 +178,45 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelarCSV">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnImportarCSV">Importar</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FUENTE -->
+<div class="modal fade" id="modalFuente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form th:action="@{/admin/fuentes/asociar}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Configurar Fuente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="selectColFuente" class="form-label">Colección</label>
+                        <select class="form-select" id="selectColFuente" name="coleccionId" required>
+                            <option value="" disabled selected>Seleccione una colección</option>
+                            <option th:each="coleccion : ${listaColecciones}"
+                                    th:value="${coleccion.id}"
+                                    th:text="${coleccion.titulo}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="selectFuente" class="form-label">Fuente de Datos</label>
+                        <select class="form-select" id="selectFuente" name="fuenteId">
+                            <option value="" selected>Ninguna</option>
+                            <!-- Iteramos sobre listaFuentes -->
+                            <option th:each="f : ${listaFuentes}"
+                                    th:value="${f.id}"
+                                    th:text="${f.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

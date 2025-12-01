@@ -3,6 +3,7 @@ package ar.utn.ba.ddsi.metamapa.services;
 import ar.utn.ba.ddsi.metamapa.dto.AlgoritmoDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
+import ar.utn.ba.ddsi.metamapa.dto.FuenteDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -178,4 +179,35 @@ public class ColeccionUiService {
             );
         } catch (Exception ignored) {}
     }
+
+    public List<FuenteDTO> listarFuentes() {
+        String endpoint = url("/api/colecciones/fuentes");
+        try {
+
+            FuenteDTO[] resp = restTemplate.getForObject(endpoint, FuenteDTO[].class);
+
+            if (resp != null) {
+                return Arrays.asList(resp);
+            } else {
+                return Collections.emptyList();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace(); // Ver el error completo
+            return Collections.emptyList();
+        }
+    }
+
+    public void asociarFuente(Long coleccionId, Long fuenteId) {
+        String queryParam = (fuenteId != null) ? "?fuenteId=" + fuenteId : "";
+        String uri = url("/api/colecciones/" + coleccionId + "/asociar-fuente" + queryParam);
+
+        try {
+            restTemplate.put(uri, null);
+        } catch (Exception e) {
+            System.err.println("Error asociando fuente: " + e.getMessage());
+            throw new RuntimeException("Error al asociar fuente");
+        }
+    }
+
 }
