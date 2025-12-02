@@ -126,7 +126,7 @@ public class HechosUiService {
      * Llama a GET /api/hechos/usuario/{id} en el backend
      */
     public List<HechoDTO> listarHechosDelUsuario(Long idUsuario) {
-        String url = apiBaseUrl + "/api/hechos/usuario/" + idUsuario;
+        String url = apiBaseUrl + "/api/hechos/hechos/usuario/" + idUsuario;
 
         try {
             HechoDTO[] response = restTemplate.getForObject(url, HechoDTO[].class);

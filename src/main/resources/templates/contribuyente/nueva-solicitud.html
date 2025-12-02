@@ -16,9 +16,8 @@
 
     <h3 class="mb-4">Nueva Solicitud</h3>
 
-    <form th:action="@{/contribuyente/nueva-solicitud}" method="post" class="card p-4 shadow-sm">
+    <form th:action="@{/contribuyente/nueva-solicitud}" method="post" class="card p-4 shadow-sm" id="formSolicitud">
 
-        <!-- TIPO -->
         <div class="mb-3">
             <label class="form-label fw-bold">Tipo de solicitud</label>
             <select class="form-select" name="tipo" id="tipoSolicitud" required>
@@ -29,11 +28,10 @@
             <small id="tipoInfo" class="text-muted"></small>
         </div>
 
-        <!-- SELECCIÓN PARA ELIMINACIÓN -->
         <div id="bloqueEliminar" style="display:none;">
             <div class="mb-3">
                 <label class="form-label fw-bold">Hecho a eliminar</label>
-                <select class="form-select" name="idHechoEliminar">
+                <select class="form-select" name="idHecho" id="selectHechoEliminar" disabled>
                     <option disabled selected value="">Seleccione un hecho...</option>
                     <option th:each="h : ${hechosParaEliminar}"
                             th:value="${h.idHecho}"
@@ -43,12 +41,16 @@
             </div>
         </div>
 
-        <!-- SELECCIÓN PARA MODIFICACIÓN -->
         <div id="bloqueModificar" style="display:none;">
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Seleccioná qué dato está incorrecto y proponé el nuevo valor.
+            </div>
+
             <div class="mb-3">
-                <label class="form-label fw-bold">Hecho a modificar</label>
-                <select class="form-select" name="idHechoModificar" id="selectHechoModificar">
-                    <option value="" disabled selected>Seleccione uno de sus hechos...</option>
+                <label class="form-label fw-bold">Hecho a corregir</label>
+                <select class="form-select" name="idHecho" id="selectHechoModificar" disabled>
+                    <option value="" disabled selected>Seleccione un hecho...</option>
                     <option th:each="h : ${misHechos}"
                             th:value="${h.idHecho}"
                             th:text="${h.titulo}">
@@ -56,49 +58,37 @@
                 </select>
             </div>
 
-            <!-- CAMPOS PARA EDITAR EL HECHO -->
-            <div id="camposModificacion" style="display:none;">
-                <hr>
+            <div class="mb-3">
+                <label class="form-label fw-bold">¿Qué dato querés modificar?</label>
+                <select class="form-select" name="campo" id="selectCampo" disabled>
+                    <option value="" disabled selected>Seleccioná el campo...</option>
+                    <option th:each="c : ${camposDisponibles}"
+                            th:value="${c.name()}"
+                            th:text="${c.etiqueta}">
+                    </option>
+                </select>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nuevo título</label>
-                    <input class="form-control" name="nuevoTitulo" id="nuevoTitulo">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nueva descripción</label>
-                    <textarea class="form-control" rows="4" name="nuevaDescripcion" id="nuevaDescripcion"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nueva categoría</label>
-                    <input class="form-control" name="nuevaCategoria" id="nuevaCategoria">
-                </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Valor Correcto (Nuevo)</label>
+                <input type="text" class="form-control" name="valorNuevo"
+                       placeholder="Escribí aquí el dato corregido..." id="inputValorNuevo" disabled>
             </div>
         </div>
 
-        <!-- JUSTIFICACIÓN -->
         <div class="mb-3 mt-3">
             <label class="form-label fw-bold">Justificación</label>
             <textarea class="form-control" name="justificacion" rows="4" id="textareaJustificacion" required></textarea>
 
             <div class="d-flex justify-content-between">
-                <small id="mensaje500" class="text-muted">
-                    Debe contener al menos 500 caracteres o se considerará spam.
-                </small>
-
-                <small id="contadorChars" class="text-muted" style="display:none;">
-                    0 / 500
-                </small>
+                <small id="mensaje500" class="text-muted">Mínimo 500 caracteres.</small>
+                <small id="contadorChars" class="text-muted" style="display:none;">0 / 500</small>
             </div>
         </div>
 
         <div class="text-end">
-            <button class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Enviar Solicitud
-            </button>
+            <button class="btn btn-success">Enviar Solicitud</button>
         </div>
-
     </form>
 
 </main>
@@ -107,101 +97,90 @@
 
 <!-- JS para lógica de tipo -->
 <script>
-    const tipo = document.getElementById("tipoSolicitud");
-    const info = document.getElementById("tipoInfo");
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectTipo = document.getElementById("tipoSolicitud");
+        const info = document.getElementById("tipoInfo");
 
-    const bloqueEliminar = document.getElementById("bloqueEliminar");
-    const bloqueModificar = document.getElementById("bloqueModificar");
-    const camposModificacion = document.getElementById("camposModificacion");
+        const bloqueEliminar = document.getElementById("bloqueEliminar");
+        const bloqueModificar = document.getElementById("bloqueModificar");
 
-    const selectHechoModificar = document.getElementById("selectHechoModificar");
+        // Referencias a inputs
+        const selectEliminar = document.getElementById("selectHechoEliminar");
+        const selectModificar = document.getElementById("selectHechoModificar");
+        const selectCampo = document.getElementById("selectCampo");
+        const inputValor = document.getElementById("inputValorNuevo");
 
-    const mensaje500 = document.getElementById("mensaje500");
-    const textareaJustificacion = document.getElementById("textareaJustificacion");
-    const contador = document.getElementById("contadorChars");
+        // Justificación
+        const txtJustificacion = document.getElementById("textareaJustificacion");
+        const msg500 = document.getElementById("mensaje500");
+        const contador = document.getElementById("contadorChars");
 
+        function toggleForm() {
+            const valor = selectTipo.value;
 
-    tipo.addEventListener("change", () => {
+            if (valor === "ELIMINACION") {
+                // Visual
+                info.innerHTML = "Eliminar un hecho existente.";
+                bloqueEliminar.style.display = "block";
+                bloqueModificar.style.display = "none";
 
-        if (tipo.value === "ELIMINACION") {
+                // Lógica de Inputs (CLAVE PARA TU DTO)
+                selectEliminar.disabled = false;  // SE ENVÍA ESTE
+                selectEliminar.required = true;
 
-            info.innerHTML = "Podés solicitar eliminar <b>cualquier hecho del sistema</b>.";
+                selectModificar.disabled = true;  // NO SE ENVÍA
+                selectCampo.disabled = true;
+                inputValor.disabled = true;
 
-            bloqueEliminar.style.display = "block";
-            bloqueModificar.style.display = "none";
-            camposModificacion.style.display = "none";
+                // Justificación
+                msg500.style.display = "block";
+                txtJustificacion.setAttribute("minlength", "500");
+                contador.style.display = "inline";
 
-            // Justificación: obligatoria + mínimo 500
-            mensaje500.style.display = "block";
-            textareaJustificacion.setAttribute("minlength", "500");
+            } else if (valor === "MODIFICACION") {
+                // Visual
+                info.innerHTML = "Corregir un dato de un hecho propio.";
+                bloqueEliminar.style.display = "none";
+                bloqueModificar.style.display = "block";
 
-            // Mostrar contador
-            contador.style.display = "inline";
-            actualizarContador(); // actualizar al instante
+                // Lógica de Inputs
+                selectEliminar.disabled = true;   // NO SE ENVÍA
 
-        } else if (tipo.value === "MODIFICACION") {
+                selectModificar.disabled = false; // SE ENVÍA ESTE
+                selectModificar.required = true;
+                selectCampo.disabled = false;
+                selectCampo.required = true;
+                inputValor.disabled = false;
+                inputValor.required = true;
 
-            info.innerHTML = "Solo podés modificar <b>hechos creados por vos</b>.";
+                // Justificación
+                msg500.style.display = "none";
+                txtJustificacion.removeAttribute("minlength");
+                contador.style.display = "none";
 
-            bloqueEliminar.style.display = "none";
-            bloqueModificar.style.display = "block";
-
-            // Justificación: obligatoria sin mínimo
-            mensaje500.style.display = "none";
-            textareaJustificacion.removeAttribute("minlength");
-
-            // Ocultar contador
-            contador.style.display = "none";
-
-        } else {
-            bloqueEliminar.style.display = "none";
-            bloqueModificar.style.display = "none";
-            camposModificacion.style.display = "none";
-
-            mensaje500.style.display = "none";
-            contador.style.display = "none";
-
-            textareaJustificacion.removeAttribute("minlength");
+            } else {
+                // Estado inicial
+                bloqueEliminar.style.display = "none";
+                bloqueModificar.style.display = "none";
+                selectEliminar.disabled = true;
+                selectModificar.disabled = true;
+            }
         }
-    });
 
-    // Carga automática al seleccionar hecho propio
-    selectHechoModificar?.addEventListener("change", async () => {
-        const id = selectHechoModificar.value;
-        if (!id) return;
+        // Eventos
+        selectTipo.addEventListener("change", toggleForm);
 
-        camposModificacion.style.display = "block";
+        // Inicializar
+        toggleForm();
 
-        const resp = await fetch(`/contribuyente/api/mis-hechos/${id}`);
-        if (!resp.ok) {
-            console.warn("No se pudo cargar el hecho.");
-            return;
-        }
-
-        const hecho = await resp.json();
-
-        document.getElementById("nuevoTitulo").value = hecho.titulo || "";
-        document.getElementById("nuevaDescripcion").value = hecho.descripcion || "";
-        document.getElementById("nuevaCategoria").value = hecho.categoria || "";
-    });
-
-    function actualizarContador() {
-        const max = 500;
-        const actual = textareaJustificacion.value.length;
-        contador.textContent = `${actual} / ${max}`;
-
-        // Color dinámico
-        if (actual < 500) {
-            contador.style.color = "#b02a37"; // rojo Bootstrap danger
-        } else {
-            contador.style.color = "#198754"; // verde Bootstrap success
-        }
-    }
-
-    textareaJustificacion.addEventListener("input", () => {
-        if (tipo.value === "ELIMINACION") {
-            actualizarContador();
-        }
+        // (Tu lógica del contador de caracteres sigue igual...)
+        txtJustificacion.addEventListener("input", function(){
+            if(selectTipo.value === "ELIMINACION"){
+                const len = this.value.length;
+                contador.innerText = len + " / 500";
+                contador.style.color = len < 500 ? "red" : "green";
+            }
+        });
     });
 </script>
 

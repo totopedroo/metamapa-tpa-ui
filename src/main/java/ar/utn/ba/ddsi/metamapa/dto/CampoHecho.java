@@ -1,5 +1,9 @@
 package ar.utn.ba.ddsi.metamapa.dto;
 
+import lombok.Data;
+import lombok.Getter;
+
+@Getter
 public enum CampoHecho {
     TITULO("titulo", "Título"),
     DESCRIPCION("descripcion", "Descripción"),

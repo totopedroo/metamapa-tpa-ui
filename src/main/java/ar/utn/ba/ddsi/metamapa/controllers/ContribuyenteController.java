@@ -1,6 +1,6 @@
 package ar.utn.ba.ddsi.metamapa.controllers;
 
-import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
+import ar.utn.ba.ddsi.metamapa.dto.*;
 import ar.utn.ba.ddsi.metamapa.services.HechosUiService;
 import ar.utn.ba.ddsi.metamapa.services.SolicitudesService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -8,10 +8,8 @@ import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,16 +30,57 @@ public class ContribuyenteController {
 
     @GetMapping("/solicitudes")
     public String verSolicitudesPropias(Model model, HttpSession session) {
-        Long id = (Long) session.getAttribute("usuarioId");
-        model.addAttribute("solicitudes", solicitudService.listarPorUsuario(id, session));
+        Long idUsuario = (Long) session.getAttribute("usuarioId");
+
+
+        if (idUsuario == null) return "redirect:/login";
+
+        try {
+
+            List<SolicitudDTO> eliminaciones = solicitudService.listarPorUsuario( session);
+            model.addAttribute("misEliminaciones", eliminaciones);
+
+
+            List<SolicitudModificacionInputDto> modificaciones = solicitudService.obtenerSolicitudesModificacionUsuario(session);
+            model.addAttribute("misModificaciones", modificaciones);
+
+        } catch (Exception e) {
+            model.addAttribute("error", "Error cargando solicitudes");
+            model.addAttribute("misEliminaciones", List.of());
+            model.addAttribute("misModificaciones", List.of());
+        }
+
         return "contribuyente/solicitudes";
     }
 
-    @GetMapping("/solicitar-eliminacion/{idHecho}")
-    public String solicitarEliminacion(@PathVariable Long idHecho, HttpSession session) {
-        Long idUsuario = (Long) session.getAttribute("usuarioId");
-        solicitudService.crearSolicitudEliminacion(idHecho, idUsuario, session);
-        return "redirect:/contribuyente/solicitudes";
+    @PostMapping("/nueva-solicitud")
+    public String procesarNuevaSolicitud(NuevaSolicitudForm form, RedirectAttributes redirectAttrs, HttpSession session) {
+        try {
+            if ("ELIMINACION".equals(form.getTipo())) {
+                // Lógica existente de eliminación
+                Long idUsuario = (Long) session.getAttribute("usuarioId");
+                solicitudService.crearSolicitudEliminacion(form.getIdHecho(),form.getJustificacion(), session);
+
+                redirectAttrs.addFlashAttribute("mensajeExito", "Solicitud de eliminación enviada.");
+
+            } else if ("MODIFICACION".equals(form.getTipo())) {
+                // Lógica NUEVA de modificación
+                solicitudService.crearSolicitudModificacion(
+                        form.getIdHecho(),
+                        form.getCampo(),
+                        form.getValorNuevo(),
+                        form.getJustificacion(),
+                        session
+                );
+
+                redirectAttrs.addFlashAttribute("mensajeExito", "Solicitud de modificación enviada.");
+            }
+
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("mensajeError", "Error al procesar la solicitud: " + e.getMessage());
+        }
+
+        return "contribuyente/solicitudes";
     }
 
     @GetMapping("/nueva-solicitud")
@@ -84,6 +123,8 @@ public class ContribuyenteController {
 
         // tus hechos
         model.addAttribute("misHechos", hechosService.listarHechosDelUsuario(usuarioId));
+
+        model.addAttribute("camposDisponibles", CampoHecho.values());
 
         return "contribuyente/nueva-solicitud";
     }

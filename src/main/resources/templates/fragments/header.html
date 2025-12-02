@@ -21,6 +21,9 @@
                     <li><a th:href="@{/hechos}">Hechos</a></li>
                     <li><a th:href="@{/landing#objetivos}">Objetivos</a></li>
                     <li><a th:href="@{/legal/privacidad}">Legal</a></li>
+                    <li><a
+                       th:if="${session.rol == 'ADMIN'}"
+                       th:href="@{/admin/inicio}">Administrar</a></li>
                 </ul>
             </nav>
 
