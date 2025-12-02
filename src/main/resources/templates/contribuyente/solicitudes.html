@@ -3,59 +3,126 @@
 <head>
     <title>Mis Solicitudes - MetaMapa</title>
 
-    <!-- HEAD GLOBAL -->
-    <th:block th:replace="fragments/head :: head"></th:block>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
 
     <link rel="stylesheet" th:href="@{/css/solicitudesAdminYContribuyente.css}">
 </head>
 <body>
 
-<th:block th:replace="fragments/header :: header"></th:block>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 
-<main class="container-xxl my-5">
+<main class="container my-5">
 
-    <div class="d-flex justify-content-between mb-4">
-        <h3>Mis Solicitudes</h3>
+    <div class="card shadow p-4">
 
-        <a th:href="@{/contribuyente/nueva-solicitud}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Solicitud
-        </a>
-    </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Mis Solicitudes</h3>
+            <a th:href="@{/contribuyente/nueva-solicitud}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+            </a>
+        </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead>
-            <tr>
-                <th>Hecho</th>
-                <th>Justificación</th>
-                <th class="text-center">Estado</th>
-            </tr>
-            </thead>
+        <ul class="nav nav-tabs mb-4" id="solicitudesTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="eliminacion-tab" data-bs-toggle="tab"
+                        data-bs-target="#eliminacion" type="button" role="tab"
+                        aria-controls="eliminacion" aria-selected="true">
+                    <i class="bi bi-trash me-2"></i>De Baja
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="modificacion-tab" data-bs-toggle="tab"
+                        data-bs-target="#modificacion" type="button" role="tab"
+                        aria-controls="modificacion" aria-selected="false">
+                    <i class="bi bi-pencil-square me-2"></i>De Modificación
+                </button>
+            </li>
+        </ul>
 
-            <tbody>
+        <div class="tab-content" id="myTabContent">
 
-            <tr th:each="solicitud : ${solicitudes}">
-                <td class="fw-bold" th:text="${solicitud.tituloHecho}"></td>
-                <td th:text="${solicitud.justificacion}"></td>
-                <td class="text-center">
-                    <span class="chip"
-                          th:classappend="${solicitud.estado == 'PENDIENTE' ? 'pendiente' :
-                                        (solicitud.estado == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
-                          th:text="${solicitud.estado}">
-                    </span>
-                </td>
-            </tr>
+            <div class="tab-pane fade show active" id="eliminacion" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 30%">Hecho</th>
+                            <th>Justificación</th>
+                            <th style="width: 15%" class="text-center">Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sol : ${misEliminaciones}">
+                            <td th:text="${sol.tituloHecho}" class="fw-bold">Título</td>
+                            <td th:text="${sol.justificacion}">Texto...</td>
+                            <td class="text-center">
+                                <span class="chip"
+                                      th:classappend="${sol.estado.toString() == 'PENDIENTE' ? 'pendiente' :
+                                                       (sol.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
+                                      th:text="${sol.estado}">PENDIENTE</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(misEliminaciones)}">
+                            <td colspan="3" class="text-center py-5 text-muted fst-italic">
+                                No tenés solicitudes de baja enviadas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <tr th:if="${#lists.isEmpty(solicitudes)}">
-                <td colspan="3" class="text-center py-4 text-muted">No enviaste solicitudes aún.</td>
-            </tr>
+            <div class="tab-pane fade" id="modificacion" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 10%" class="text-center">ID Hecho</th>
 
-            </tbody>
-        </table>
-    </div>
-</main>
+                            <th style="width: 15%">Campo</th>
 
-<th:block th:replace="fragments/footer :: footer"></th:block>
+                            <th style="width: 25%">Valor Propuesto</th>
+
+                            <th>Justificación</th>
+
+                            <th style="width: 15%" class="text-center">Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sol : ${misModificaciones}">
+
+                            <td class="text-center fw-bold text-muted" th:text="${sol.idHecho}">1</td>
+
+                            <td>
+                                <span class="badge bg-secondary" th:text="${sol.campo}">TITULO</span>
+                            </td>
+
+                            <td th:text="${sol.valorNuevo}" class="text-primary fw-bold">Valor</td>
+
+                            <td th:text="${sol.justificacion}">Texto...</td>
+
+                            <td class="text-center">
+                            <span class="chip"
+                                  th:classappend="${sol.estado.toString() == 'PENDIENTE' ? 'pendiente' :
+                                                   (sol.estado.toString() == 'ACEPTADA' ? 'aprobada' : 'rechazada')}"
+                                  th:text="${sol.estado}">PENDIENTE</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(misModificaciones)}">
+                            <td colspan="5" class="text-center py-5 text-muted fst-italic">
+                                No tenés solicitudes de modificación enviadas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> </div> </main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+<script th:src="@{/js/ContribuyenteSolicitudes.js}"></script>
 
 </body>
 </html>
