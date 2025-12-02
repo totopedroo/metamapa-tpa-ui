@@ -247,3 +247,43 @@ select:invalid ~ .invalid-feedback {
 .logout-btn:hover i {
     transform: rotate(-20deg);
 }
+
+.scroll-3 {
+    max-height: calc(60px * 3);   /* 60px aprox por item */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0;
+}
+.scroll-3::-webkit-scrollbar {
+    width: 6px;
+}
+.scroll-3::-webkit-scrollbar-thumb {
+    background: #aaa;
+    border-radius: 4px;
+}
+
+.scroll-5 {
+    max-height: calc(60px * 5); /* 60px aprox por item */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.hecho-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem .75rem;
+}
+
+.hecho-remove {
+    cursor: pointer;
+    color: #a00;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.hecho-remove:hover {
+    color: red;
+}

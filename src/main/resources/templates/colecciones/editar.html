@@ -78,17 +78,13 @@
         <!-- ======================================================= -->
         <h4>Hechos</h4>
 
-        <a th:href="@{'/hechos?pick=true&coleccionId=' + ${form.id}}"
+        <a id="btnPickHechos"
+           href="#"
            class="btn btn-primary">
             Seleccionar hechos
         </a>
 
-        <ul id="hechosSeleccionados" class="list-group mt-3">
-            <li th:each="id : ${form.hechosIds}"
-                class="list-group-item"
-                th:data-id="${id}"
-                th:text="'Hecho #' + ${id}"></li>
-        </ul>
+        <ul id="hechosSeleccionados" class="list-group scroll-3 hechos-list"></ul>
 
         <div id="hechosIdsContainer">
             <input type="hidden" th:each="id : ${form.hechosIds}"
@@ -109,15 +105,8 @@
             Agregar criterio
         </button>
 
-        <ul id="criteriosSeleccionados" class="list-group mt-3">
-            <li th:each="id : ${form.criteriosIds}"
-                class="list-group-item"
-                th:text="'ID criterio: ' + ${id}"></li>
-        </ul>
-
-        <div id="criteriosIdsContainer">
-            <input type="hidden" th:each="id:${form.criteriosIds}" name="criteriosIds" th:value="${id}">
-        </div>
+        <ul id="criteriosSeleccionados" class="list-group mt-3"></ul>
+        <div id="criteriosIdsContainer"></div>
 
         <div class="text-end mt-4">
             <button class="btn btn-primary">Guardar cambios</button>
@@ -134,17 +123,35 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">Crear criterio</h5>
+                <h5 class="modal-title">Nuevo criterio</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-                <select id="criterioTipo" class="form-select mb-2">
+
+                <label>Tipo</label>
+                <select id="criterioTipo" class="form-select mb-3">
                     <option value="texto">Texto contiene</option>
-                    <option value="fechaDesde">Fecha desde</option>
-                    <option value="fechaHasta">Fecha hasta</option>
+                    <option value="rango">Rango de fechas</option>
                 </select>
-                <input id="criterioValor" type="text" class="form-control">
+
+                <!-- campo texto -->
+                <div id="campoTexto" class="mb-3">
+                    <input id="criterioValorTexto" type="text" class="form-control" placeholder="Ingrese texto...">
+                </div>
+
+                <!-- fecha desde -->
+                <div id="campoFechaDesde" class="mb-3 d-none">
+                    <label>Fecha desde</label>
+                    <input id="criterioFechaDesde" type="date" class="form-control">
+                </div>
+
+                <!-- fecha hasta -->
+                <div id="campoFechaHasta" class="mb-3 d-none">
+                    <label>Fecha hasta</label>
+                    <input id="criterioFechaHasta" type="date" class="form-control">
+                </div>
+
             </div>
 
             <div class="modal-footer">
@@ -169,11 +176,11 @@
             </div>
 
             <div class="modal-body">
-                <p><strong>Se agregarán:</strong></p>
-                <ul id="listaAgregadosEditar" class="list-group mb-3"></ul>
+            <p><strong>Se agregarán:</strong></p>
+                <ul id="listaAgregadosEditar" class="list-group mb-3 scroll-5"></ul>
 
                 <p><strong>Se quitarán:</strong></p>
-                <ul id="listaQuitadosEditar" class="list-group"></ul>
+                <ul id="listaQuitadosEditar" class="list-group scroll-5"></ul>
             </div>
 
             <div class="modal-footer">
