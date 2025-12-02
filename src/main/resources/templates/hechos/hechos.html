@@ -147,19 +147,31 @@
 
                     <th class="p-3 text-center rounded-r-md"
                         th:if="${param.pick == null and session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
-
+                    <th class="p-3 text-center"
+                        th:if="${param.pick == null}">Ver detalle</th>
                 </tr>
                 </thead>
 
+                <tbody>
                 <tbody>
                 <tr th:each="hecho : ${hechos}"
                     class="bg-white shadow-sm hover:bg-gray-50 transition-all hecho-row"
                     th:data-hecho-id="${hecho.idHecho}"
                     th:data-hecho-latitud="${hecho.latitud}"
                     th:data-hecho-longitud="${hecho.longitud}"
-                    th:data-hecho-categoria="${hecho.categoria}">
+                    th:data-hecho-categoria="${hecho.categoria}"
+                    th:data-hecho-titulo="${hecho.titulo}"
+                    th:data-hecho-descripcion="${hecho.descripcion}"
+                    th:data-hecho-contenido="${hecho.contenidoMultimedia}"
+                    th:data-hecho-fecha-acontecimiento="${hecho.fechaAcontecimiento}"
+                    th:data-hecho-hora-acontecimiento="${hecho.horaAcontecimiento}"
+                    th:data-hecho-fecha-carga="${hecho.fechaCarga}"
+                    th:data-hecho-etiquetas="${#strings.listJoin(hecho.etiquetas, ', ')}"
+                    th:data-hecho-consensos="${#strings.listJoin(hecho.consensos, ', ')}"
+                    th:data-hecho-consensuado="${hecho.consensuado}"
+                    th:data-hecho-fuentes="${#strings.listJoin(hecho.fuentes, ', ')}">
 
-                    <!-- PICK MODE: checkbox -->
+                <!-- PICK MODE: checkbox -->
                     <td class="p-3 text-center" th:if="${param.pick}">
                         <input type="checkbox" class="pick-checkbox"
                                th:value="${hecho.idHecho}">
@@ -233,6 +245,42 @@
                                          and hecho.idContribuyente == session.usuarioId))}">
                             -
                         </span>
+
+                        <!-- Editar (solo si no estamos en pick) -->
+                    <td class="p-3 text-center" th:if="${param.pick == null}">
+
+                        <!-- ADMIN siempre puede -->
+                        <button class="btn-icono editar btn-editar-hecho"
+                                th:if="${session.rol == 'ADMIN'}">
+                            <i class="fas fa-pen"></i>
+                        </button>
+
+                        <!-- CONTRIBUYENTE si es dueño -->
+                        <button class="btn-icono editar btn-editar-hecho"
+                                th:if="${session.rol == 'CONTRIBUYENTE'
+                    and hecho.idContribuyente != null
+                    and hecho.idContribuyente == session.usuarioId}">
+                            <i class="fas fa-pen"></i>
+                        </button>
+
+                        <!-- caso contrario -->
+                        <span class="text-gray-400"
+                              th:if="${session.rol != null
+                 and !(session.rol == 'ADMIN'
+                 or (session.rol == 'CONTRIBUYENTE'
+                     and hecho.idContribuyente != null
+                     and hecho.idContribuyente == session.usuarioId))}">
+        -
+    </span>
+
+                    </td>
+
+                    <!-- NUEVO: Ver detalle (si no es pick) -->
+                    <td class="p-3 text-center" th:if="${param.pick == null}">
+                        <button class="btn-icono btn-ver-detalle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
 
                     </td>
                 </tr>
@@ -557,6 +605,28 @@
     </div>
 </div>
 
+
+<div id="modalDetalleHecho" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="cerrarModalDetalle">&times;</span>
+        <h3 class="text-2xl font-bold mb-2 text-gray-800">Detalle del hecho</h3>
+
+        <div id="errorDetalleHecho" class="text-sm text-red-600 mb-2"></div>
+
+        <!-- Contenido dinámico cargado por JS -->
+        <div id="detalleHechoBody" class="space-y-2 text-sm text-gray-800">
+            <!-- Se rellena al abrir el modal -->
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+            <button id="cancelarModalDetalle"
+                    type="button"
+                    class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
 <!-- ========================================================= -->
 <!-- MODAL: SOLICITAR ELIMINACIÓN                              -->
 <!-- ========================================================= -->

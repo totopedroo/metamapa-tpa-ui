@@ -31,17 +31,31 @@ public class AdminController {
     public String inicioAdmin(Model model, HttpSession session) {
         // validarAdmin(session); // Descomentar si usas validación por sesión manual
 
-        // NUEVO: Cargar listas para los selects del Modal de Consenso
+        // Cargar listas para los selects del Modal de Consenso
         model.addAttribute("listaColecciones", coleccionService.listarColecciones());
         model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
-
-        // NUEVO: Datos dummy para dashboard (o conectar a servicio real)
+        model.addAttribute("listaFuentes", coleccionService.listarFuentes());
+        // Datos dummy para dashboard (o conectar a servicio real)
         model.addAttribute("numeroSolicitudes", 3);
 
         return "admin/inicio";
     }
 
-    // NUEVO: Procesa el formulario del modal para asociar un algoritmo
+    // Procesa el formulario de fuentes
+    @PostMapping("/fuentes/asociar")
+    public String asociarFuente(@RequestParam Long coleccionId,
+                                @RequestParam(required = false) Long fuenteId,
+                                RedirectAttributes redirectAttrs) {
+        try {
+            coleccionService.asociarFuente(coleccionId, fuenteId);
+            redirectAttrs.addFlashAttribute("mensajeExito", "Fuente de colección actualizada correctamente.");
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("mensajeError", "Error al actualizar fuente: " + e.getMessage());
+        }
+        return "redirect:/admin/inicio";
+    }
+
+    // Procesa el formulario del modal para asociar un algoritmo
     @PostMapping("/consenso/asociar")
     public String asociarAlgoritmo(@RequestParam Long coleccionId,
                                    @RequestParam(required = false) Long algoritmoId,

@@ -12,6 +12,7 @@
     const urlCrearHecho = `${urlBaseFuenteDinamica}/hechos/crear`;
     const urlEditarHechoBase = `${urlBaseFuenteDinamica}/hechos/editar/`;
     const urlCrearSolicitud = "http://localhost:8080/solicitudes";
+    const urlDetalleHechoBase = "http://localhost:8080/api/hechos/";
 
     /* ===========================================================
        MODALES: crear, editar, solicitar eliminación
@@ -309,10 +310,82 @@
         });
     }
 
-    /* ======================================================
-        PICK MODE
-       ====================================================== */
 
+    /* ------------------ MODAL VER DETALLE ------------------ */
+
+    const modalDetalle = modal("modalDetalleHecho");
+    const detalleBody = document.getElementById("detalleHechoBody");
+    const errorDetalle = document.getElementById("errorDetalleHecho");
+
+    // Abrir modal usando los datos de la fila
+    document.querySelectorAll(".btn-ver-detalle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const fila = btn.closest("tr");
+            abrirDetalleDesdeFila(fila);
+        });
+    });
+
+    function abrirDetalleDesdeFila(fila) {
+        if (!modalDetalle || !detalleBody) return;
+
+        modalDetalle.style.display = "block";
+        errorDetalle.textContent = "";
+
+        const ds = fila.dataset;
+
+        const id = ds.hechoId || "";
+        const titulo = ds.hechoTitulo || "";
+        const descripcion = ds.hechoDescripcion || "";
+        const categoria = ds.hechoCategoria || "";
+        const latitud = ds.hechoLatitud || "";
+        const longitud = ds.hechoLongitud || "";
+        const fechaAcontecimiento = ds.hechoFechaAcontecimiento || "";
+        const horaAcontecimiento = ds.hechoHoraAcontecimiento || "";
+        const fechaCarga = ds.hechoFechaCarga || "";
+        const etiquetas = ds.hechoEtiquetas || "";
+        const consensos = ds.hechoConsensos || "";
+        const consensuado = ds.hechoConsensuado === "true" ? "Sí" : "No";
+        const fuentes = ds.hechoFuentes || "";
+        const contenido = ds.hechoContenido || "";
+
+        detalleBody.innerHTML = `
+            <p><strong>ID:</strong> ${id || "-"}</p>
+            <p><strong>Título:</strong> ${titulo || "-"}</p>
+            <p><strong>Descripción:</strong> ${descripcion || "-"}</p>
+            <p><strong>Categoría:</strong> ${categoria || "-"}</p>
+           
+            <p><strong>Latitud:</strong> ${latitud || "-"}</p>
+            <p><strong>Longitud:</strong> ${longitud || "-"}</p>
+            <p><strong>Fecha acontecimiento:</strong> ${fechaAcontecimiento || "-"}</p>
+            <p><strong>Hora acontecimiento:</strong> ${horaAcontecimiento || "-"}</p>
+            <p><strong>Fecha carga:</strong> ${fechaCarga || "-"}</p>
+            <p><strong>Etiquetas:</strong> ${etiquetas || "-"}</p>
+            <p><strong>Consensuado:</strong> ${consensuado}</p>
+            <p><strong>Consensos:</strong> ${consensos || "-"}</p>
+            <p><strong>Fuentes:</strong> ${fuentes || "-"}</p>
+            <p><strong>Contenido multimedia:</strong>
+                ${contenido
+            ? `<a href="${contenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>`
+            : "-"
+        }
+            </p>
+        `;
+    }
+
+    function cerrarDetalleHecho() {
+        if (!modalDetalle) return;
+        modalDetalle.style.display = "none";
+        if (detalleBody) detalleBody.innerHTML = "";
+        if (errorDetalle) errorDetalle.textContent = "";
+    }
+
+    document.getElementById("cerrarModalDetalle")?.addEventListener("click", cerrarDetalleHecho);
+    document.getElementById("cancelarModalDetalle")?.addEventListener("click", cerrarDetalleHecho);
+
+
+    /* ======================================================
+       PICK MODE
+      ====================================================== */
     if (PICK_MODE) {
 
         const hidden = document.getElementById("hechosHidden");
