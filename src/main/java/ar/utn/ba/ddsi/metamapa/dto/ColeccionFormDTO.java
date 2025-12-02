@@ -17,4 +17,8 @@ public class ColeccionFormDTO {
 
     private List<Long> hechosIds = new ArrayList<>();
     private List<Long> criteriosIds = new ArrayList<>();
+
+    private Long algoritmoId;
+    private Long fuenteId;
+
 }

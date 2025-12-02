@@ -70,6 +70,7 @@ public class ColeccionesUiController {
 
         model.addAttribute("form", form);
         model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
+        model.addAttribute("listaFuentes", coleccionService.listarFuentes());
 
         return "colecciones/nueva";
     }
@@ -83,7 +84,13 @@ public class ColeccionesUiController {
         validarAdmin(session);
 
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
-        coleccionService.crearColeccion(form);
+        ColeccionDTO creada = coleccionService.crearColeccion(form);
+
+        if (form.getAlgoritmoId() != null)
+            coleccionService.asociarAlgoritmo(creada.getId(), form.getAlgoritmoId());
+
+        if (form.getFuenteId() != null)
+            coleccionService.asociarFuente(creada.getId(), form.getFuenteId());
 
         redirect.addFlashAttribute("ok", "Colección creada correctamente");
         return "redirect:/colecciones";

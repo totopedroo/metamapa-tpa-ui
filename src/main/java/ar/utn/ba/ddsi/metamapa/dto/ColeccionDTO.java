@@ -22,6 +22,7 @@ public class ColeccionDTO {
     private List<HechoDTO> hechos;
     private List<CriterioDTO> criterios;
     private String algoritmoDeConsenso;
+    private String fuente;
 
     public int getCantidadHechos() {
         return hechos == null ? 0 : hechos.size();

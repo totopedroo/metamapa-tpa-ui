@@ -15,6 +15,11 @@
     </script>
 
     <script th:src="@{/js/colecciones.js}" defer></script>
+
+    <script th:inline="javascript">
+        window.FORM_STATE_KEY = /*[[${form.id}]]*/ 'nueva';
+    </script>
+    <script th:src="@{/js/colecciones-form-state.js}"></script>
 </head>
 <body>
 
@@ -59,6 +64,16 @@
                th:value="${form.algoritmoId}">
 
         <hr>
+
+        <!-- ======================================================= -->
+        <select id="fuenteSelect" name="fuenteId" class="form-select mb-3"
+                th:value="${form.fuenteId}">
+            <option value="">Sin fuente</option>
+            <option th:each="f : ${listaFuentes}"
+                    th:value="${f.id}"
+                    th:text="${f.nombre}">
+            </option>
+        </select>
 
         <!-- ======================================================= -->
         <h4>Hechos</h4>

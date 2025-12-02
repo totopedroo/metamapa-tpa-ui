@@ -57,6 +57,21 @@
         <hr>
 
         <!-- ========================================== -->
+        <!-- FUENTE -->
+        <!-- ========================================== -->
+
+        <h5 class="mb-3">Fuente</h5>
+
+        <select id="fuenteSelect" class="form-select mb-3">
+            <option value="">Ninguna</option>
+            <option th:each="f : ${listaFuentes}"
+                    th:value="${f.id}" th:text="${f.nombre}">
+            </option>
+        </select>
+
+        <input type="hidden" id="fuenteIdHidden" name="fuenteId">
+
+        <!-- ========================================== -->
         <!-- HECHOS -->
         <!-- ========================================== -->
         <h5 class="mb-3">Hechos</h5>
@@ -158,6 +173,11 @@
 </script>
 
 <script th:src="@{/js/colecciones.js}"></script>
+
+<script th:inline="javascript">
+    window.FORM_STATE_KEY = /*[[${form.id}]]*/ 'nueva';
+</script>
+<script th:src="@{/js/colecciones-form-state.js}"></script>
 
 <th:block th:replace="fragments/footer :: footer"></th:block>
 </body>

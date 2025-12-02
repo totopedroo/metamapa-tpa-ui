@@ -3,7 +3,6 @@
 <head>
     <title>Colección - MetaMapa</title>
 
-    <!-- HEAD GLOBAL -->
     <th:block th:replace="fragments/head :: head"></th:block>
 
     <link rel="stylesheet" th:href="@{/css/inicioAdminYContribuyente.css}">
@@ -14,15 +13,17 @@
 
 <main class="container my-5">
 
-    <h3 th:text="${coleccion.titulo}">Título</h3>
+    <!-- ========================================================= -->
+    <!-- TITULO + ACCIONES -->
+    <!-- ========================================================= -->
+    <h2 class="mb-1" th:text="${coleccion.titulo}">Título colección</h2>
     <p class="text-muted" th:text="${coleccion.descripcion}"></p>
 
     <div class="my-3 d-flex gap-2" th:if="${session.rol?.toUpperCase() == 'ADMIN'}">
-        <a th:href="@{'/colecciones/editar/' + ${coleccion.id}}" class="btn btn-primary">
-            Editar
-        </a>
+        <a th:href="@{'/colecciones/editar/' + ${coleccion.id}}" class="btn btn-primary">Editar</a>
 
-        <form th:action="@{'/colecciones/eliminar/' + ${coleccion.id}}" method="post"
+        <form th:action="@{'/colecciones/eliminar/' + ${coleccion.id}}"
+              method="post"
               onsubmit="return confirm('¿Seguro que desea eliminar esta colección?');">
             <button class="btn btn-danger">Eliminar</button>
         </form>
@@ -30,18 +31,71 @@
 
     <hr>
 
-    <h4 class="mt-4">Hechos de esta colección</h4>
+    <!-- ========================================================= -->
+    <!-- DATOS GENERALES -->
+    <!-- ========================================================= -->
+    <h4 class="mt-4">Datos de la colección</h4>
+
+    <div class="card mt-3 p-3 shadow-sm">
+
+        <p><strong>ID:</strong> <span th:text="${coleccion.id}"></span></p>
+
+        <p>
+            <strong>Algoritmo de consenso:</strong>
+            <span th:text="${coleccion.algoritmoDeConsenso != null ? coleccion.algoritmoDeConsenso : 'Sin algoritmo'}"></span>
+        </p>
+
+        <p>
+            <strong>Fuente asociada:</strong>
+            <span th:text="${coleccion.fuente != null ? coleccion.fuente : 'Sin fuente'}"></span>
+        </p>
+
+        <p>
+            <strong>Cantidad de hechos:</strong>
+            <span th:text="${coleccion.cantidadHechos}"></span>
+        </p>
+
+    </div>
+
+    <hr>
+
+    <!-- ========================================================= -->
+    <!-- LISTADO DE HECHOS -->
+    <!-- ========================================================= -->
+    <h4 class="mt-4">Hechos incluidos</h4>
 
     <ul class="list-group mt-3">
         <li class="list-group-item"
-            th:each="h : ${coleccion.hechos}"
-            th:text="${h.titulo}">
+            th:each="h : ${coleccion.hechos}">
+            <strong th:text="${h.titulo}"></strong>
+            <br>
+            <small class="text-muted">ID: <span th:text="${h.id}"></span></small>
         </li>
     </ul>
 
     <p th:if="${#lists.isEmpty(coleccion.hechos)}"
        class="text-muted mt-3">
         No hay hechos en esta colección.
+    </p>
+
+    <hr>
+
+    <!-- ========================================================= -->
+    <!-- LISTADO DE CRITERIOS -->
+    <!-- ========================================================= -->
+    <h4 class="mt-4">Criterios aplicados</h4>
+
+    <ul class="list-group mt-3">
+        <li class="list-group-item"
+            th:each="c : ${coleccion.criterios}">
+            <span th:text="${c.tipo}"></span> :
+            <strong th:text="${c.valor}"></strong>
+        </li>
+    </ul>
+
+    <p th:if="${#lists.isEmpty(coleccion.criterios)}"
+       class="text-muted mt-3">
+        No hay criterios definidos.
     </p>
 
 </main>
