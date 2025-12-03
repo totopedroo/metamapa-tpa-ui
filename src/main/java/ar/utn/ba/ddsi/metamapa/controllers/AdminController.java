@@ -35,8 +35,6 @@ public class AdminController {
         model.addAttribute("listaColecciones", coleccionService.listarColecciones());
         model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
         model.addAttribute("listaFuentes", coleccionService.listarFuentes());
-        // Datos dummy para dashboard (o conectar a servicio real)
-        model.addAttribute("numeroSolicitudes", 3);
 
         return "admin/inicio";
     }
