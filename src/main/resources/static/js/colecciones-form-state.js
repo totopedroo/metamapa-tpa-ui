@@ -5,12 +5,31 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     async function cargarTitulos(ids) {
         try {
-            const resp = await fetch(`/api/hechos/titulos?ids=${ids.join(",")}`);
+            const resp = await fetch(`http://localhost:8080/api/hechos/titulos?ids=${ids.join(",")}`);
             if (!resp.ok) return {};
             return await resp.json();
         } catch {
             return {};
         }
+    }
+
+    async function cargarTodosLosCriterios() {
+        try {
+            const resp = await fetch("http://localhost:8080/api/criterios");
+            if (!resp.ok) return [];
+            return await resp.json();
+        } catch {
+            return [];
+        }
+    }
+
+    function activarBotonesQuitarCriterio() {
+        document.querySelectorAll(".quitar-criterio").forEach(btn => {
+            btn.onclick = () => {
+                btn.parentElement.remove();
+                guardarEstado();
+            };
+        });
     }
 
     // ============================================================
@@ -32,9 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.querySelectorAll("input[name='hechosIds']")
             ).map(i => i.value),
 
-            criterios: Array.from(
-                document.querySelectorAll("#criteriosSeleccionados li")
-            ).map(li => li.dataset.json ?? "")
+            criteriosIds: Array.from(
+                document.querySelectorAll("input[name='criteriosIds']")
+            ).map(i => Number(i.value))
         };
 
         sessionStorage.setItem(KEY, JSON.stringify(estado));
@@ -131,23 +150,40 @@ document.addEventListener("DOMContentLoaded", () => {
         critUl.innerHTML = "";
         critContainer.innerHTML = "";
 
-        est.criterios.forEach(json => {
-            if (!json) return;
-            const crit = JSON.parse(json);
+        const criteriosIds = est.criteriosIds ?? [];
 
-            critUl.insertAdjacentHTML(
-                "beforeend",
+        cargarTodosLosCriterios().then(lista => {
+
+            criteriosIds.forEach(id => {
+                const crit = lista.find(c => String(c.id_criterio) === String(id));
+                if (!crit) return;
+
+                // Texto visible
+                let texto = "";
+                if (crit.tipo === "texto") texto = `Texto contiene: "${crit.valor}"`;
+                if (crit.tipo === "fecha") texto = `Rango: ${crit.desde} → ${crit.hasta}`;
+
+                // Render
+                critUl.insertAdjacentHTML(
+                    "beforeend",
+                    `
+                <li class="list-group-item d-flex justify-content-between align-items-center"
+                    data-id="${crit.id_criterio}"
+                    data-json='${JSON.stringify(crit)}'>
+                    ${texto}
+                    <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
+                </li>
                 `
-    <li class="list-group-item d-flex justify-content-between align-items-center"
-        data-json='${json}'>
-        ${renderTextoCriterio(crit)}
-        <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
-    </li>
-    `
-            );
+                );
+
+                // Hidden input
+                critContainer.insertAdjacentHTML(
+                    "beforeend",
+                    `<input type="hidden" name="criteriosIds" value="${crit.id_criterio}">`
+                );
+            });
 
             activarBotonesQuitarCriterio();
-            // si manejás IDs, acá podés agregarlos
         });
     }
 

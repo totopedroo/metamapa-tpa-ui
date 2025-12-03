@@ -1,13 +1,7 @@
 // =======================================================
-//  COLECCIONES.JS – NUEVA Y EDITAR COLECCIONES (versión con títulos dinámicos)
+// FUNCIONES AUXILIARES
 // =======================================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    // =======================================================
-    // FUNCIONES AUXILIARES
-    // =======================================================
-    async function cargarTitulos(ids) {
+async function cargarTitulos(ids) {
         try {
             const resp = await fetch(`http://localhost:8080/api/hechos/titulos?ids=${ids.join(",")}`)
             if (!resp.ok) return {};
@@ -18,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderHechosSeleccionados(hechosIds, titulos = {}) {
+function renderHechosSeleccionados(hechosIds, titulos = {}) {
 
         const ul = document.getElementById("hechosSeleccionados");
         const cont = document.getElementById("hechosIdsContainer");
@@ -53,20 +47,81 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function renderTextoCriterio(c) {
+function renderTextoCriterio(c) {
         if (c.tipo === "texto") return `Texto contiene: "${c.valor}"`;
         if (c.tipo === "fechaDesde") return `Fecha desde: ${c.desde}`;
         if (c.tipo === "fechaHasta") return `Fecha hasta: ${c.hasta}`;
         if (c.tipo === "rango") return `Rango: ${c.desde} → ${c.hasta}`;
     }
 
-    function activarBotonesQuitarCriterio() {
+function activarBotonesQuitarCriterio() {
         document.querySelectorAll(".quitar-criterio").forEach(btn => {
             btn.onclick = () => {
                 btn.parentElement.remove();
                 guardarEstado();
             };
         });
+    }
+
+async function cargarCriteriosExistentes() {
+        const resp = await fetch("http://localhost:8080/api/criterios");
+        if (!resp.ok) return;
+        const criterios = await resp.json();
+
+        const sel = document.getElementById("criterioExistente");
+        if (!sel) return;
+
+        sel.innerHTML = `<option value="">-- Seleccionar existente --</option>`;
+
+        criterios.forEach(c => {
+            const texto =
+                c.tipo === "texto"
+                    ? `Texto: "${c.valor}"`
+                    : `Fechas: ${c.desde} → ${c.hasta}`;
+
+            sel.innerHTML += `<option value="${c.id_criterio}">${texto}</option>`;
+        });
+    }
+
+function agregarCriterioExistente(id) {
+
+        // evitar duplicados
+        const yaExiste = Array.from(
+            document.querySelectorAll("input[name='criteriosIds']")
+        ).some(i => Number(i.value) === Number(id));
+
+        if (yaExiste) {
+            alert("Ese criterio ya está agregado.");
+            return;
+        }
+
+        const sel = document.getElementById("criterioExistente");
+        const texto = sel.options[sel.selectedIndex].text;
+
+        // Agregar visual
+        document.getElementById("criteriosSeleccionados").insertAdjacentHTML(
+            "beforeend",
+            `
+            <li class="list-group-item d-flex justify-content-between align-items-center"
+                data-id="${id}">
+                ${texto}
+                <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
+                <input type="hidden" name="criteriosIds" value="${id}">
+            </li>
+        `
+        );
+
+        activarBotonesQuitarCriterio();
+        guardarEstado();
+
+        sel.value = "";
+        bootstrap.Modal.getInstance(document.getElementById("modalCriterios")).hide();
+    }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    if (document.getElementById("criterioExistente")) {
+        cargarCriteriosExistentes();
     }
 
     // =======================================================
@@ -223,8 +278,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ===============================
-// CAMBIO DE CAMPOS SEGÚN TIPO
-// ===============================
+    // CAMBIO DE CAMPOS SEGÚN TIPO
+    // ===============================
     const criterioTipo = document.getElementById("criterioTipo");
     const campoTexto = document.getElementById("campoTexto");
     const campoFechaDesde = document.getElementById("campoFechaDesde");
@@ -249,14 +304,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ===============================
-// AGREGAR CRITERIO
-// ===============================
+    // AGREGAR CRITERIO
+    // ===============================
     const btnGuardarCriterio = document.getElementById("btnGuardarCriterio");
 
     if (btnGuardarCriterio) {
-        btnGuardarCriterio.onclick = () => {
+        btnGuardarCriterio.onclick = async () => {
 
             const tipo = criterioTipo.value;
+
+            let criterio = {tipo};
 
             // VALIDACIÓN DE RANGO ÚNICO
             if (tipo === "rango") {
@@ -269,9 +326,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
             }
-
-            // ARMADO DEL OBJETO CRITERIO
-            let criterio = { tipo };
 
             if (tipo === "texto") {
                 criterio.valor = document.getElementById("criterioValorTexto").value.trim();
@@ -310,14 +364,57 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // INSERTAR EL CRITERIO EN EL UL
+            // =======================
+            // VALIDAR CONTRA CRITERIOS EXISTENTES EN BACKEND
+            // =======================
+            const existentesResp = await fetch("http://localhost:8080/api/criterios");
+            const existentes = existentesResp.ok ? await existentesResp.json() : [];
+
+            // --- Si es texto ---
+            if (tipo === "texto") {
+                const existeIgual = existentes.some(c =>
+                    c.tipo === "texto" &&
+                    c.valor.trim().toLowerCase() === criterio.valor.trim().toLowerCase()
+                );
+
+                if (existeIgual) {
+                    alert("Ese criterio de texto ya existe en el sistema.");
+                    return;
+                }
+            }
+
+            // --- Si es rango ---
+            if (tipo === "rango") {
+                const existeRango = existentes.some(c =>
+                    c.tipo === "rango" &&
+                    c.desde === criterio.desde &&
+                    c.hasta === criterio.hasta
+                );
+
+                if (existeRango) {
+                    alert("Ese rango de fechas ya existe en el sistema.");
+                    return;
+                }
+            }
+
+            // 1) CREAR EN BACKEND
+            const resp = await fetch("http://localhost:8080/api/criterios", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(criterio)
+            });
+
+            const criterioId = await resp.json(); // backend devuelve el ID nuevo
+
+            // 2) AGREGARLO A LA LISTA VISIBLE
             const li = `
-        <li class="list-group-item d-flex justify-content-between align-items-center"
-            data-json='${JSON.stringify(criterio)}'>
-            ${renderTextoCriterio(criterio)}
-            <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
-        </li>
-    `;
+            <li class="list-group-item d-flex justify-content-between align-items-center"
+                data-id="${criterioId}"
+                data-json='${JSON.stringify(criterio)}'>
+                ${renderTextoCriterio(criterio)}
+                <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
+                <input type="hidden" name="criteriosIds" value="${criterioId}">
+            </li>`;
 
             document.getElementById("criteriosSeleccionados")
                 .insertAdjacentHTML("beforeend", li);
@@ -326,7 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
             guardarEstado();
 
             bootstrap.Modal.getInstance(document.getElementById("modalCriterios")).hide();
-        }
+        };
     }
 
 });

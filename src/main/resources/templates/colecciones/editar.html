@@ -16,6 +16,14 @@
 
     <script th:src="@{/js/colecciones.js}" defer></script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (document.getElementById("criterioExistente")) {
+                cargarCriteriosExistentes(); // viene del JS principal
+            }
+        });
+    </script>
+
     <script th:inline="javascript">
         window.FORM_STATE_KEY = /*[[${form.id}]]*/ 'nueva';
     </script>
@@ -126,6 +134,10 @@
                 <h5 class="modal-title">Nuevo criterio</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
+            <select id="criterioExistente" class="form-select">
+                <option value="">-- Seleccionar existente --</option>
+            </select>
 
             <div class="modal-body">
 
