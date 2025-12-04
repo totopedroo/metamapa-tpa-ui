@@ -58,7 +58,7 @@
 
                         <!-- ELIMINAR (solo ADMIN) -->
                         <form th:if="${session.rol?.toUpperCase() == 'ADMIN'}"
-                              th:action="@{'/colecciones/eliminar/' + ${col.id}}"
+                              th:action="@{/colecciones/eliminar/{id}(id=${col.id})}"
                               method="post"
                               onsubmit="return confirm('¿Seguro que deseas eliminar esta colección?');">
 

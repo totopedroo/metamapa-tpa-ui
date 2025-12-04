@@ -1,4 +1,3 @@
-
 package ar.utn.ba.ddsi.metamapa.controllers;
 
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
@@ -8,10 +7,13 @@ import ar.utn.ba.ddsi.metamapa.services.HechosUiService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -130,35 +132,125 @@ public class HechosUiController {
         return "redirect:/hechos";
     }
 
-  /*  @GetMapping("/hechoss")
-    public String verHechos(
-            @RequestParam(required = false) Long coleccionId,
-            @RequestParam(required = false) String titulo,   // título del hecho
-            Model model
+    /**
+     * Metodos que hacen llamada al back.
+     */
+
+    @PostMapping("/ui/crear")
+    @ResponseBody
+    public ResponseEntity<?> crearHechoUI(
+            @RequestBody HechoDTO input,
+            HttpServletRequest request
     ) {
-        // Traemos colecciones para llenar el combo
-        List<ColeccionDTO> colecciones = coleccionService.listarTodas();
+        try {
+            String jwt = (String) request.getSession().getAttribute("jwt");
+            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
 
-        // Si no mandan coleccionId, podés:
-        // - o mostrar lista vacía
-        // - o elegir una por defecto (ej: la primera)
-        List<HechoDTO> hechos;
-        if (coleccionId != null) {
-            hechos = hechosService.filtrarHechos(coleccionId, titulo);
-        } else {
-            // si querés mostrar nada hasta que elijan colección:
-            hechos = List.of();
-            // o si tenés un endpoint para listar todo, llamalo acá
-            // hechos = hechosUiService.listarTodos();
+            String url = backendBaseUrl + "/hechos/crear";
+
+            var headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwt);
+            headers.set("Content-Type", "application/json");
+
+            var entity = new HttpEntity<>(input, headers);
+
+            ResponseEntity<String> resp = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, String.class
+            );
+
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error UI al crear hecho: " + e.getMessage());
         }
+    }
 
-        model.addAttribute("colecciones", colecciones);
-        model.addAttribute("hechos", hechos);
-        model.addAttribute("coleccionId", coleccionId);
+    @PatchMapping("/ui/editar/{id}")
+    @ResponseBody
+    public ResponseEntity<?> editarHechoUI(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> campos,
+            HttpServletRequest request
+    ) {
+        try {
+            String jwt = (String) request.getSession().getAttribute("jwt");
+            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
 
-        return "hechos/hechos";
-    }*/
+            String url = backendBaseUrl + "/hechos/editar/" + id;
 
+            var headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwt);
+            headers.set("Content-Type", "application/json");
+
+            var entity = new HttpEntity<>(campos, headers);
+
+            ResponseEntity<String> resp = restTemplate.exchange(
+                    url, HttpMethod.PATCH, entity, String.class
+            );
+
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error UI al editar hecho: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/ui/eliminar/{id}")
+    @ResponseBody
+    public ResponseEntity<?> eliminarHechoUI(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        try {
+            String jwt = (String) request.getSession().getAttribute("jwt");
+            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
+
+            String url = backendBaseUrl + "/api/hechos/eliminar/" + id;
+
+            var headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwt);
+
+            var entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> resp = restTemplate.exchange(
+                    url, HttpMethod.DELETE, entity, String.class
+            );
+
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error UI al eliminar hecho: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/ui/solicitud-eliminacion")
+    @ResponseBody
+    public ResponseEntity<?> crearSolicitudEliminacionUI(
+            @RequestBody Map<String, Object> input,
+            HttpServletRequest request
+    ) {
+        try {
+            String jwt = (String) request.getSession().getAttribute("jwt");
+            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
+
+            String url = backendBaseUrl + "/solicitudes";
+
+            var headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwt);
+            headers.set("Content-Type", "application/json");
+
+            var entity = new HttpEntity<>(input, headers);
+
+            ResponseEntity<String> resp = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, String.class
+            );
+
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error UI al crear solicitud: " + e.getMessage());
+        }
+    }
 
     /**
      * Llama al Backend (8080) para obtener todas las colecciones para el dropdown.

@@ -97,7 +97,9 @@ public class ColeccionUiService {
         try {
             return restTemplate.postForObject(url("/api/colecciones"), form, ColeccionDTO.class);
         } catch (Exception e) {
-            return null;
+            System.err.println(">>> ERROR EN crearColeccion:");
+            e.printStackTrace();
+            throw e;
         }
     }
 

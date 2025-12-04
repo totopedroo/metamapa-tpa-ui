@@ -454,12 +454,11 @@
 <!-- FOOTER -->
 <th:block th:replace="fragments/footer :: footer"></th:block>
 
-<!-- PICK HECHOS Y JWT -->
+<!-- PICK HECHOS -->
 <script th:inline="javascript">
     window.PICK_MODE = /*[[${param.pick != null}]]*/ false;
     window.RETURN_TO = /*[[${param.returnTo}]]*/ null;
     window.HECHOS_INICIALES = /*[[${param.hechos}]]*/ "";
-    window.JWT = /*[[${session.jwt}]]*/ "";
 </script>
 
 

@@ -93,12 +93,13 @@
         <!-- ========================================== -->
         <h5 class="mb-3">Criterios de pertenencia</h5>
 
+        <ul id="criteriosSeleccionados" class="list-group mb-3"></ul>
+
         <button type="button" class="btn btn-secondary mb-2"
                 data-bs-toggle="modal" data-bs-target="#modalCriterios">
             Agregar criterio
         </button>
 
-        <ul id="criteriosSeleccionados" class="list-group mb-3"></ul>
         <div id="criteriosIdsContainer"></div>
 
         <hr>
@@ -122,11 +123,16 @@
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <select id="criterioExistente" class="form-select">
-                <option value="">-- Seleccionar existente --</option>
-            </select>
-
             <div class="modal-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar criterio existente</label>
+                    <select id="criterioExistente" class="form-select">
+                        <option value="">-- Seleccionar existente --</option>
+                    </select>
+                </div>
+
+                <hr>
 
                 <label>Tipo</label>
                 <select id="criterioTipo" class="form-select mb-3">

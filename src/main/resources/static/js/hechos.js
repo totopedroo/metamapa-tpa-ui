@@ -7,13 +7,6 @@
     const RETURN_TO = window.RETURN_TO ?? null;
     const HECHOS_INICIALES = window.HECHOS_INICIALES ?? "";
 
-    /* ================== URLS BACK ================== */
-    const urlBaseFuenteDinamica = "http://localhost:8080/fuente-dinamica";
-    const urlCrearHecho = `${urlBaseFuenteDinamica}/hechos/crear`;
-    const urlEditarHechoBase = `${urlBaseFuenteDinamica}/hechos/editar/`;
-    const urlCrearSolicitud = "http://localhost:8080/solicitudes";
-    const urlDetalleHechoBase = "http://localhost:8080/api/hechos/";
-
     /* ===========================================================
        MODALES: crear, editar, solicitar eliminación
        =========================================================== */
@@ -56,7 +49,7 @@
         };
 
         try {
-            const resp = await fetch(urlCrearHecho, {
+            const resp = await fetch("/hechos/ui/crear", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -128,7 +121,7 @@
         };
 
         try {
-            const resp = await fetch(urlCrearSolicitud, {
+            const resp = await fetch("/hechos/ui/solicitud-eliminacion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -154,11 +147,8 @@
             if (!confirm("¿Seguro que deseas eliminar este hecho?")) return;
 
             try {
-                const resp = await fetch(`http://localhost:8080/api/hechos/eliminar/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": "Bearer " + JWT
-                    }
+                const resp = await fetch(`/hechos/ui/eliminar/${id}`, {
+                    method: "DELETE"
                 });
 
                 if (!resp.ok) {
@@ -231,7 +221,7 @@
         };
 
         try {
-            const resp = await fetch(urlEditarHechoBase + id, {
+            const resp = await fetch(`/hechos/ui/editar/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)

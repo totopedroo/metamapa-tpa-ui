@@ -5,7 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     async function cargarTitulos(ids) {
         try {
-            const resp = await fetch(`http://localhost:8080/api/hechos/titulos?ids=${ids.join(",")}`);
+            const q = ids.join(",");
+            const resp = await fetch(`/colecciones/ui/hechos/titulos?ids=${q}`);
             if (!resp.ok) return {};
             return await resp.json();
         } catch {
@@ -15,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function cargarTodosLosCriterios() {
         try {
-            const resp = await fetch("http://localhost:8080/api/criterios");
+            const resp = await fetch(`/colecciones/ui/criterios`);
             if (!resp.ok) return [];
             return await resp.json();
         } catch {

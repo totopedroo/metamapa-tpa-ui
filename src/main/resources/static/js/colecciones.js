@@ -3,7 +3,7 @@
 // =======================================================
 async function cargarTitulos(ids) {
         try {
-            const resp = await fetch(`http://localhost:8080/api/hechos/titulos?ids=${ids.join(",")}`)
+            const resp = await fetch(`/colecciones/ui/hechos/titulos?ids=${ids.join(",")}`);
             if (!resp.ok) return {};
             return await resp.json(); // { "5": "Accidente", "8": "Incendio" }
         } catch (err) {
@@ -48,11 +48,9 @@ function renderHechosSeleccionados(hechosIds, titulos = {}) {
     }
 
 function renderTextoCriterio(c) {
-        if (c.tipo === "texto") return `Texto contiene: "${c.valor}"`;
-        if (c.tipo === "fechaDesde") return `Fecha desde: ${c.desde}`;
-        if (c.tipo === "fechaHasta") return `Fecha hasta: ${c.hasta}`;
-        if (c.tipo === "rango") return `Rango: ${c.desde} → ${c.hasta}`;
-    }
+    if (c.tipo === "texto") return `Texto contiene: "${c.valor}"`;
+    if (c.tipo === "fecha") return `Rango: ${c.desde} → ${c.hasta}`;
+}
 
 function activarBotonesQuitarCriterio() {
         document.querySelectorAll(".quitar-criterio").forEach(btn => {
@@ -64,8 +62,8 @@ function activarBotonesQuitarCriterio() {
     }
 
 async function cargarCriteriosExistentes() {
-        const resp = await fetch("http://localhost:8080/api/criterios");
-        if (!resp.ok) return;
+    const resp = await fetch("/colecciones/ui/criterios");
+    if (!resp.ok) return;
         const criterios = await resp.json();
 
         const sel = document.getElementById("criterioExistente");
@@ -122,6 +120,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (document.getElementById("criterioExistente")) {
         cargarCriteriosExistentes();
+    }
+
+    const criterioExistente = document.getElementById("criterioExistente");
+
+    if (criterioExistente) {
+        criterioExistente.onchange = () => {
+            const id = criterioExistente.value;
+            if (id) agregarCriterioExistente(id);
+        };
     }
 
     // =======================================================
@@ -315,11 +322,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let criterio = {tipo};
 
+            // Backend usa tipo = "fecha" para rangos
+            if (tipo === "rango") {
+                criterio.tipo = "fecha";
+            }
+
             // VALIDACIÓN DE RANGO ÚNICO
             if (tipo === "rango") {
                 const yaExisteRango = Array.from(
                     document.querySelectorAll("#criteriosSeleccionados li")
-                ).some(li => JSON.parse(li.dataset.json).tipo === "rango");
+                ).some(li => {
+                    if (!li.dataset.json) return false;
+                    const c = JSON.parse(li.dataset.json);
+                    return c.tipo === "rango";
+                });
 
                 if (yaExisteRango) {
                     alert("Solo puede existir un criterio de rango de fechas.");
@@ -338,10 +354,14 @@ document.addEventListener("DOMContentLoaded", () => {
             // VALIDACION DE TEXTO REPETIDO
             if (tipo === "texto") {
                 const textoNuevo = criterio.valor.trim().toLowerCase();
+
                 const repetido = Array.from(document.querySelectorAll("#criteriosSeleccionados li"))
                     .some(li => {
+                        if (!li.dataset.json) return false;
+
                         const c = JSON.parse(li.dataset.json);
-                        return c.tipo === "texto" && c.valor.trim().toLowerCase() === textoNuevo;
+                        return c.tipo === "texto" &&
+                            c.valor.trim().toLowerCase() === textoNuevo;
                     });
 
                 if (repetido) {
@@ -367,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // =======================
             // VALIDAR CONTRA CRITERIOS EXISTENTES EN BACKEND
             // =======================
-            const existentesResp = await fetch("http://localhost:8080/api/criterios");
+            const existentesResp = await fetch("/colecciones/ui/criterios");
             const existentes = existentesResp.ok ? await existentesResp.json() : [];
 
             // --- Si es texto ---
@@ -386,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // --- Si es rango ---
             if (tipo === "rango") {
                 const existeRango = existentes.some(c =>
-                    c.tipo === "rango" &&
+                    c.tipo === "fecha" &&
                     c.desde === criterio.desde &&
                     c.hasta === criterio.hasta
                 );
@@ -398,9 +418,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // 1) CREAR EN BACKEND
-            const resp = await fetch("http://localhost:8080/api/criterios", {
+            const resp = await fetch("/colecciones/ui/criterios", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(criterio)
             });
 
