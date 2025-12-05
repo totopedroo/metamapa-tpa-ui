@@ -63,6 +63,12 @@ public class ColeccionUiService {
         }
     }
 
+    public Long buscarAlgoritmoIdPorNombre(String nombre) {
+        String url = url("/api/colecciones/algoritmos/buscar?nombre=" + nombre);
+        return restTemplate.getForObject(url, Long.class);
+    }
+
+
     // --- Últimas ---
     public List<ColeccionDTO> obtenerUltimasColecciones() {
         try {
@@ -198,6 +204,11 @@ public class ColeccionUiService {
             e.printStackTrace(); // Ver el error completo
             return Collections.emptyList();
         }
+    }
+
+    public Long buscarFuenteIdPorTipo(String tipo) {
+        String url = url("/api/colecciones/fuentes/buscar?tipo=" + tipo);
+        return restTemplate.getForObject(url, Long.class);
     }
 
     public void asociarFuente(Long coleccionId, Long fuenteId) {

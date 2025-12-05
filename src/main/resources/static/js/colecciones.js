@@ -118,6 +118,13 @@ function agregarCriterioExistente(id) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    const algSel = document.getElementById("algoritmoSelect");
+    const algHidden = document.getElementById("algoritmoIdHidden");
+    if (algSel && algHidden) algHidden.value = algSel.value || "";
+
+    const fuenteSel = document.getElementById("fuenteSelect");
+    const fuenteHidden = document.getElementById("fuenteIdHidden");
+    if (fuenteSel && fuenteHidden) fuenteHidden.value = fuenteSel.value || "";
     if (document.getElementById("criterioExistente")) {
         cargarCriteriosExistentes();
     }

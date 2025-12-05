@@ -41,6 +41,14 @@
             document.getElementById("fuenteSelect").value = col.fuenteId ?? "";
             document.getElementById("fuenteIdHidden")?.value = col.fuenteId ?? "";
 
+            // --- FORZAR SINCRONIZACIÓN DE SELECT → HIDDEN ---
+            document.getElementById("algoritmoIdHidden").value =
+                document.getElementById("algoritmoSelect").value;
+
+            document.getElementById("fuenteIdHidden").value =
+                document.getElementById("fuenteSelect").value;
+
+
             // ===============================
             // RENDER INICIAL DE HECHOS
             // ===============================
@@ -139,26 +147,26 @@
         <h4>Algoritmo de consenso</h4>
 
         <select id="algoritmoSelect" class="form-select mb-3">
-            <option value="">Ninguno</option>
+        <option value="">Ninguno</option>
             <option th:each="alg : ${listaAlgoritmos}"
                     th:value="${alg.id}" th:text="${alg.nombre}">
             </option>
         </select>
 
-        <input type="hidden" id="algoritmoIdHidden" name="algoritmoId">
+        <input type="hidden" id="algoritmoIdHidden" th:field="*{algoritmoId}">
 
         <hr>
 
         <h4>Fuente</h4>
 
         <select id="fuenteSelect" class="form-select mb-3">
-            <option value="">Sin fuente</option>
+        <option value="">Sin fuente</option>
             <option th:each="f : ${listaFuentes}"
                     th:value="${f.id}" th:text="${f.nombre}">
             </option>
         </select>
 
-        <input type="hidden" id="fuenteIdHidden" name="fuenteId">
+        <input type="hidden" id="fuenteIdHidden" th:field="*{fuenteId}">
 
         <hr>
 

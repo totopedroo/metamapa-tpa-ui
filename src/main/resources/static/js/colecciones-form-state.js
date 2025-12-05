@@ -87,12 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (est.titulo) document.querySelector("[name='titulo']").value = est.titulo;
         if (est.descripcion) document.querySelector("[name='descripcion']").value = est.descripcion;
 
-        if (est.algoritmoId)
+        if (est.algoritmoId) {
             document.getElementById("algoritmoSelect").value = est.algoritmoId;
+            document.getElementById("algoritmoIdHidden").value = est.algoritmoId;
+        }
 
-        if (est.fuenteId)
+        if (est.fuenteId) {
             document.getElementById("fuenteSelect").value = est.fuenteId;
-
+            document.getElementById("fuenteIdHidden").value = est.fuenteId;
+        }
 
         // ===============================
         //   Restaurar hechos
@@ -192,6 +195,15 @@ document.addEventListener("DOMContentLoaded", () => {
     //   INICIALIZACIÓN AL CARGAR
     // ============================================================
     restaurarEstado();
+
+    // --- Sincronizar hidden inputs después de restaurar ---
+    const algSel = document.getElementById("algoritmoSelect");
+    const algHidden = document.getElementById("algoritmoIdHidden");
+    if (algSel && algHidden) algHidden.value = algSel.value;
+
+    const fuenteSel = document.getElementById("fuenteSelect");
+    const fuenteHidden = document.getElementById("fuenteIdHidden");
+    if (fuenteSel && fuenteHidden) fuenteHidden.value = fuenteSel.value;
 
     // ============================================================
     //   GUARDAR ANTES DE IR A /hechos (pick mode)

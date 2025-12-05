@@ -49,10 +49,12 @@
         <select id="algoritmoSelect" class="form-select mb-3">
             <option value="">Ninguno</option>
             <option th:each="alg : ${listaAlgoritmos}"
-                    th:value="${alg.id}" th:text="${alg.nombre}">
+                    th:value="${alg.id}"
+                    th:text="${alg.nombre}">
             </option>
         </select>
-        <input type="hidden" id="algoritmoIdHidden" name="algoritmoId">
+
+        <input type="hidden" id="algoritmoIdHidden" th:field="*{algoritmoId}">
 
         <hr>
 
@@ -65,11 +67,12 @@
         <select id="fuenteSelect" class="form-select mb-3">
             <option value="">Ninguna</option>
             <option th:each="f : ${listaFuentes}"
-                    th:value="${f.id}" th:text="${f.nombre}">
+                    th:value="${f.id}"
+                    th:text="${f.nombre}">
             </option>
         </select>
 
-        <input type="hidden" id="fuenteIdHidden" name="fuenteId">
+        <input type="hidden" id="fuenteIdHidden" th:field="*{fuenteId}">
 
         <!-- ========================================== -->
         <!-- HECHOS -->

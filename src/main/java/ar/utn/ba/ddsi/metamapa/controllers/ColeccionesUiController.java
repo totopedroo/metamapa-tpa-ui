@@ -2,7 +2,10 @@ package ar.utn.ba.ddsi.metamapa.controllers;
 
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionFormDTO;
+import ar.utn.ba.ddsi.metamapa.dto.CriterioDTO;
+import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
 import ar.utn.ba.ddsi.metamapa.services.ColeccionUiService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/colecciones")
@@ -106,6 +110,7 @@ public class ColeccionesUiController {
         redirect.addFlashAttribute("ok", "Colección creada correctamente");
         return "redirect:/colecciones";
     }
+
     //importar hechos desde el csv
     @PostMapping("/importar-csv-upload")
     public ResponseEntity<?> subirCsv(@RequestParam("file") MultipartFile file) {
@@ -130,7 +135,6 @@ public class ColeccionesUiController {
         }
     }
 
-
     // --- FORM EDITAR ---
     @GetMapping("/editar/{id}")
     public String mostrarFormEditar(@PathVariable Long id,
@@ -139,19 +143,77 @@ public class ColeccionesUiController {
 
         validarAdmin(session);
 
+        // 1) Traer DTO completo del backend
         ColeccionDTO dto = coleccionService.getColeccionPorId(id);
 
+        // 2) Construir el form que Thymeleaf usa
         ColeccionFormDTO form = new ColeccionFormDTO();
         form.setId(dto.getId());
         form.setTitulo(dto.getTitulo());
         form.setDescripcion(dto.getDescripcion());
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
 
-        form.setHechosIds(dto.getHechos().stream().map(h -> h.getIdHecho()).toList());
-        form.setCriteriosIds(dto.getCriterios().stream().map(c -> c.getId()).toList());
+        // --- HECHOS ---
+        form.setHechosIds(
+                dto.getHechos().stream()
+                        .map(HechoDTO::getIdHecho)
+                        .toList()
+        );
 
+        // --- CRITERIOS ---
+        form.setCriteriosIds(
+                dto.getCriterios().stream()
+                        .map(CriterioDTO::getId)
+                        .toList()
+        );
+
+        // --- ALGORITMO (STRING → ID) ---
+        Long algoritmoId = null;
+        if (dto.getAlgoritmoDeConsenso() != null) {
+            algoritmoId = coleccionService.buscarAlgoritmoIdPorNombre(dto.getAlgoritmoDeConsenso());
+        }
+        form.setAlgoritmoId(algoritmoId);
+
+        // --- FUENTE (STRING → ID) ---
+        Long fuenteId = null;
+        if (dto.getFuente() != null) {
+            fuenteId = coleccionService.buscarFuenteIdPorTipo(dto.getFuente());
+        }
+        form.setFuenteId(fuenteId);
+
+        // Agregar form al modelo
         model.addAttribute("form", form);
+
+        // 3) JSON COMPLETO para el JS (COLECCION_EDIT)
+        model.addAttribute("coleccionJson", toJson(Map.of(
+                "id", dto.getId(),
+                "titulo", dto.getTitulo(),
+                "descripcion", dto.getDescripcion(),
+                "hechosIds", form.getHechosIds(),
+                "criterios", dto.getCriterios(),
+                "algoritmoId", algoritmoId,
+                "fuenteId", fuenteId
+        )));
+
+        // 4) Títulos para el render inicial (HECHOS_TITULOS)
+        Map<Long, String> titulos = dto.getHechos().stream()
+                .collect(Collectors.toMap(HechoDTO::getIdHecho, HechoDTO::getTitulo));
+
+        model.addAttribute("hechosJson", toJson(titulos));
+
+        // 5) Selects visibles en la vista
+        model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
+        model.addAttribute("listaFuentes", coleccionService.listarFuentes());
+
         return "colecciones/editar";
+    }
+
+    private String toJson(Object o) {
+        try {
+            return new ObjectMapper().writeValueAsString(o);
+        } catch (Exception e) {
+            return "{}";
+        }
     }
 
     // --- EDITAR ---
