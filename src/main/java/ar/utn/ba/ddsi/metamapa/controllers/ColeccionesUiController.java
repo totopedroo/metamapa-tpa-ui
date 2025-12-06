@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -146,6 +147,9 @@ public class ColeccionesUiController {
         // 1) Traer DTO completo del backend
         ColeccionDTO dto = coleccionService.getColeccionPorId(id);
 
+        System.out.println("DTO UI = " + dto);
+        System.out.println("Hechos UI = " + dto.getHechos());
+
         // 2) Construir el form que Thymeleaf usa
         ColeccionFormDTO form = new ColeccionFormDTO();
         form.setId(dto.getId());
@@ -167,14 +171,14 @@ public class ColeccionesUiController {
                         .toList()
         );
 
-        // --- ALGORITMO (STRING → ID) ---
+        // --- ALGORITMO ---
         Long algoritmoId = null;
         if (dto.getAlgoritmoDeConsenso() != null) {
             algoritmoId = coleccionService.buscarAlgoritmoIdPorNombre(dto.getAlgoritmoDeConsenso());
         }
         form.setAlgoritmoId(algoritmoId);
 
-        // --- FUENTE (STRING → ID) ---
+        // --- FUENTE ---
         Long fuenteId = null;
         if (dto.getFuente() != null) {
             fuenteId = coleccionService.buscarFuenteIdPorTipo(dto.getFuente());
@@ -184,36 +188,32 @@ public class ColeccionesUiController {
         // Agregar form al modelo
         model.addAttribute("form", form);
 
-        // 3) JSON COMPLETO para el JS (COLECCION_EDIT)
-        model.addAttribute("coleccionJson", toJson(Map.of(
-                "id", dto.getId(),
-                "titulo", dto.getTitulo(),
-                "descripcion", dto.getDescripcion(),
-                "hechosIds", form.getHechosIds(),
-                "criterios", dto.getCriterios(),
-                "algoritmoId", algoritmoId,
-                "fuenteId", fuenteId
-        )));
-
-        // 4) Títulos para el render inicial (HECHOS_TITULOS)
         Map<Long, String> titulos = dto.getHechos().stream()
-                .collect(Collectors.toMap(HechoDTO::getIdHecho, HechoDTO::getTitulo));
+                .collect(Collectors.toMap(
+                        HechoDTO::getIdHecho,
+                        HechoDTO::getTitulo
+                ));
 
-        model.addAttribute("hechosJson", toJson(titulos));
+        // 3) JSON COMPLETO para JS
+        Map<String, Object> colJson = new HashMap<>();
+        colJson.put("id", dto.getId());
+        colJson.put("titulo", dto.getTitulo());
+        colJson.put("descripcion", dto.getDescripcion());
+        colJson.put("hechosIds", form.getHechosIds());
+        colJson.put("criterios", dto.getCriterios());
+        colJson.put("algoritmoId", algoritmoId);
+        colJson.put("fuenteId", fuenteId);
 
-        // 5) Selects visibles en la vista
+        model.addAttribute("coleccionJson", colJson);
+
+        // 4) JSON para títulos de hechos
+        model.addAttribute("hechosJson", titulos);
+
+        // 5) Selects visibles
         model.addAttribute("listaAlgoritmos", coleccionService.listarAlgoritmos());
         model.addAttribute("listaFuentes", coleccionService.listarFuentes());
 
         return "colecciones/editar";
-    }
-
-    private String toJson(Object o) {
-        try {
-            return new ObjectMapper().writeValueAsString(o);
-        } catch (Exception e) {
-            return "{}";
-        }
     }
 
     // --- EDITAR ---

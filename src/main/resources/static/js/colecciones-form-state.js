@@ -194,7 +194,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     //   INICIALIZACIÓN AL CARGAR
     // ============================================================
-    restaurarEstado();
+
+    if (sessionStorage.getItem(KEY)) {
+        restaurarEstado();
+    }
 
     // --- Sincronizar hidden inputs después de restaurar ---
     const algSel = document.getElementById("algoritmoSelect");

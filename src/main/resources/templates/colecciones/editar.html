@@ -12,10 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Hechos ya traídos del backend -->
-    <script>
-        window.HECHOS_TITULOS = JSON.parse('[[${hechosJson}]]');
-        window.COLECCION_EDIT = JSON.parse('[[${coleccionJson}]]');
-        // tiene: { id, titulo, descripcion, hechosIds:[..], criterios:[..], algoritmoId, fuenteId }
+    <script th:inline="javascript">
+        window.HECHOS_TITULOS = /*[[${hechosJson}]]*/ {};
+        window.COLECCION_EDIT = /*[[${coleccionJson}]]*/ {};
     </script>
 
     <script th:src="@{/js/colecciones.js}" defer></script>
@@ -39,7 +38,7 @@
             document.getElementById("algoritmoIdHidden").value = col.algoritmoId ?? "";
 
             document.getElementById("fuenteSelect").value = col.fuenteId ?? "";
-            document.getElementById("fuenteIdHidden")?.value = col.fuenteId ?? "";
+            document.getElementById("fuenteIdHidden").value = col.fuenteId ?? "";
 
             // --- FORZAR SINCRONIZACIÓN DE SELECT → HIDDEN ---
             document.getElementById("algoritmoIdHidden").value =
@@ -75,18 +74,18 @@
                     "beforeend",
                     `
                     <li class="list-group-item d-flex justify-content-between align-items-center"
-                        data-id="${c.id_criterio}"
+                        data-id="${c.id}"
                         data-json='${JSON.stringify(c)}'>
                         ${texto}
                         <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
-                        <input type="hidden" name="criteriosIds" value="${c.id_criterio}">
+                        <input type="hidden" name="criteriosIds" value="${c.id}">
                     </li>
                 `
                 );
 
                 cont.insertAdjacentHTML(
                     "beforeend",
-                    `<input type="hidden" name="criteriosIds" value="${c.id_criterio}">`
+                    `<input type="hidden" name="criteriosIds" value="${c.id}">`
                 );
             });
 
