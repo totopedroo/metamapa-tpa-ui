@@ -27,7 +27,7 @@
                 <button class="nav-link active" id="eliminacion-tab" data-bs-toggle="tab"
                         data-bs-target="#eliminacion" type="button" role="tab"
                         aria-controls="eliminacion" aria-selected="true">
-                    <i class="bi bi-trash me-2"></i>De Baja
+                    <i class="bi bi-trash me-2"></i>De Eliminacion
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -54,7 +54,7 @@
                         <tbody>
                         <tr th:each="sol : ${misEliminaciones}">
                             <td th:text="${sol.tituloHecho}" class="fw-bold">Título</td>
-                            <td th:text="${sol.justificacion}">Texto...</td>
+                            <td th:text="${sol.justificacion}" class="text-wrap-col">Texto...</td>
                             <td class="text-center">
                                 <span class="chip"
                                       th:classappend="${sol.estado.toString() == 'PENDIENTE' ? 'pendiente' :
@@ -64,7 +64,7 @@
                         </tr>
                         <tr th:if="${#lists.isEmpty(misEliminaciones)}">
                             <td colspan="3" class="text-center py-5 text-muted fst-italic">
-                                No tenés solicitudes de baja enviadas.
+                                No tenés solicitudes de eliminacion enviadas.
                             </td>
                         </tr>
                         </tbody>
@@ -99,7 +99,7 @@
 
                             <td th:text="${sol.valorNuevo}" class="text-primary fw-bold">Valor</td>
 
-                            <td th:text="${sol.justificacion}">Texto...</td>
+                            <td th:text="${sol.justificacion}" class="text-wrap-col">Texto...</td>
 
                             <td class="text-center">
                             <span class="chip"

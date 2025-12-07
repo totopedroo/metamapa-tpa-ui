@@ -95,6 +95,27 @@
 
 <th:block th:replace="fragments/footer :: footer"></th:block>
 
+<input type="hidden" id="inputMensajeExito" th:value="${mensajeExito}">
+
+<div class="modal fade" id="modalExito" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="modal-body">
+                <div class="mb-3 text-success">
+                    <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-3 fw-bold">¡Solicitud Enviada!</h4>
+                <p id="textoMensajeExito" class="mb-4" th:text="${mensajeExito}">
+                    Tu solicitud ha sido registrada correctamente.
+                </p>
+                <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- JS para lógica de tipo -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -181,6 +202,18 @@
                 contador.style.color = len < 500 ? "red" : "green";
             }
         });
+
+        const inputExito = document.getElementById('inputMensajeExito');
+
+        // Si el input existe y tiene texto (el controller mandó mensajeExito)
+        if (inputExito && inputExito.value && inputExito.value.trim() !== "") {
+            const modalElement = document.getElementById('modalExito');
+            if (modalElement) {
+                // Usamos Bootstrap para abrirlo
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        }
     });
 </script>
 

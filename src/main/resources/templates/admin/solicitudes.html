@@ -63,7 +63,7 @@
                     <tbody>
                     <tr th:each="solicitud : ${listaEliminacion}">
                         <td th:text="${solicitud.tituloHecho}" class="fw-bold">Título</td>
-                        <td th:text="${solicitud.justificacion}">Razón...</td>
+                        <td th:text="${solicitud.justificacion}" class="text-wrap-col">Razón...</td>
 
                         <td class="text-center">
                             <span class="chip"
@@ -122,7 +122,7 @@
 
                         <td th:text="${sol.valorNuevo}" class="text-primary fw-bold">Valor...</td>
 
-                        <td th:text="${sol.justificacion}" class="small">Razón...</td>
+                        <td th:text="${sol.justificacion}" class="text-wrap-col">Razón...</td>
 
                         <td class="text-center">
                     <span class="chip"

@@ -173,3 +173,12 @@ nav a.logout-btn:hover i {
 .badge-confirm.aprobada {
     background: #28a745; /* verde */
 }
+
+/* Agrega esto al final de tu CSS */
+.text-wrap-col {
+    white-space: normal;       /* Permite que el texto fluya en varias líneas */
+    word-break: break-word;    /* Rompe palabras larguísimas (como AAAAA...) */
+    overflow-wrap: break-word; /* Estándar moderno para romper palabras */
+    max-width: 350px;          /* Define un ancho máximo para la columna de justificación */
+    min-width: 200px;          /* Asegura que no quede demasiado angosta */
+}

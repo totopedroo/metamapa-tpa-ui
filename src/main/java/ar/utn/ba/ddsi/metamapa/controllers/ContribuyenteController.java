@@ -80,7 +80,7 @@ public class ContribuyenteController {
             redirectAttrs.addFlashAttribute("mensajeError", "Error al procesar la solicitud: " + e.getMessage());
         }
 
-        return "contribuyente/solicitudes";
+        return "contribuyente/inicio";
     }
 
     @GetMapping("/nueva-solicitud")
