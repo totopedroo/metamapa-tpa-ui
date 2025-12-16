@@ -1,3 +1,10 @@
+function getCsrf() {
+    const token = document.querySelector('meta[name="_csrf"]')?.content;
+    const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+    return { token, header };
+}
+
+
 (function () {
 
     console.log("🟢 hechos.js cargado");
@@ -33,44 +40,75 @@
         document.getElementById("errorCrearHecho").textContent = "";
     }
 
+    // 👉 Etiquetas como array de strings
+    function parseEtiquetas(valor) {
+        if (!valor || !valor.trim()) return [];
+        return valor
+            .split(",")
+            .map(t => t.trim())
+            .filter(t => t.length > 0);
+    }
+
     /* Submit crear hecho */
     formCrear?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const errorDiv = document.getElementById("errorCrearHecho");
+        errorDiv.textContent = "";
+
+        // Tomo los elementos por id (más robusto que depender de variables globales)
+        const tituloEl = document.getElementById("titulo");
+        const descripcionEl = document.getElementById("descripcion");
+        const categoriaEl = document.getElementById("categoria");
+        const urlMultimediaEl = document.getElementById("urlMultimedia");
+        const etiquetasEl = document.getElementById("etiquetas");
+        const latitudEl = document.getElementById("latitud");
+        const longitudEl = document.getElementById("longitud");
+        const fechaEl = document.getElementById("fecha");
+
         const payload = {
-            titulo: titulo.value.trim(),
-            descripcion: descripcion.value.trim(),
-            categoria: categoria.value.trim(),
-            latitud: parseFloat(latitud.value),
-            longitud: parseFloat(longitud.value),
-            fechaAcontecimiento: fecha.value,
-            contenidoMultimedia: urlMultimedia.value ? { url: urlMultimedia.value.trim() } : { url: null },
-            etiquetas: parseEtiquetas(etiquetas.value)
+            titulo: tituloEl.value.trim(),
+            descripcion: descripcionEl.value.trim(),
+            categoria: categoriaEl.value.trim(),
+            latitud: parseFloat(latitudEl.value),
+            longitud: parseFloat(longitudEl.value),
+            fechaAcontecimiento: fechaEl.value,
+            // 👉 ahora String o null, NO objeto {url: ...}
+            contenidoMultimedia: urlMultimediaEl.value
+                ? urlMultimediaEl.value.trim()
+                : null,
+            // 👉 ahora List<String>, NO [{nombre: ...}]
+            etiquetas: parseEtiquetas(etiquetasEl.value)
         };
 
+        // Validación mínima para evitar mandar basura
+        if (!payload.titulo || !payload.categoria || !payload.fechaAcontecimiento ||
+            Number.isNaN(payload.latitud) || Number.isNaN(payload.longitud)) {
+            errorDiv.textContent = "Faltan datos obligatorios o hay valores inválidos.";
+            return;
+        }
+
         try {
-            const resp = await fetch("/hechos/ui/crear", {
+            const resp = await fetch("http://localhost:8080/fuente-dinamica/hechos/crear", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
-            if (!resp.ok) throw new Error(await resp.text());
+            if (!resp.ok) {
+                const texto = await resp.text();
+                console.error("Respuesta de error crear:", resp.status, texto);
+                throw new Error(`Error ${resp.status} al crear el hecho.`);
+            }
+
             cerrarCrearHecho();
             window.location.reload();
 
         } catch (err) {
-            document.getElementById("errorCrearHecho").textContent = err.message;
+            console.error("Error al crear hecho:", err);
+            errorDiv.textContent = err.message || "Error al crear el hecho.";
         }
     });
-
-    function parseEtiquetas(valor) {
-        if (!valor.trim()) return [];
-        return valor.split(",")
-            .map(t => t.trim())
-            .filter(t => t.length > 0)
-            .map(nombre => ({ nombre }));
-    }
 
     // ===============================
     // Abrir modal si viene en la URL
@@ -142,7 +180,7 @@
     document.querySelectorAll(".btn-eliminar-admin").forEach(btn => {
         btn.addEventListener("click", async function () {
             const fila = btn.closest("tr");
-            const id = fila.dataset.hechoId;   // ← ESTA ES LA VARIABLE CORRECTA
+            const id = fila.dataset.hechoId;
 
             if (!confirm("¿Seguro que deseas eliminar este hecho?")) return;
 
@@ -182,8 +220,10 @@
         const id = fila.dataset.hechoId;
         document.getElementById("idHechoEditar").value = id;
 
-        document.getElementById("tituloEditar").value = fila.querySelector(".col-titulo")?.textContent.trim() || "";
-        document.getElementById("descripcionEditar").value = fila.querySelector(".col-descripcion")?.textContent.trim() || "";
+        document.getElementById("tituloEditar").value =
+            fila.querySelector(".col-titulo")?.textContent.trim() || "";
+        document.getElementById("descripcionEditar").value =
+            fila.querySelector(".col-descripcion")?.textContent.trim() || "";
         document.getElementById("categoriaEditar").value = fila.dataset.hechoCategoria || "";
         document.getElementById("latitudEditar").value = fila.dataset.hechoLatitud || "";
         document.getElementById("longitudEditar").value = fila.dataset.hechoLongitud || "";
@@ -204,8 +244,15 @@
         document.getElementById("errorEditarHecho").textContent = "";
     }
 
+    function parseNullable(v) {
+        return v === "" ? null : parseFloat(v);
+    }
+
     formEditar?.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        const errorDiv = document.getElementById("errorEditarHecho");
+        errorDiv.textContent = "";
 
         const id = document.getElementById("idHechoEditar").value;
 
@@ -216,7 +263,11 @@
             latitud: parseNullable(document.getElementById("latitudEditar").value),
             longitud: parseNullable(document.getElementById("longitudEditar").value),
             fechaAcontecimiento: document.getElementById("fechaEditar").value || null,
-            contenidoMultimedia: parseUrl(document.getElementById("urlMultimediaEditar").value),
+            // 👉 también String o null
+            contenidoMultimedia: document.getElementById("urlMultimediaEditar").value
+                ? document.getElementById("urlMultimediaEditar").value.trim()
+                : null,
+            // 👉 List<String>
             etiquetas: parseEtiquetas(document.getElementById("etiquetasEditar").value)
         };
 
@@ -232,18 +283,9 @@
             window.location.reload();
 
         } catch (err) {
-            document.getElementById("errorEditarHecho").textContent = err.message;
+            errorDiv.textContent = err.message;
         }
     });
-
-    function parseNullable(v) {
-        return v === "" ? null : parseFloat(v);
-    }
-
-    function parseUrl(url) {
-        url = url.trim();
-        return url ? { url } : null;
-    }
 
     /* ------------------ LIMPIAR FILTROS ------------------ */
 
@@ -300,14 +342,13 @@
         });
     }
 
-
     /* ------------------ MODAL VER DETALLE ------------------ */
 
     const modalDetalle = modal("modalDetalleHecho");
     const detalleBody = document.getElementById("detalleHechoBody");
     const errorDetalle = document.getElementById("errorDetalleHecho");
 
-    // Abrir modal usando los datos de la fila
+    // Abrir modal usando los datos de la fila (dataset)
     document.querySelectorAll(".btn-ver-detalle").forEach(btn => {
         btn.addEventListener("click", () => {
             const fila = btn.closest("tr");
@@ -343,7 +384,7 @@
             <p><strong>Título:</strong> ${titulo || "-"}</p>
             <p><strong>Descripción:</strong> ${descripcion || "-"}</p>
             <p><strong>Categoría:</strong> ${categoria || "-"}</p>
-           
+
             <p><strong>Latitud:</strong> ${latitud || "-"}</p>
             <p><strong>Longitud:</strong> ${longitud || "-"}</p>
             <p><strong>Fecha acontecimiento:</strong> ${fechaAcontecimiento || "-"}</p>
@@ -354,9 +395,10 @@
             <p><strong>Consensos:</strong> ${consensos || "-"}</p>
             <p><strong>Fuentes:</strong> ${fuentes || "-"}</p>
             <p><strong>Contenido multimedia:</strong>
-                ${contenido
-            ? `<a href="${contenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>`
-            : "-"
+                ${
+            contenido
+                ? `<a href="${contenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>`
+                : "-"
         }
             </p>
         `;
@@ -371,7 +413,6 @@
 
     document.getElementById("cerrarModalDetalle")?.addEventListener("click", cerrarDetalleHecho);
     document.getElementById("cancelarModalDetalle")?.addEventListener("click", cerrarDetalleHecho);
-
 
     /* ======================================================
        PICK MODE
