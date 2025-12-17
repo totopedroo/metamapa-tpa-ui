@@ -44,55 +44,48 @@ public class HechosUiController {
     /**
      * Muestra la lista de hechos y el formulario de filtro.
      */
-    @Value("${backend.api.baseurl:http://localhost:8080}")
-
+    @Value("${api.base.url:http://localhost:8080}")
     private String backendBaseUrl;
 
 
     @GetMapping
     public String listarHechos(
-            @RequestParam(required = false) String categoria,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
-            @RequestParam(required = false) Double latitud,
-            @RequestParam(required = false) Double longitud,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Boolean pick,
-            @RequestParam(required = false) String returnTo,
-            @RequestParam(required = false) String hechos,
-            Model model
+        @RequestParam(required = false) String categoria,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoHasta,
+        @RequestParam(required = false) Double latitud,
+        @RequestParam(required = false) Double longitud,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) Boolean pick,
+        @RequestParam(required = false) String returnTo,
+        @RequestParam(required = false) String hechos,
+        Model model
     ) {
-
         Map<String, Object> resultado = hechosService.filtrarHechos(
-                categoria,
-                fechaReporteDesde,
-                fechaReporteHasta,
-                fechaAcontecimientoDesde,
-                fechaAcontecimientoHasta,
-                latitud,
-                longitud,
-                page,
-                size
+            categoria, fechaReporteDesde, fechaReporteHasta,
+            fechaAcontecimientoDesde, fechaAcontecimientoHasta,
+            latitud, longitud, page, size
         );
 
-        List<HechoDTO> items = (List<HechoDTO>) resultado.get("items");
-        model.addAttribute("hechos", items);
-        model.addAttribute("hechosLista", items);
-
-        model.addAttribute("page", (int) resultado.get("page") + 1);
-        model.addAttribute("totalPages", resultado.get("totalPages"));
-        model.addAttribute("size", resultado.get("size"));
-        model.addAttribute("totalItems", resultado.get("totalItems"));
-        model.addAttribute("pick", pick);
-        model.addAttribute("returnTo", returnTo);
-        model.addAttribute("hechosSel", hechos);
+        // List<HechoDTO> items = (List<HechoDTO>) resultado.get("items");
+        // Si resultado es null o vacío, maneja el error
+        if (resultado != null && resultado.get("items") != null) {
+            List<HechoDTO> items = (List<HechoDTO>) resultado.get("items");
+            model.addAttribute("hechos", items);
+            model.addAttribute("hechosLista", items);
+            model.addAttribute("page", (int) resultado.get("page") + 1);
+            model.addAttribute("totalPages", resultado.get("totalPages"));
+            model.addAttribute("size", resultado.get("size"));
+            model.addAttribute("totalItems", resultado.get("totalItems"));
+            model.addAttribute("pick", pick);
+            model.addAttribute("returnTo", returnTo);
+            model.addAttribute("hechosSel", hechos);
+        } else {
+            model.addAttribute("hechos", Collections.emptyList());
+        }
 
         return "hechos/hechos";
     }
@@ -102,9 +95,8 @@ public class HechosUiController {
      */
     @GetMapping("/nuevo")
     public String mostrarFormularioDeHecho(Model model) {
-        // Objeto "vacío" para que Thymeleaf pueda enlazar con th:object
         model.addAttribute("nuevoHecho", new HechoDTO());
-        return "formulario-hecho"; // Nombre del archivo .html
+        return "formulario-hecho";
     }
 
     /**
@@ -138,15 +130,12 @@ public class HechosUiController {
 
     @PostMapping("/ui/crear")
     @ResponseBody
-    public ResponseEntity<?> crearHechoUI(
-            @RequestBody HechoDTO input,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<?> crearHechoUI(@RequestBody HechoDTO input, HttpServletRequest request) {
         try {
-            String jwt = (String) request.getSession().getAttribute("jwt");
-            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
+            String jwt = (String) request.getSession().getAttribute("accessToken");
+            if (jwt == null) return ResponseEntity.status(401).body("No autenticado (Sesión expirada o inválida)");
 
-            String url = backendBaseUrl + "/hechos/crear";
+            String url = backendBaseUrl + "/api/hechos/crear";
 
             var headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + jwt);
@@ -155,28 +144,25 @@ public class HechosUiController {
             var entity = new HttpEntity<>(input, headers);
 
             ResponseEntity<String> resp = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, String.class
+                url, HttpMethod.POST, entity, String.class
             );
 
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Error UI al crear hecho: " + e.getMessage());
         }
     }
 
     @PatchMapping("/ui/editar/{id}")
     @ResponseBody
-    public ResponseEntity<?> editarHechoUI(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> campos,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<?> editarHechoUI(@PathVariable Long id, @RequestBody Map<String, Object> campos, HttpServletRequest request) {
         try {
-            String jwt = (String) request.getSession().getAttribute("jwt");
+            String jwt = (String) request.getSession().getAttribute("accessToken");
             if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
 
-            String url = backendBaseUrl + "/hechos/editar/" + id;
+            String url = backendBaseUrl + "/api/hechos/editar/" + id;
 
             var headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + jwt);
@@ -185,7 +171,7 @@ public class HechosUiController {
             var entity = new HttpEntity<>(campos, headers);
 
             ResponseEntity<String> resp = restTemplate.exchange(
-                    url, HttpMethod.PATCH, entity, String.class
+                url, HttpMethod.PATCH, entity, String.class
             );
 
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
@@ -197,12 +183,9 @@ public class HechosUiController {
 
     @DeleteMapping("/ui/eliminar/{id}")
     @ResponseBody
-    public ResponseEntity<?> eliminarHechoUI(
-            @PathVariable Long id,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<?> eliminarHechoUI(@PathVariable Long id, HttpServletRequest request) {
         try {
-            String jwt = (String) request.getSession().getAttribute("jwt");
+            String jwt = (String) request.getSession().getAttribute("accessToken");
             if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
 
             String url = backendBaseUrl + "/api/hechos/eliminar/" + id;
@@ -213,7 +196,7 @@ public class HechosUiController {
             var entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> resp = restTemplate.exchange(
-                    url, HttpMethod.DELETE, entity, String.class
+                url, HttpMethod.DELETE, entity, String.class
             );
 
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
@@ -304,8 +287,3 @@ public class HechosUiController {
         }
     }
 }
-
-
-
-// NO HAY OTROS MÉTODOS @GetMapping("/hechos")
-// Esto soluciona el error "Ambiguous mapping"

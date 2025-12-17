@@ -56,7 +56,6 @@ function getCsrf() {
         const errorDiv = document.getElementById("errorCrearHecho");
         errorDiv.textContent = "";
 
-        // Tomo los elementos por id (más robusto que depender de variables globales)
         const tituloEl = document.getElementById("titulo");
         const descripcionEl = document.getElementById("descripcion");
         const categoriaEl = document.getElementById("categoria");
@@ -73,15 +72,12 @@ function getCsrf() {
             latitud: parseFloat(latitudEl.value),
             longitud: parseFloat(longitudEl.value),
             fechaAcontecimiento: fechaEl.value,
-            // 👉 ahora String o null, NO objeto {url: ...}
             contenidoMultimedia: urlMultimediaEl.value
                 ? urlMultimediaEl.value.trim()
                 : null,
-            // 👉 ahora List<String>, NO [{nombre: ...}]
             etiquetas: parseEtiquetas(etiquetasEl.value)
         };
 
-        // Validación mínima para evitar mandar basura
         if (!payload.titulo || !payload.categoria || !payload.fechaAcontecimiento ||
             Number.isNaN(payload.latitud) || Number.isNaN(payload.longitud)) {
             errorDiv.textContent = "Faltan datos obligatorios o hay valores inválidos.";
@@ -89,9 +85,11 @@ function getCsrf() {
         }
 
         try {
-            const resp = await fetch("http://localhost:8080/fuente-dinamica/hechos/crear", {
+            const resp = await fetch("/hechos/crear", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -263,11 +261,9 @@ function getCsrf() {
             latitud: parseNullable(document.getElementById("latitudEditar").value),
             longitud: parseNullable(document.getElementById("longitudEditar").value),
             fechaAcontecimiento: document.getElementById("fechaEditar").value || null,
-            // 👉 también String o null
             contenidoMultimedia: document.getElementById("urlMultimediaEditar").value
                 ? document.getElementById("urlMultimediaEditar").value.trim()
                 : null,
-            // 👉 List<String>
             etiquetas: parseEtiquetas(document.getElementById("etiquetasEditar").value)
         };
 
