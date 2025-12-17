@@ -160,7 +160,7 @@ public class ColeccionesUiController {
         // --- HECHOS ---
         form.setHechosIds(
                 dto.getHechos().stream()
-                        .map(HechoDTO::getIdHecho)
+                        .map(HechoDTO::getId)
                         .toList()
         );
 
@@ -190,7 +190,7 @@ public class ColeccionesUiController {
 
         Map<Long, String> titulos = dto.getHechos().stream()
                 .collect(Collectors.toMap(
-                        HechoDTO::getIdHecho,
+                        HechoDTO::getId,
                         HechoDTO::getTitulo
                 ));
 

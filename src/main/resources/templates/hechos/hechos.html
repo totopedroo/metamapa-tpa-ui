@@ -158,15 +158,14 @@
                 <tbody>
                 <tr th:each="hecho : ${hechos}"
                     class="bg-white shadow-sm hover:bg-gray-50 transition-all hecho-row"
-                    th:data-hecho-id="${hecho.idHecho}"
+                    th:data-hecho-id="${hecho.id}"
                     th:data-hecho-latitud="${hecho.latitud}"
                     th:data-hecho-longitud="${hecho.longitud}"
                     th:data-hecho-categoria="${hecho.categoria}"
                     th:data-hecho-titulo="${hecho.titulo}"
                     th:data-hecho-descripcion="${hecho.descripcion}"
-                    th:data-hecho-contenido="${hecho.contenidoMultimedia}"
-                    th:data-hecho-fecha-acontecimiento="${hecho.fechaAcontecimiento}"
-                    th:data-hecho-hora-acontecimiento="${hecho.horaAcontecimiento}"
+                    th:data-hecho-contenido="${hecho.urlMultimedia}"
+                    th:data-hecho-fecha-acontecimiento="${hecho.fecha}"
                     th:data-hecho-fecha-carga="${hecho.fechaCarga}"
                     th:data-hecho-etiquetas="${#strings.listJoin(hecho.etiquetas, ', ')}"
                     th:data-hecho-consensos="${#strings.listJoin(hecho.consensos, ', ')}"
@@ -176,11 +175,11 @@
                 <!-- PICK MODE: checkbox -->
                     <td class="p-3 text-center" th:if="${param.pick}">
                         <input type="checkbox" class="pick-checkbox"
-                               th:value="${hecho.idHecho}">
+                               th:value="${hecho.id}">
                     </td>
 
                     <!-- ID -->
-                    <td class="p-3 font-semibold" th:text="${hecho.idHecho}"></td>
+                    <td class="p-3 font-semibold" th:text="${hecho.id}"></td>
 
                     <!-- Título -->
                     <td class="p-3 col-titulo leading-snug texto-justificado"
@@ -247,34 +246,6 @@
                                          and hecho.idContribuyente == session.usuarioId))}">
                             -
                         </span>
-
-                        <!-- Editar (solo si no estamos en pick) -->
-                    <td class="p-3 text-center" th:if="${param.pick == null}">
-
-                        <!-- ADMIN siempre puede -->
-                        <button class="btn-icono editar btn-editar-hecho"
-                                th:if="${session.rol == 'ADMIN'}">
-                            <i class="fas fa-pen"></i>
-                        </button>
-
-                        <!-- CONTRIBUYENTE si es dueño -->
-                        <button class="btn-icono editar btn-editar-hecho"
-                                th:if="${session.rol == 'CONTRIBUYENTE'
-                    and hecho.idContribuyente != null
-                    and hecho.idContribuyente == session.usuarioId}">
-                            <i class="fas fa-pen"></i>
-                        </button>
-
-                        <!-- caso contrario -->
-                        <span class="text-gray-400"
-                              th:if="${session.rol != null
-                 and !(session.rol == 'ADMIN'
-                 or (session.rol == 'CONTRIBUYENTE'
-                     and hecho.idContribuyente != null
-                     and hecho.idContribuyente == session.usuarioId))}">
-        -
-    </span>
-
                     </td>
 
                     <!-- NUEVO: Ver detalle (si no es pick) -->

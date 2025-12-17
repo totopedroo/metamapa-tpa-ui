@@ -142,9 +142,9 @@
                     </div>
                     <div class="card-meta">
                         <span class="badge" th:if="${hecho.categoria}" th:text="${hecho.categoria}"></span>
-                        <span class="badge" th:if="${hecho.provincia}" th:text="${hecho.provincia}"></span>
+                        <span class="badge" th:if="${hecho.lugar}" th:text="${hecho.lugar}"></span>
                         <span class="badge"
-                              th:text="${hecho.fechaAcontecimiento != null ? #temporals.format(hecho.fechaAcontecimiento, 'dd-MM-yyyy') : '—'}">
+                              th:text="${hecho.fecha != null ? #temporals.format(hecho.fecha, 'dd-MM-yyyy') : '—'}">
                         </span>
                     </div>
                     <div class="card-body">

@@ -23,10 +23,13 @@ public class HechoDTO {
     private String lugar;
     @JsonAlias("contenidoMultimedia")
     private String urlMultimedia;
-
+    private List<String> consensos;
+    private Boolean consensuado;
     private Double latitud;
     private Double longitud;
-
+    private LocalDate fechaCarga;
     private LocalDate fecha; // fechaAcontecimiento
     private List<String> etiquetas;
+    private Long idContribuyente;
+    private List<String> fuentes;
 }
