@@ -1,12 +1,12 @@
 package ar.utn.ba.ddsi.metamapa.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -15,20 +15,18 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HechoDTO {
-    private Long idHecho;
+    private Long id;
     private String titulo;
     private String descripcion;
     private String categoria;
-    private String contenidoMultimedia;
-    private LocalDate fechaAcontecimiento;
-    private LocalTime horaAcontecimiento;
-    private LocalDate fechaCarga;
+    @JsonAlias("provincia")
+    private String lugar;
+    @JsonAlias("contenidoMultimedia")
+    private String urlMultimedia;
+
     private Double latitud;
     private Double longitud;
-    private String provincia;
+
+    private LocalDate fecha; // fechaAcontecimiento
     private List<String> etiquetas;
-    private List<String> consensos;
-    private Boolean consensuado;
-    private List<String> fuentes;
-    private Long idContribuyente;
 }

@@ -69,12 +69,17 @@ function getCsrf() {
             titulo: tituloEl.value.trim(),
             descripcion: descripcionEl.value.trim(),
             categoria: categoriaEl.value.trim(),
+            // 👇 AGREGAMOS PROVINCIA (Backend lo requiere obligatoriamente)
+            provincia: "Buenos Aires",
+
             latitud: parseFloat(latitudEl.value),
             longitud: parseFloat(longitudEl.value),
-            fechaAcontecimiento: fechaEl.value,
-            contenidoMultimedia: urlMultimediaEl.value
-                ? urlMultimediaEl.value.trim()
-                : null,
+
+            fecha: fechaEl.value,
+
+            // Enviamos 'urlMultimedia' que el DTO del front entiende
+            urlMultimedia: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : null,
+
             etiquetas: parseEtiquetas(etiquetasEl.value)
         };
 
