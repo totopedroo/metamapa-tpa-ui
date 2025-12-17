@@ -20,6 +20,8 @@ import org.springframework.ui.Model;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -184,11 +186,14 @@ public class HechosUiController {
     @DeleteMapping("/ui/eliminar/{id}")
     @ResponseBody
     public ResponseEntity<?> eliminarHechoUI(@PathVariable Long id, HttpServletRequest request) {
+        String url = ""; // La declaramos afuera para imprimirla en caso de error
         try {
-            String jwt = (String) request.getSession().getAttribute("accessToken");
-            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
+            String jwt = (String) request.getSession().getAttribute("jwt");
+            if (jwt == null) return ResponseEntity.status(401).body("Error: No hay Token en sesión");
 
-            String url = backendBaseUrl + "/api/hechos/eliminar/" + id;
+            url = backendBaseUrl + "/api/hechos/eliminar/" + id;
+
+            // LOG DE DEBUG (Mirá la consola de IntelliJ/Eclipse cuando le des click)
 
             var headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + jwt);
@@ -196,13 +201,20 @@ public class HechosUiController {
             var entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> resp = restTemplate.exchange(
-                url, HttpMethod.DELETE, entity, String.class
+                    url, HttpMethod.DELETE, entity, String.class
             );
 
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
 
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            // ACA ESTA LA CLAVE: Si el backend devuelve error, lo atrapamos acá
+            System.out.println("ERROR DEL BACKEND: " + e.getResponseBodyAsString());
+            return ResponseEntity.status(e.getStatusCode()).body("Backend dijo: " + e.getResponseBodyAsString());
+
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error UI al eliminar hecho: " + e.getMessage());
+            // Error de conexión (Backend apagado, URL mal, etc)
+            e.printStackTrace(); // Imprime el error completo en consola
+            return ResponseEntity.status(500).body("Error interno Front: " + e.getMessage() + " intentando pegar a: " + url);
         }
     }
 

@@ -180,32 +180,85 @@ function getCsrf() {
 
     /* ------------------ ADMIN: ELIMINAR HECHO ------------------ */
 
+    /* ------------------ ADMIN: ELIMINAR HECHO (MODAL CUSTOM) ------------------ */
+
+    const modalEliminar = document.getElementById("modalConfirmarEliminar");
+    const btnConfirmarEliminar = document.getElementById("btnConfirmarEliminacion");
+    const btnCancelarEliminar = document.getElementById("btnCancelarEliminacion");
+
+    // Variable para guardar temporalmente qué ID queremos borrar
+    let idParaEliminar = null;
+
+    // 1. Al hacer click en el tachito de basura
     document.querySelectorAll(".btn-eliminar-admin").forEach(btn => {
-        btn.addEventListener("click", async function () {
-            const fila = btn.closest("tr");
-            const id = fila.dataset.hechoId;
+        btn.addEventListener("click", function (e) {
+            e.preventDefault(); // Por las dudas
 
-            if (!confirm("¿Seguro que deseas eliminar este hecho?")) return;
+            // Obtenemos el ID del atributo (como arreglamos antes)
+            const id = btn.getAttribute("data-id");
 
-            try {
-                const resp = await fetch(`/hechos/ui/eliminar/${id}`, {
-                    method: "DELETE"
-                });
-
-                if (!resp.ok) {
-                    const msg = await resp.text();
-                    throw new Error(msg);
-                }
-
-                alert("Hecho eliminado correctamente.");
-                window.location.reload();
-
-            } catch (err) {
-                alert("Error eliminando hecho: " + err.message);
+            if (!id) {
+                alert("Error: No se encontró el ID.");
+                return;
             }
+
+            // Guardamos el ID en la variable global temporal
+            idParaEliminar = id;
+
+            // Mostramos el modal lindo
+            if (modalEliminar) modalEliminar.style.display = "block";
         });
     });
 
+    // 2. Función para cerrar el modal
+    function cerrarModalEliminar() {
+        if (modalEliminar) modalEliminar.style.display = "none";
+        idParaEliminar = null; // Limpiamos la variable por seguridad
+    }
+
+    // Eventos para cerrar (Botón cancelar y click afuera)
+    btnCancelarEliminar?.addEventListener("click", cerrarModalEliminar);
+
+    // Cerrar si hacen click afuera del contenido blanco (opcional, si tu CSS lo soporta)
+    window.addEventListener("click", (e) => {
+        if (e.target === modalEliminar) cerrarModalEliminar();
+    });
+
+    // 3. Al hacer click en el botón ROJO "Sí, eliminar" del modal
+    btnConfirmarEliminar?.addEventListener("click", async () => {
+
+        if (!idParaEliminar) return; // Si no hay ID, no hacemos nada
+
+        try {
+            // Cambiamos el texto del botón para dar feedback visual
+            const textoOriginal = btnConfirmarEliminar.innerText;
+            btnConfirmarEliminar.innerText = "Eliminando...";
+            btnConfirmarEliminar.disabled = true;
+
+            const resp = await fetch(`/hechos/ui/eliminar/${idParaEliminar}`, {
+                method: "DELETE"
+            });
+
+            if (!resp.ok) {
+                const msg = await resp.text();
+                throw new Error(msg);
+            }
+
+            // Éxito
+            cerrarModalEliminar();
+            // alert("Hecho eliminado correctamente."); // <-- Opcional: Podés sacar esto también si querés
+            window.location.reload();
+
+        } catch (err) {
+            console.error(err);
+            alert("Error eliminando hecho: " + err.message);
+            cerrarModalEliminar();
+        } finally {
+            // Restauramos el botón por si falló y no recargó la página
+            btnConfirmarEliminar.innerText = "Sí, eliminar";
+            btnConfirmarEliminar.disabled = false;
+        }
+    });
     /* ------------------ MODAL EDITAR ------------------ */
 
     const modalEditar = modal("modalEditarHecho");

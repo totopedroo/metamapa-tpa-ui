@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HechoDTO {
+    @JsonAlias({"_id", "id_hecho", "idHecho"})
     private Long id;
     private String titulo;
     private String descripcion;

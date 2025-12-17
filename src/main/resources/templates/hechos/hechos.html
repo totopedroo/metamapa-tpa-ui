@@ -215,7 +215,8 @@
                     <!-- Eliminar (solo admin y NO pick) -->
                     <td class="p-3 text-center"
                         th:if="${param.pick == null and session.rol == 'ADMIN'}">
-                        <button class="btn-icono eliminar btn-eliminar-admin">
+                        <button class="btn-icono eliminar btn-eliminar-admin"
+                                th:data-id="${hecho.id}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -635,6 +636,36 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="modalConfirmarEliminar" class="modal">
+    <div class="modal-content max-w-md mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white">
+
+        <div class="text-center mb-4">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">¿Eliminar este hecho?</h3>
+        </div>
+
+        <div class="text-center text-sm text-gray-500 mb-6">
+            <p>Esta acción es irreversible. El hecho dejará de ser visible en el mapa y listados.</p>
+        </div>
+
+        <div class="flex justify-center gap-3">
+            <button id="btnCancelarEliminacion"
+                    type="button"
+                    class="btn-gris px-4 py-2 rounded-md text-sm font-medium border hover:bg-gray-100">
+                Cancelar
+            </button>
+
+            <button id="btnConfirmarEliminacion"
+                    type="button"
+                    class="btn-rojo px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700">
+                Sí, eliminar
+            </button>
+        </div>
     </div>
 </div>
 
