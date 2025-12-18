@@ -34,7 +34,7 @@
                 <select class="form-select" name="idHecho" id="selectHechoEliminar" disabled>
                     <option disabled selected value="">Seleccione un hecho...</option>
                     <option th:each="h : ${hechosParaEliminar}"
-                            th:value="${h.idHecho}"
+                            th:value="${h.id}"
                             th:text="${h.titulo}">
                     </option>
                 </select>
@@ -52,7 +52,7 @@
                 <select class="form-select" name="idHecho" id="selectHechoModificar" disabled>
                     <option value="" disabled selected>Seleccione un hecho...</option>
                     <option th:each="h : ${misHechos}"
-                            th:value="${h.idHecho}"
+                            th:value="${h.id}"
                             th:text="${h.titulo}">
                     </option>
                 </select>

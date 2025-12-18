@@ -63,7 +63,7 @@ function getCsrf() {
         const etiquetasEl = document.getElementById("etiquetas");
         const latitudEl = document.getElementById("latitud");
         const longitudEl = document.getElementById("longitud");
-        const fechaEl = document.getElementById("fecha");
+        const fechaEl = document.getElementById("fechaAcontecimiento");
 
         const payload = {
             titulo: tituloEl.value.trim(),
@@ -75,7 +75,7 @@ function getCsrf() {
             latitud: parseFloat(latitudEl.value),
             longitud: parseFloat(longitudEl.value),
 
-            fecha: fechaEl.value,
+            fechaAcontecimiento: fechaEl.value,
 
             // Enviamos 'urlMultimedia' que el DTO del front entiende
             urlMultimedia: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : null,
