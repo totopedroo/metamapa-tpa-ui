@@ -118,15 +118,16 @@ public class ColeccionUiService {
             HttpEntity<ColeccionFormDTO> req = new HttpEntity<>(form, headers);
 
             var resp = restTemplate.exchange(
-                    url("/api/colecciones/editar/" + id),
-                    HttpMethod.PATCH,
+                    url("/api/colecciones/" + id),
+                    HttpMethod.PUT,
                     req,
                     ColeccionDTO.class
             );
 
             return resp.getBody();
         } catch (Exception e) {
-            return null;
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -180,12 +181,16 @@ public class ColeccionUiService {
     public void eliminarColeccion(Long id) {
         try {
             restTemplate.exchange(
-                    url("/api/colecciones/eliminar/" + id),
+                    url("/api/colecciones/" + id),
                     HttpMethod.DELETE,
                     null,
                     Void.class
             );
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
     }
 
     public List<FuenteDTO> listarFuentes() {

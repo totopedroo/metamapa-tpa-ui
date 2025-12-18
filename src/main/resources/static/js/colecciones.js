@@ -141,54 +141,55 @@ document.addEventListener("DOMContentLoaded", () => {
     // =======================================================
     // 1) NUEVA COLECCIÓN
     // =======================================================
+    if (window.FORM_STATE_KEY === "nueva") {
 
-    const modalNueva = document.getElementById("modalConfirmarNueva");
+        const modalNueva = document.getElementById("modalConfirmarNueva");
 
-    if (modalNueva) {
+        if (modalNueva) {
 
-        const params = new URLSearchParams(window.location.search);
-        const hechosParam = params.get("hechos");
+            const params = new URLSearchParams(window.location.search);
+            const hechosParam = params.get("hechos");
 
-        if (hechosParam) {
+            if (hechosParam) {
 
-            const hechos = hechosParam.split(",").map(Number);
-            const modal = new bootstrap.Modal(modalNueva);
+                const hechos = hechosParam.split(",").map(Number);
+                const modal = new bootstrap.Modal(modalNueva);
 
-            // TRAER TÍTULOS SOLO DE ESTOS hechos
-            cargarTitulos(hechos).then(titulos => {
+                // TRAER TÍTULOS SOLO DE ESTOS hechos
+                cargarTitulos(hechos).then(titulos => {
 
-                modal.show();
+                    modal.show();
 
-                // Render lista
-                document.getElementById("listaHechosConfirmarNueva").innerHTML =
-                    hechos.map(id => `
-                    <li class="list-group-item">
-                        Hecho #${id} —
-                        <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
-                    </li>
-                `).join("");
+                    // Render lista
+                    document.getElementById("listaHechosConfirmarNueva").innerHTML =
+                        hechos.map(id => `
+                        <li class="list-group-item">
+                            Hecho #${id} —
+                            <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
+                        </li>
+                    `).join("");
 
-                // Hidden inputs
-                renderHechosSeleccionados(hechos, titulos);
-
-                // Editar selección
-                document.getElementById("btnEditarSeleccionNueva").onclick = () => {
-                    window.location.href =
-                        `/hechos?pick=true&hechos=${hechosParam}&returnTo=/colecciones/nueva`;
-                };
-
-                // Confirmar
-                document.getElementById("btnConfirmarNueva").onclick = () => {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById("modalConfirmarNueva"));
-                    modal.hide();
-
-                    // Usamos SIEMPRE la función centralizada
+                    // Hidden inputs
                     renderHechosSeleccionados(hechos, titulos);
-                };
-            });
+
+                    // Editar selección
+                    document.getElementById("btnEditarSeleccionNueva").onclick = () => {
+                        window.location.href =
+                            `/hechos?pick=true&hechos=${hechosParam}&returnTo=/colecciones/nueva`;
+                    };
+
+                    // Confirmar
+                    document.getElementById("btnConfirmarNueva").onclick = () => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById("modalConfirmarNueva"));
+                        modal.hide();
+
+                        // Usamos SIEMPRE la función centralizada
+                        renderHechosSeleccionados(hechos, titulos);
+                    };
+                });
+            }
         }
     }
-
     // =======================================================
     // 2) EDITAR COLECCIÓN
     // =======================================================
@@ -277,17 +278,30 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Botón "Seleccionar hechos" en NUEVA
-    const pickNueva = document.getElementById("btnPickHechos");
-    if (pickNueva) {
-        pickNueva.onclick = () => {
-            const ids = Array.from(document.querySelectorAll("input[name='hechosIds']"))
-                .map(i => i.value)
-                .join(",");
+    // Botón "Seleccionar hechos"
+    const btnPick = document.getElementById("btnPickHechos");
+
+    if (btnPick) {
+        btnPick.onclick = () => {
+
+            const ids = Array.from(
+                document.querySelectorAll("input[name='hechosIds']")
+            ).map(i => i.value).join(",");
 
             if (typeof guardarEstado === "function") guardarEstado();
 
-            window.location.href = `/hechos?pick=true&hechos=${ids}&returnTo=/colecciones/nueva`;
+            let returnTo;
+
+            if (window.FORM_MODE === "nueva") {
+                returnTo = "/colecciones/nueva";
+            }
+
+            if (window.FORM_MODE === "editar") {
+                returnTo = `/colecciones/editar/${window.FORM_STATE_KEY}`;
+            }
+
+            window.location.href =
+                `/hechos?pick=true&hechos=${ids}&returnTo=${encodeURIComponent(returnTo)}`;
         };
     }
 

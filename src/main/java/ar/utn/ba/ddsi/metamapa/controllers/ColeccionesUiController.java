@@ -223,9 +223,20 @@ public class ColeccionesUiController {
                          RedirectAttributes redirect,
                          HttpSession session) {
 
+        System.out.println(">>> ENTRO POST EDITAR");
+
         validarAdmin(session);
 
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
+
+        if (form.getAlgoritmoId() != null) {
+            coleccionService.asociarAlgoritmo(id, form.getAlgoritmoId());
+        }
+
+        if (form.getFuenteId() != null) {
+            coleccionService.asociarFuente(id, form.getFuenteId());
+        }
+
         coleccionService.editarColeccion(id, form);
 
         redirect.addFlashAttribute("ok", "Colección actualizada");
