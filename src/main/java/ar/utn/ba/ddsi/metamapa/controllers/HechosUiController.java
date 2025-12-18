@@ -8,29 +8,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.ui.Model;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.http.HttpClient;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -156,32 +154,55 @@ public class HechosUiController {
             return ResponseEntity.status(500).body("Error UI al crear hecho: " + e.getMessage());
         }
     }
-
     @PatchMapping("/ui/editar/{id}")
     @ResponseBody
-    public ResponseEntity<?> editarHechoUI(@PathVariable Long id, @RequestBody Map<String, Object> campos, HttpServletRequest request) {
+    public ResponseEntity<?> editarHechoUI(@PathVariable Long id,
+                                           @RequestBody Map<String, Object> payload,
+                                           HttpServletRequest request) {
+
+        String token = getSessionToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado (sesión expirada o inválida)");
+        }
+
+        // Back real (según tu mensaje)
+        String url = backendBaseUrl + "/fuente-dinamica/hechos/editar/" + id;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
         try {
-            String jwt = (String) request.getSession().getAttribute("accessToken");
-            if (jwt == null) return ResponseEntity.status(401).body("No autenticado");
+            // OJO: new RestTemplate() usa HttpURLConnection => NO soporta PATCH.
+            // Usamos JDK HttpClient request factory (soporta PATCH).
+            RestTemplate patchRt = new RestTemplate(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()));
 
-            String url = backendBaseUrl + "/api/hechos/editar/" + id;
+            ResponseEntity<String> response = patchRt.exchange(url, HttpMethod.PATCH, entity, String.class);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
 
-            var headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + jwt);
-            headers.set("Content-Type", "application/json");
-
-            var entity = new HttpEntity<>(campos, headers);
-
-            ResponseEntity<String> resp = restTemplate.exchange(
-                url, HttpMethod.PATCH, entity, String.class
-            );
-
-            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error UI al editar hecho: " + e.getMessage());
+        } catch (HttpClientErrorException | HttpServerErrorException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        } catch (ResourceAccessException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("No se pudo conectar al backend: " + ex.getMessage());
         }
     }
+
+    private String getSessionToken(HttpServletRequest request) {
+        var session = request.getSession(false);
+        if (session == null) return null;
+
+        Object jwt = session.getAttribute("jwt");
+        if (jwt instanceof String s && !s.isBlank()) return s;
+
+        Object access = session.getAttribute("accessToken");
+        if (access instanceof String s2 && !s2.isBlank()) return s2;
+
+        return null;
+    }
+
 
     @DeleteMapping("/ui/eliminar/{id}")
     @ResponseBody

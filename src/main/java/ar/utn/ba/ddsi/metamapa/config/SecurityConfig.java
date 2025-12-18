@@ -37,6 +37,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/hechos/ui/eliminar/**").hasRole("ADMIN")
+                        .requestMatchers("/hechos/ui/editar/**").hasRole("ADMIN")
+                        .requestMatchers("/hechos/ui/editar").hasRole("ADMIN")
+
+
                         .requestMatchers(
                                 "/", "/landing", "/landing.html",
                                 "/hechos", "/hechos/**",
