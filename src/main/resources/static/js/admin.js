@@ -134,4 +134,106 @@ document.addEventListener('DOMContentLoaded', function() {
             activarPestana('#eliminacion');
         }
     }
+
+    /* ===========================================================
+        LÓGICA MODALES DE ÉXITO (Bootstrap 5)
+        =========================================================== */
+
+    // Instancias de Bootstrap (se crean cuando las necesitamos)
+    let bsModalModificacion;
+    let bsModalEliminacion;
+
+    // --- MODIFICACIÓN ---
+    function mostrarExitoModificacion() {
+        const el = document.getElementById("modalExitoModificacion");
+        if (el) {
+            bsModalModificacion = new bootstrap.Modal(el);
+            bsModalModificacion.show();
+        }
+    }
+
+    const btnCerrarMod = document.getElementById("btnCerrarExitoModificacion");
+    if (btnCerrarMod) {
+        btnCerrarMod.addEventListener("click", () => {
+            // Ocultamos primero para que sea prolijo
+            if (bsModalModificacion) bsModalModificacion.hide();
+            // Recargamos
+            window.location.reload();
+        });
+    }
+
+    // --- ELIMINACIÓN ---
+    function mostrarExitoEliminacion() {
+        const el = document.getElementById("modalExitoEliminacion");
+        if (el) {
+            bsModalEliminacion = new bootstrap.Modal(el);
+            bsModalEliminacion.show();
+        }
+    }
+
+    const btnCerrarElim = document.getElementById("btnCerrarExitoEliminacion");
+    if (btnCerrarElim) {
+        btnCerrarElim.addEventListener("click", () => {
+            if (bsModalEliminacion) bsModalEliminacion.hide();
+            window.location.reload();
+        });
+    }
+
+    /* ===========================================================
+       3. INTERCEPCIÓN DE FORMULARIOS (Para mostrar Modales)
+       =========================================================== */
+
+    // A. Interceptar Aprobación de ELIMINACIÓN
+    document.querySelectorAll('.form-aprobar-eliminacion').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault(); // 1. Evitamos que la página se recargue
+
+            const formData = new FormData(this); // Capturamos el ID del input hidden
+            const actionUrl = this.action;
+
+            try {
+                const response = await fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData // Enviamos los datos como formulario
+                });
+
+                if (response.ok) {
+                    // 2. Si el back respondió bien (200), mostramos el modal
+                    mostrarExitoEliminacion();
+                } else {
+                    alert("Hubo un error al procesar la solicitud.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error de conexión.");
+            }
+        });
+    });
+
+    // B. Interceptar Aprobación de MODIFICACIÓN
+    document.querySelectorAll('.form-aprobar-modificacion').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault(); // 1. Stop reload
+
+            const formData = new FormData(this);
+            const actionUrl = this.action;
+
+            try {
+                const response = await fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // 2. Mostrar modal de éxito de modificación
+                    mostrarExitoModificacion();
+                } else {
+                    alert("Hubo un error al procesar la modificación.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error de conexión.");
+            }
+        });
+    });
 });

@@ -103,12 +103,44 @@ public class HechosUiController {
      * Procesa el envío del formulario para crear un nuevo hecho.
      */
     @PostMapping("/crear")
-    @ResponseBody   // 👈 responde JSON al fetch
-    public ResponseEntity<HechoDTO> crearHechoDesdeUi(@RequestBody HechoDTO input) {
-        HechoDTO creado = hechosService.crearHecho(input);
-        return ResponseEntity.ok(creado);
-    }
+    @ResponseBody
+    public ResponseEntity<?> crearHechoDesdeUi(@RequestBody HechoDTO input, HttpServletRequest request) {
+        try {
+            System.out.println(">>> 1. INICIANDO CREACIÓN HECHO UI");
+            System.out.println(">>> INPUT RECIBIDO: " + input);
 
+            // 1. OBTENER ID DE SESIÓN DE FORMA SEGURA
+            Object sessionVal = request.getSession().getAttribute("usuarioId");
+            System.out.println(">>> VALOR EN SESIÓN 'usuarioId': " + sessionVal);
+
+            if (sessionVal == null) {
+                System.out.println(">>> ERROR: usuarioId es NULL. El LoginSuccessHandler no lo guardó.");
+                return ResponseEntity.status(401).body("Error: No hay usuario en sesión. Re-logueate.");
+            }
+
+            // 2. CASTING A PRUEBA DE BALAS (Maneja Integer, Long y String)
+            Long idUsuario;
+
+            idUsuario = Long.valueOf(sessionVal.toString());
+
+
+
+            // 3. SETEAR Y LLAMAR AL SERVICIO
+            input.setIdContribuyente(idUsuario);
+
+            System.out.println(">>> HECHO ENVIADO: " + input);
+
+            HechoDTO creado = hechosService.crearHecho(input);
+            System.out.println(">>> HECHO CREADO CON ÉXITO: ID " + creado.getId());
+
+            return ResponseEntity.ok(creado);
+
+        } catch (Exception e) {
+            System.out.println(">>> EXCEPCIÓN FATAL EN UI CONTROLLER:");
+            e.printStackTrace(); // ¡Esto imprimirá el error real en la consola!
+            return ResponseEntity.internalServerError().body("Error en servidor: " + e.getMessage());
+        }
+    }
     /**
      * Maneja el botón de "Importar desde API".
      */
@@ -136,6 +168,9 @@ public class HechosUiController {
             if (jwt == null) return ResponseEntity.status(401).body("No autenticado (Sesión expirada o inválida)");
 
             String url = backendBaseUrl + "/api/hechos/crear";
+            input.setIdContribuyente((Long) request.getSession().getAttribute("usuarioId"));
+
+            System.out.print(input);
 
             var headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + jwt);
