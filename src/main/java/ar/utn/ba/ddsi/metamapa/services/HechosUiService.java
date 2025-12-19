@@ -103,17 +103,16 @@ public class HechosUiService {
          String token = cookies.getTokenFromCurrentRequest();
          String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
 
-         Map<String, Object> body = Map.of(
-                 "titulo", req.titulo(),
-                 "descripcion", req.descripcion(),
-                 "categoria", req.categoria(),
-                 "provincia", req.provincia(),
-                 "latitud", req.latitud(),
-                 "longitud", req.longitud(),
-                 "fechaAcontecimiento", req.fechaAcontecimiento(),
-                 "contenidoMultimedia", req.contenidoMultimedia(),   // <-- string
-                 "etiquetas", req.etiquetas()
-         );
+         Map<String, Object> body = new HashMap<>();
+         body.put("titulo", req.titulo());
+         body.put("descripcion", req.descripcion());
+         body.put("categoria", req.categoria());
+         body.put("provincia", req.provincia());
+         body.put("latitud", req.latitud());
+         body.put("longitud", req.longitud());
+         body.put("fechaAcontecimiento", req.fechaAcontecimiento());
+         body.put("contenidoMultimedia", req.contenidoMultimedia());
+         body.put("etiquetas", req.etiquetas());
 
          Map response = client.post()
                  .uri(url)

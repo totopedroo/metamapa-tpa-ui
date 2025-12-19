@@ -5,24 +5,34 @@
     <title>MetaMapa - Hechos</title>
 
     <!-- HEAD GLOBAL -->
-    <th:block th:replace="fragments/head :: head"></th:block>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Leaflet -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           crossorigin=""/>
 
+    <!-- FontAwesome (aseguramos que esté para los iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" th:href="@{/css/hechos.css}">
+
+    <style>
+        /* Ajuste para que los mapas de los modales se vean bien */
+        #mapaCrear, #mapaEditar {
+            z-index: 1; /* Para que no tape otros elementos del modal si se expande */
+        }
+    </style>
 
 </head>
 
 <body class="min-h-screen flex flex-col">
 
 <!-- HEADER UNIFICADO -->
-<th:block th:replace="fragments/header :: header"></th:block>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 
 <main class="flex-grow max-w-6xl mx-auto mt-8 px-4 pb-10">
 
@@ -30,7 +40,7 @@
         <h2 class="text-2xl font-semibold text-gray-800">Hechos</h2>
 
         <div th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
-        <button id="abrirModalCrear"
+            <button id="abrirModalCrear"
                     class="btn-verde-claro inline-flex items-center px-4 py-2 rounded-md text-sm font-medium">
                 <i class="fas fa-plus mr-2"></i> Agregar Hecho
             </button>
@@ -41,18 +51,15 @@
     <section class="bg-[var(--color-beige-tarjeta)] rounded-lg shadow-sm p-4 mb-6">
         <form th:action="@{/hechos}" method="get" id="filtrosForm">
 
-            <!-- PRESERVAR PICK MODE DURANTE FILTROS                   -->
             <input type="hidden" name="pick" th:if="${param.pick}" th:value="${param.pick}">
             <input type="hidden" name="returnTo" th:if="${param.returnTo}" th:value="${param.returnTo}">
-            <input type="hidden" name="hechos" id="hechosHidden"
-                   th:value="${param.hechos}">
+            <input type="hidden" name="hechos" id="hechosHidden" th:value="${param.hechos}">
 
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
                 <div class="flex flex-col">
                     <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo</label>
                     <div class="flex items-center gap-3 mt-1">
-                        <!-- Opción TODOS (Valor vacío) -->
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="radio" name="modo" value=""
                                    th:checked="${param.modo == null || param.modo[0] == ''}"
@@ -60,7 +67,6 @@
                             <span class="ml-1 text-sm text-gray-700">Todos</span>
                         </label>
 
-                        <!-- Opción CURADO -->
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="radio" name="modo" value="curado"
                                    th:checked="${param.modo != null and param.modo[0] == 'curado'}"
@@ -68,7 +74,6 @@
                             <span class="ml-1 text-sm text-gray-700">Curado</span>
                         </label>
 
-                        <!-- Opción IRRESTRICTO -->
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="radio" name="modo" value="irrestricto"
                                    th:checked="${param.modo != null and param.modo[0] == 'irrestricto'}"
@@ -142,11 +147,10 @@
                 </div>
 
             </div>
-
         </form>
     </section>
 
-    <!-- Mapa -->
+    <!-- Mapa General -->
     <section class="bg-white rounded-lg shadow-sm p-4 mb-6">
         <h3 class="text-lg font-semibold mb-3 text-gray-800">Mapa de hechos</h3>
         <div id="mapHechos" class="w-full rounded-md"></div>
@@ -161,29 +165,16 @@
 
                 <thead class="bg-[var(--color-beige-tarjeta)] border-b">
                 <tr class="bg-gray-200 text-gray-700 text-left">
-
                     <th class="p-3 text-center" th:if="${param.pick}">Sel.</th>
                     <th class="p-3 rounded-l-md">ID</th>
                     <th class="p-3">Título</th>
                     <th class="p-3">Descripción</th>
-
+                    <th class="p-3">Tags</th>
                     <th class="p-3 text-center">Ver Mapa</th>
-
-                    <!-- COLUMNA DINÁMICA: ELIMINAR / SOLICITAR -->
-                    <!-- Se muestra si es ADMIN o CONTRIBUYENTE y NO estamos en modo pick -->
-                    <th class="p-3 text-center"
-                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
-                        <span th:if="${session.rol == 'ADMIN'}">Eliminar</span>
-                        <span th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Baja</span>
-                    </th>
-
-                    <!-- COLUMNA EDITAR -->
-                    <th class="p-3 text-center"
-                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">Editar</th>
-
-                    <!-- COLUMNA DETALLE (Siempre la última, lleva el borde derecho) -->
-                    <th class="p-3 text-center rounded-r-md"
-                        th:if="${param.pick == null}">Ver detalle</th>
+                    <th class="p-3 text-center" th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
+                    <th class="p-3 text-center" th:if="${param.pick == null and session.rol == 'ADMIN'}">Eliminar</th>
+                    <th class="p-3 text-center rounded-r-md" th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">Editar</th>
+                    <th class="p-3 text-center" th:if="${param.pick == null}">Ver detalle</th>
                 </tr>
                 </thead>
 
@@ -204,116 +195,62 @@
                     th:data-hecho-consensuado="${hecho.consensuado}"
                     th:data-hecho-fuentes="${#strings.listJoin(hecho.fuentes, ', ')}">
 
-                    <!-- PICK MODE -->
                     <td class="p-3 text-center" th:if="${param.pick}">
-                        <input type="checkbox" class="pick-checkbox"
-                               th:value="${hecho.id}">
+                        <input type="checkbox" class="pick-checkbox" th:value="${hecho.id}">
                     </td>
 
-                    <!-- ID -->
                     <td class="p-3 font-semibold" th:text="${hecho.id}"></td>
-
-                    <!-- Título -->
-                    <td class="p-3 col-titulo leading-snug texto-justificado"
-                        th:text="${hecho.titulo}"></td>
-
-                    <!-- Descripción -->
-                    <td class="p-3 col-descripcion leading-snug texto-justificado"
-                        th:text="${hecho.descripcion}"></td>
-
-                    <!-- Mapa -->
+                    <td class="p-3 col-titulo leading-snug texto-justificado" th:text="${hecho.titulo}"></td>
+                    <td class="p-3 col-descripcion leading-snug texto-justificado" th:text="${hecho.descripcion}"></td>
+                    <td class="p-3 col-etiquetas">
+                        <span th:each="tag : ${hecho.etiquetas}" class="tag" th:text="${tag}"></span>
+                    </td>
                     <td class="p-3 text-center">
-                        <button class="btn-icono btn-ver-mapa">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </button>
+                        <button class="btn-icono btn-ver-mapa"><i class="fas fa-map-marker-alt"></i></button>
                     </td>
 
-                    <!-- COLUMNA DINÁMICA BODY: ELIMINAR / SOLICITAR -->
-                    <!-- Usamos la MISMA condición que en el TH -->
-                    <td class="p-3 text-center"
-                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
-
-                        <!-- Si es ADMIN -> Botón Eliminar Directo -->
-                        <button class="btn-icono eliminar btn-eliminar-admin"
-                                th:if="${session.rol == 'ADMIN'}"
-                                th:data-id="${hecho.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-
-                        <!-- Si es CONTRIBUYENTE -> Botón Solicitar Baja -->
-                        <button class="btn-icono eliminar btn-solicitar-eliminacion"
-                                th:if="${session.rol == 'CONTRIBUYENTE'}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <td class="p-3 text-center" th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">
+                        <button class="btn-icono eliminar btn-solicitar-eliminacion"><i class="fas fa-trash-alt"></i></button>
                     </td>
 
-                    <!-- COLUMNA EDITAR -->
-                    <td class="p-3 text-center"
-                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
-
-                        <button class="btn-icono editar btn-editar-hecho"
-                                th:if="${session.rol == 'ADMIN'}">
-                            <i class="fas fa-pen"></i>
-                        </button>
-
-                        <button class="btn-icono editar btn-editar-hecho"
-                                th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente == session.usuarioId}">
-                            <i class="fas fa-pen"></i>
-                        </button>
-
-                        <!-- Espacio vacío si no tiene permiso de editar este específico -->
-                        <span class="text-gray-300"
-                              th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente != session.usuarioId}">
-                            -
-                        </span>
+                    <td class="p-3 text-center" th:if="${param.pick == null and session.rol == 'ADMIN'}">
+                        <button class="btn-icono eliminar btn-eliminar-admin" th:data-id="${hecho.id}"><i class="fas fa-trash"></i></button>
                     </td>
 
-                    <!-- Ver Detalle -->
+                    <td class="p-3 text-center" th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
+                        <button class="btn-icono editar btn-editar-hecho" th:if="${session.rol == 'ADMIN'}"><i class="fas fa-pen"></i></button>
+                        <button class="btn-icono editar btn-editar-hecho" th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente == session.usuarioId}"><i class="fas fa-pen"></i></button>
+                        <span class="text-gray-400" th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente != session.usuarioId}">-</span>
+                    </td>
+
                     <td class="p-3 text-center" th:if="${param.pick == null}">
-                        <button class="btn-icono btn-ver-detalle">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                        <button class="btn-icono btn-ver-detalle"><i class="fas fa-eye"></i></button>
                     </td>
                 </tr>
 
-                <!-- Si no hay hechos -->
                 <tr th:if="${hechos == null or #lists.isEmpty(hechos)}">
-                    <!-- Ajustamos el colspan para que cubra todo -->
-                    <td colspan="12" class="text-center text-gray-500 py-4">
-                        No se encontraron hechos.
-                    </td>
+                    <td colspan="12" class="text-center text-gray-500 py-4">No se encontraron hechos.</td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
+    <!-- Paginación -->
     <div class="flex flex-wrap items-center justify-between mt-6 gap-4">
+        <span class="text-sm text-gray-700" th:text="'Página ' + ${page} + ' de ' + ${totalPages}"></span>
 
-        <!-- Texto Página X de X -->
-        <span class="text-sm text-gray-700"
-              th:text="'Página ' + ${page} + ' de ' + ${totalPages}">
-    </span>
-
-        <!-- Selector de cantidad por página -->
         <form method="get" class="flex items-center gap-2">
             <label class="text-sm text-gray-600">Mostrar:</label>
-
-            <select name="size"
-                    class="border rounded-md px-2 py-1 text-sm"
-                    onchange="this.form.submit()">
-
+            <select name="size" class="border rounded-md px-2 py-1 text-sm" onchange="this.form.submit()">
                 <option th:selected="${size == 5}" value="5">5</option>
                 <option th:selected="${size == 10}" value="10">10</option>
                 <option th:selected="${size == 20}" value="20">20</option>
                 <option th:selected="${size == 50}" value="50">50</option>
                 <option th:selected="${size == 9999}" value="9999">Todos</option>
-
             </select>
-
-
-
-            <!-- Mantener filtros -->
+            <!-- Hidden inputs para mantener filtros -->
+            <input type="hidden" name="modo" th:value="${param.modo}">
             <input type="hidden" name="categoria" th:value="${param.categoria}">
             <input type="hidden" name="fechaReporteDesde" th:value="${param.fechaReporteDesde}">
             <input type="hidden" name="fechaReporteHasta" th:value="${param.fechaReporteHasta}">
@@ -321,164 +258,41 @@
             <input type="hidden" name="fechaAcontecimientoHasta" th:value="${param.fechaAcontecimientoHasta}">
             <input type="hidden" name="latitud" th:value="${param.latitud}">
             <input type="hidden" name="longitud" th:value="${param.longitud}">
-
-            <!-- Mantener pick mode -->
             <input type="hidden" name="pick" th:if="${param.pick}" th:value="${param.pick}">
-
             <input type="hidden" name="hechos" th:if="${param.hechos}" th:value="${param.hechos}">
-
             <input type="hidden" name="returnTo" th:if="${param.returnTo}" th:value="${param.returnTo}">
         </form>
 
-        <!-- Botones de paginación -->
         <ul class="pagination">
-
-            <!-- ANTERIOR -->
-            <li class="page-item"
-                th:classappend="${page == 1} ? ' disabled'">
-                <a class="page-link"
-                   th:href="@{/hechos(
-           page=${page-2}, size=${size},
-           categoria=${param.categoria},
-           fechaReporteDesde=${param.fechaReporteDesde},
-           fechaReporteHasta=${param.fechaReporteHasta},
-           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-           latitud=${param.latitud}, longitud=${param.longitud},
-           pick=${param.pick},
-           returnTo=${param.returnTo},
-           hechos=${param.hechos}
-       )}">
-                    «
-                </a>
+            <li class="page-item" th:classappend="${page == 1} ? ' disabled'">
+                <a class="page-link" th:href="@{/hechos(page=${page-2}, size=${size}, modo=${param.modo}, categoria=${param.categoria})}">«</a>
             </li>
-
-            <!-- PÁGINA 1 -->
-            <li class="page-item" th:if="${page > 3}">
-                <a class="page-link"
-                   th:href="@{/hechos(
-           page=0, size=${size},
-           categoria=${param.categoria},
-           fechaReporteDesde=${param.fechaReporteDesde},
-           fechaReporteHasta=${param.fechaReporteHasta},
-           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-           latitud=${param.latitud}, longitud=${param.longitud},
-           pick=${param.pick},
-           returnTo=${param.returnTo},
-           hechos=${param.hechos}
-       )}">
-                    1
-                </a>
-            </li>
-
-            <!-- "..." PREV -->
-            <li class="page-item disabled" th:if="${page > 4}">
-                <span class="page-link">…</span>
-            </li>
-
-            <!-- RANGO CENTRAL -->
-            <li class="page-item"
-                th:each="i : ${#numbers.sequence(page-3, page+3)}"
-                th:if="${i >= 0 and i < totalPages}"
-                th:classappend="${page} == ${i+1} ? ' active'">
-                <a class="page-link"
-                   th:text="${i+1}"
-                   th:href="@{/hechos(
-           page=${i}, size=${size},
-           categoria=${param.categoria},
-           fechaReporteDesde=${param.fechaReporteDesde},
-           fechaReporteHasta=${param.fechaReporteHasta},
-           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-           latitud=${param.latitud}, longitud=${param.longitud},
-           pick=${param.pick},
-           returnTo=${param.returnTo},
-           hechos=${param.hechos}
-       )}"></a>
-            </li>
-
-            <!-- "..." NEXT -->
-            <li class="page-item disabled" th:if="${page < totalPages - 3}">
-                <span class="page-link">…</span>
-            </li>
-
-            <!-- ÚLTIMA -->
-            <li class="page-item" th:if="${page < totalPages - 2}">
-                <a class="page-link"
-                   th:text="${totalPages}"
-                   th:href="@{/hechos(
-           page=${totalPages-1}, size=${size},
-           categoria=${param.categoria},
-           fechaReporteDesde=${param.fechaReporteDesde},
-           fechaReporteHasta=${param.fechaReporteHasta},
-           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-           latitud=${param.latitud}, longitud=${param.longitud},
-           pick=${param.pick},
-           returnTo=${param.returnTo},
-           hechos=${param.hechos}
-       )}">
-                </a>
-            </li>
-
-            <!-- SIGUIENTE -->
-            <li class="page-item"
-                th:classappend="${page == totalPages} ? ' disabled'">
-                <a class="page-link"
-                   th:href="@{/hechos(
-           page=${page}, size=${size},
-           categoria=${param.categoria},
-           fechaReporteDesde=${param.fechaReporteDesde},
-           fechaReporteHasta=${param.fechaReporteHasta},
-           fechaAcontecimientoDesde=${param.fechaAcontecimientoDesde},
-           fechaAcontecimientoHasta=${param.fechaAcontecimientoHasta},
-           latitud=${param.latitud}, longitud=${param.longitud},
-           pick=${param.pick},
-           returnTo=${param.returnTo},
-           hechos=${param.hechos}
-       )}">
-                    »
-                </a>
+            <li class="page-item" th:classappend="${page == totalPages} ? ' disabled'">
+                <a class="page-link" th:href="@{/hechos(page=${page}, size=${size}, modo=${param.modo}, categoria=${param.categoria})}">»</a>
             </li>
         </ul>
     </div>
 
     <div th:if="${param.pick}" class="mt-6 flex justify-end gap-3">
-
-        <button id="btnCancelarPick"
-                type="button"
-                class="btn-rojo px-4 py-2 rounded-md text-sm">
-            Cancelar
-        </button>
-
-        <button id="btnConfirmarPick"
-                type="button"
-                class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
-            Confirmar selección
-        </button>
-
+        <button id="btnCancelarPick" type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">Cancelar</button>
+        <button id="btnConfirmarPick" type="button" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Confirmar selección</button>
     </div>
 
 </main>
 
-<!-- FOOTER -->
-<th:block th:replace="fragments/footer :: footer"></th:block>
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
-<!-- PICK HECHOS -->
+<!-- Scripts -->
 <script th:inline="javascript">
     window.PICK_MODE = /*[[${param.pick != null}]]*/ false;
     window.RETURN_TO = /*[[${param.returnTo}]]*/ null;
     window.HECHOS_INICIALES = /*[[${param.hechos}]]*/ "";
 </script>
 
-
-
-<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- ========================================================= -->
-<!-- MODAL: CREAR HECHO                                        -->
+<!-- MODAL: CREAR HECHO (CON MAPA)                             -->
 <!-- ========================================================= -->
 <div id="modalCrearHecho" class="modal">
     <div class="modal-content">
@@ -513,15 +327,26 @@
                 <input id="etiquetas" type="text" class="input-basic" placeholder="accidente, tránsito">
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Latitud</label>
-                    <input id="latitud" type="number" step="any" class="input-basic" required>
-                </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación (Seleccionar en el mapa)</label>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Longitud</label>
-                    <input id="longitud" type="number" step="any" class="input-basic" required>
+                <div id="mapaCrear" style="height: 250px; width: 100%; border-radius: 0.375rem; border: 1px solid #d1d5db;" class="mb-3"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Latitud</label>
+                        <input id="latitud" type="number" step="any" class="input-basic bg-gray-100" required readonly>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Longitud</label>
+                        <div class="flex gap-2">
+                            <input id="longitud" type="number" step="any" class="input-basic bg-gray-100" required readonly>
+                            <button type="button" id="btnLimpiarUbicacion" class="btn-rojo px-3 rounded-md flex items-center justify-center" title="Limpiar ubicación">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -531,223 +356,203 @@
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <button id="cancelarModalCrear"
-                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
-                    Cancelar
-                </button>
-
-                <button type="submit"
-                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
-                    Guardar
-                </button>
+                <button id="cancelarModalCrear" type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">Cancelar</button>
+                <button type="submit" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Guardar</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- ========================================================= -->
-<!-- MODAL: EDITAR HECHO                                       -->
+<!-- MODAL: EDITAR HECHO (ACTUALIZADO CON MAPA)                -->
 <!-- ========================================================= -->
 <div id="modalEditarHecho" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="cerrarModalEditar">&times;</span>
         <h3 class="text-2xl font-bold mb-2 text-gray-800">Editar Hecho</h3>
-
         <div id="errorEditarHecho" class="text-sm text-red-600 mb-2"></div>
-
         <form id="formEditarHecho" class="space-y-4">
             <input type="hidden" id="idHechoEditar">
+            <div><label class="block text-sm font-medium text-gray-700">Título</label><input id="tituloEditar" type="text" class="input-basic"></div>
+            <div><label class="block text-sm font-medium text-gray-700">Descripción</label><textarea id="descripcionEditar" rows="3" class="input-basic"></textarea></div>
+            <div><label class="block text-sm font-medium text-gray-700">Categoría</label><input id="categoriaEditar" type="text" class="input-basic"></div>
+            <div><label class="block text-sm font-medium text-gray-700">URL multimedia</label><input id="urlMultimediaEditar" type="url" class="input-basic"></div>
+            <div><label class="block text-sm font-medium text-gray-700">Etiquetas</label><input id="etiquetasEditar" type="text" class="input-basic"></div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Título</label>
-                <input id="tituloEditar" type="text" class="input-basic">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea id="descripcionEditar" rows="3" class="input-basic"></textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Categoría</label>
-                <input id="categoriaEditar" type="text" class="input-basic">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">URL multimedia</label>
-                <input id="urlMultimediaEditar" type="url" class="input-basic" placeholder="https://...">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Etiquetas</label>
-                <input id="etiquetasEditar" type="text" class="input-basic">
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Latitud</label>
-                    <input id="latitudEditar" type="number" step="any" class="input-basic">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Longitud</label>
-                    <input id="longitudEditar" type="number" step="any" class="input-basic">
+            <!-- 👇 NUEVO: MAPA PARA EDITAR -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación (Modificar en el mapa)</label>
+                <div id="mapaEditar" style="height: 250px; width: 100%; border-radius: 0.375rem; border: 1px solid #d1d5db;" class="mb-3"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Latitud</label>
+                        <input id="latitudEditar" type="number" step="any" class="input-basic bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Longitud</label>
+                        <input id="longitudEditar" type="number" step="any" class="input-basic bg-gray-100" readonly>
+                    </div>
                 </div>
             </div>
+            <!-- 👆 FIN NUEVO MAPA EDITAR -->
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Fecha del acontecimiento</label>
-                <input id="fechaEditar" type="date" class="input-basic">
-            </div>
-
+            <div><label class="block text-sm font-medium text-gray-700">Fecha</label><input id="fechaEditar" type="date" class="input-basic"></div>
             <div class="flex justify-end gap-3 pt-2">
-                <button id="cancelarModalEditar"
-                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
-                    Cancelar
-                </button>
-
-                <button type="submit"
-                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
-                    Guardar cambios
-                </button>
+                <button id="cancelarModalEditar" type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">Cancelar</button>
+                <button type="submit" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Guardar cambios</button>
             </div>
         </form>
     </div>
 </div>
 
-
+<!-- OTROS MODALES (Detalle, Eliminar, etc.) -->
 <div id="modalDetalleHecho" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="cerrarModalDetalle">&times;</span>
         <h3 class="text-2xl font-bold mb-2 text-gray-800">Detalle del hecho</h3>
-
         <div id="errorDetalleHecho" class="text-sm text-red-600 mb-2"></div>
-
-        <!-- Contenido dinámico cargado por JS -->
-        <div id="detalleHechoBody" class="space-y-2 text-sm text-gray-800">
-            <!-- Se rellena al abrir el modal -->
-        </div>
-
+        <div id="detalleHechoBody" class="space-y-2 text-sm text-gray-800"></div>
         <div class="flex justify-end gap-3 pt-4">
-            <button id="cancelarModalDetalle"
-                    type="button"
-                    class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
-                Cerrar
-            </button>
+            <button id="cancelarModalDetalle" type="button" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Cerrar</button>
         </div>
     </div>
 </div>
-<!-- ========================================================= -->
-<!-- MODAL: SOLICITAR ELIMINACIÓN                              -->
-<!-- ========================================================= -->
+
 <div id="modalSolicitudEliminacion" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="cerrarModalSolicitud">&times;</span>
         <h3 class="text-2xl font-bold mb-2 text-gray-800">Solicitar eliminación</h3>
-
-        <p class="text-sm text-gray-700">
-            Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span>
-        </p>
-
+        <p class="text-sm text-gray-700">Hecho: <span id="tituloHechoSolicitud" class="font-semibold"></span></p>
         <div id="errorSolicitudEliminacion" class="text-sm text-red-600 mb-2"></div>
-
         <form id="formSolicitudEliminacion" class="space-y-4">
             <input type="hidden" id="idHechoSolicitud">
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Justificación</label>
-                <textarea id="justificacionSolicitud" rows="4"
-                          class="input-basic" required
-                          placeholder="Explicá por qué debería eliminarse este hecho"></textarea>
-            </div>
-
+            <div><label class="block text-sm font-medium text-gray-700">Justificación</label><textarea id="justificacionSolicitud" rows="4" class="input-basic" required></textarea></div>
             <div class="flex justify-end gap-3 pt-2">
-                <button id="cancelarModalSolicitud"
-                        type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">
-                    Cancelar
-                </button>
-
-                <button type="submit"
-                        class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
-                    Enviar solicitud
-                </button>
+                <button id="cancelarModalSolicitud" type="button" class="btn-rojo px-4 py-2 rounded-md text-sm">Cancelar</button>
+                <button type="submit" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Enviar solicitud</button>
             </div>
         </form>
     </div>
 </div>
-<div class="modal fade" id="modalExitoSolicitud" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+
+<div id="modalConfirmarEliminar" class="modal">
+    <div class="modal-content max-w-md mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white">
+        <div class="text-center mb-4"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-xl"></i></div><h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">¿Eliminar este hecho?</h3></div>
+        <div class="text-center text-sm text-gray-500 mb-6"><p>Esta acción es irreversible.</p></div>
+        <div class="flex justify-center gap-3">
+            <button id="btnCancelarEliminacion" type="button" class="btn-gris px-4 py-2 rounded-md text-sm font-medium border hover:bg-gray-100">Cancelar</button>
+            <button id="btnConfirmarEliminacion" type="button" class="btn-rojo px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalExitoSolicitud" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-5 text-center">
-                <div class="mb-4">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                </div>
-
+                <div class="mb-4"><i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i></div>
                 <h3 class="mb-3 fw-bold text-secondary">¡Solicitud Enviada!</h3>
-
-                <p class="text-muted mb-4 fs-5">
-                    Tu solicitud ha sido registrada correctamente. Un administrador la revisará a la brevedad.
-                </p>
-
-                <button type="button" class="btn btn-success btn-lg px-5 rounded-pill fw-bold shadow-sm" onclick="window.location.reload()">
-                    Entendido
-                </button>
+                <button type="button" class="btn btn-success btn-lg px-5 rounded-pill fw-bold shadow-sm" onclick="window.location.reload()">Entendido</button>
             </div>
         </div>
     </div>
 </div>
-<div id="modalConfirmarEliminar" class="modal">
-    <div class="modal-content max-w-md mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white">
 
-        <div class="text-center mb-4">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">¿Eliminar este hecho?</h3>
-        </div>
-
-        <div class="text-center text-sm text-gray-500 mb-6">
-            <p>Esta acción es irreversible. El hecho dejará de ser visible en el mapa y listados.</p>
-        </div>
-
-        <div class="flex justify-center gap-3">
-            <button id="btnCancelarEliminacion"
-                    type="button"
-                    class="btn-gris px-4 py-2 rounded-md text-sm font-medium border hover:bg-gray-100">
-                Cancelar
-            </button>
-
-            <button id="btnConfirmarEliminacion"
-                    type="button"
-                    class="btn-rojo px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700">
-                Sí, eliminar
-            </button>
-        </div>
-    </div>
-</div>
-
-<div id="modalExitoSimple" class="modal">
-    <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px;">
-
-        <div style="margin-bottom: 20px;">
-            <i class="fas fa-check-circle" style="font-size: 4rem; color: #198754;"></i>
-        </div>
-
-        <h3 style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px;">¡Solicitud Enviada!</h3>
-        <p style="color: #666; margin-bottom: 20px;">
-            Tu solicitud ha sido registrada correctamente.
-        </p>
-
-        <button type="button"
-                class="btn-verde-oscuro px-4 py-2 rounded-md text-sm"
-                onclick="window.location.reload()">
-            Aceptar
-        </button>
-    </div>
-</div>
-
-<!-- JS para esta página -->
+<!-- JS Principal -->
 <script th:src="@{/js/hechos.js}"></script>
+
+<!-- SCRIPT ESPECÍFICO PARA MAPAS DE CREACIÓN Y EDICIÓN -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // --- MAPA CREAR ---
+        let mapCrear = null;
+        let markerCrear = null;
+        const inputLatCrear = document.getElementById("latitud");
+        const inputLngCrear = document.getElementById("longitud");
+        const btnLimpiarCrear = document.getElementById("btnLimpiarUbicacion");
+
+        const btnAbrirCrear = document.getElementById("abrirModalCrear");
+        if (btnAbrirCrear) {
+            btnAbrirCrear.addEventListener("click", () => {
+                setTimeout(() => {
+                    if (!mapCrear) {
+                        const defaultCoords = [-34.6037, -58.3816];
+                        mapCrear = L.map('mapaCrear').setView(defaultCoords, 12);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapCrear);
+                        mapCrear.on('click', (e) => {
+                            const { lat, lng } = e.latlng;
+                            inputLatCrear.value = lat.toFixed(6);
+                            inputLngCrear.value = lng.toFixed(6);
+                            if (markerCrear) markerCrear.setLatLng([lat, lng]);
+                            else markerCrear = L.marker([lat, lng]).addTo(mapCrear);
+                        });
+                    }
+                    mapCrear.invalidateSize();
+                }, 100);
+            });
+        }
+
+        if (btnLimpiarCrear) {
+            btnLimpiarCrear.addEventListener("click", () => {
+                inputLatCrear.value = "";
+                inputLngCrear.value = "";
+                if (markerCrear) { mapCrear.removeLayer(markerCrear); markerCrear = null; }
+            });
+        }
+
+        const btnCerrarCrear = document.getElementById("cerrarModalCrear");
+        const btnCancelarCrear = document.getElementById("cancelarModalCrear");
+        const resetMapaCrear = () => { if(markerCrear) { mapCrear.removeLayer(markerCrear); markerCrear = null; } };
+        if(btnCerrarCrear) btnCerrarCrear.addEventListener("click", resetMapaCrear);
+        if(btnCancelarCrear) btnCancelarCrear.addEventListener("click", resetMapaCrear);
+
+
+        // --- MAPA EDITAR ---
+        let mapEditar = null;
+        let markerEditar = null;
+        const inputLatEdit = document.getElementById("latitudEditar");
+        const inputLngEdit = document.getElementById("longitudEditar");
+
+        // Delegación de eventos para botones editar (ya que pueden ser muchos)
+        const btnsEditar = document.querySelectorAll(".btn-editar-hecho");
+        btnsEditar.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const row = btn.closest("tr");
+                const lat = parseFloat(row.dataset.hechoLatitud);
+                const lng = parseFloat(row.dataset.hechoLongitud);
+
+                setTimeout(() => {
+                    if (!mapEditar) {
+                        mapEditar = L.map('mapaEditar');
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapEditar);
+
+                        // Click en mapa actualiza inputs y marcador
+                        mapEditar.on('click', (e) => {
+                            const { lat, lng } = e.latlng;
+                            inputLatEdit.value = lat.toFixed(6);
+                            inputLngEdit.value = lng.toFixed(6);
+                            if (markerEditar) markerEditar.setLatLng([lat, lng]);
+                            else markerEditar = L.marker([lat, lng]).addTo(mapEditar);
+                        });
+                    }
+                    mapEditar.invalidateSize();
+
+                    // Posicionar mapa y marcador según datos existentes
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        const loc = [lat, lng];
+                        mapEditar.setView(loc, 15);
+                        if (markerEditar) markerEditar.setLatLng(loc);
+                        else markerEditar = L.marker(loc).addTo(mapEditar);
+                    } else {
+                        // Default si no tiene ubicación
+                        mapEditar.setView([-34.6037, -58.3816], 12);
+                        if(markerEditar) { mapEditar.removeLayer(markerEditar); markerEditar = null; }
+                    }
+                }, 100);
+            });
+        });
+    });
+</script>
 
 </body>
 </html>
