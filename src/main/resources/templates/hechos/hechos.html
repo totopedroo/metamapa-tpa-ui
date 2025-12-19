@@ -149,8 +149,8 @@
 
                     <th class="p-3 text-center rounded-r-md"
                         th:if="${param.pick == null and session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
-                    <th class="p-3 text-center"
-                        th:if="${param.pick == null}">Ver detalle</th>
+
+                    <th class="p-3 text-center">Ver detalle</th>
                 </tr>
                 </thead>
 
@@ -249,13 +249,10 @@
                         </span>
                     </td>
 
-                    <!-- NUEVO: Ver detalle (si no es pick) -->
-                    <td class="p-3 text-center" th:if="${param.pick == null}">
+                    <td class="p-3 text-center">
                         <button class="btn-icono btn-ver-detalle">
                             <i class="fas fa-eye"></i>
                         </button>
-                    </td>
-
                     </td>
                 </tr>
 
@@ -293,6 +290,8 @@
 
             </select>
 
+
+
             <!-- Mantener filtros -->
             <input type="hidden" name="categoria" th:value="${param.categoria}">
             <input type="hidden" name="fechaReporteDesde" th:value="${param.fechaReporteDesde}">
@@ -301,6 +300,13 @@
             <input type="hidden" name="fechaAcontecimientoHasta" th:value="${param.fechaAcontecimientoHasta}">
             <input type="hidden" name="latitud" th:value="${param.latitud}">
             <input type="hidden" name="longitud" th:value="${param.longitud}">
+
+            <!-- Mantener pick mode -->
+            <input type="hidden" name="pick" th:if="${param.pick}" th:value="${param.pick}">
+
+            <input type="hidden" name="hechos" th:if="${param.hechos}" th:value="${param.hechos}">
+
+            <input type="hidden" name="returnTo" th:if="${param.returnTo}" th:value="${param.returnTo}">
         </form>
 
         <!-- Botones de paginación -->
@@ -417,12 +423,22 @@
         </ul>
     </div>
 
-    <div th:if="${param.pick}" class="mt-6 flex justify-end">
+    <div th:if="${param.pick}" class="mt-6 flex justify-end gap-3">
+
+        <button id="btnCancelarPick"
+                type="button"
+                class="btn-rojo px-4 py-2 rounded-md text-sm">
+            Cancelar
+        </button>
+
         <button id="btnConfirmarPick"
+                type="button"
                 class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">
             Confirmar selección
         </button>
+
     </div>
+
 </main>
 
 <!-- FOOTER -->

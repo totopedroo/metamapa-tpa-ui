@@ -178,7 +178,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (hechosParam) {
 
-                const hechos = hechosParam.split(",").map(Number);
+                const hechos = [...new Set(
+                    hechosParam.split(",").map(Number)
+                )];
                 const modal = new bootstrap.Modal(modalNueva);
 
                 // TRAER TÍTULOS SOLO DE ESTOS hechos
@@ -230,7 +232,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (hechosParam) {
 
-            const nuevos = hechosParam.split(",").map(Number);
+            const nuevos = [...new Set(
+                hechosParam.split(",").map(Number)
+            )];
             const originales = JSON.parse(
                 document.getElementById("hechosOriginalesJson").value || "[]"
             );

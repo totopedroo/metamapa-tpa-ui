@@ -151,15 +151,23 @@
 
         <h4>Criterios</h4>
 
-        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalCriterios">
+        <button type="button" class="btn btn-secondary mb-2" data-bs-toggle="modal" data-bs-target="#modalCriterios">
             Agregar criterio
         </button>
 
         <ul id="criteriosSeleccionados" class="list-group mt-3"></ul>
         <div id="criteriosIdsContainer"></div>
 
-        <div class="text-end mt-4">
-            <button class="btn btn-primary">Guardar cambios</button>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="/colecciones"
+               class="btn btn-secondary">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Guardar cambios
+            </button>
         </div>
 
     </form>
@@ -210,7 +218,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="btnGuardarCriterio">Guardar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarCriterio">Guardar</button>
             </div>
         </div>
     </div>
