@@ -94,9 +94,7 @@ function getCsrf() {
 
         // ✅ tu HTML usa ESTE id (no "fecha")
         const fechaAcontecimientoEl = document.getElementById("fechaAcontecimiento");
-
         const etiquetasStr = parseEtiquetas(etiquetasEl.value);
-        const etiquetasObj = etiquetasStr.map(nombre => ({ nombre }));
 
         const payload = {
             titulo: tituloEl.value.trim(),
@@ -118,7 +116,7 @@ function getCsrf() {
             contenidoMultimedia: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : null,
 
             // ✅ como te lo pide el backend:
-            etiquetas: etiquetasObj
+            etiquetas: etiquetasStr
 
             // backend dice que puede ser null
         };
