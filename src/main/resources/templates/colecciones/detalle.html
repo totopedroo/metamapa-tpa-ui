@@ -82,26 +82,45 @@
     <ul class="list-group mt-3" id="listaHechos">
         <li class="list-group-item hecho-item"
             th:each="h : ${coleccion.hechos}"
-            th:data-es-curado="${h.consensuado}">
+            th:data-es-curado="${h.consensuado}"
+            th:data-titulo="${#strings.toLowerCase(h.titulo)}"
+            th:data-categoria="${#strings.toLowerCase(h.categoria)}"
+            th:data-provincia="${h.lugar}"
+            th:data-fecha="${h.fecha != null ? #temporals.format(h.fecha, 'yyyy-MM-dd') : ''}">
 
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong th:text="${h.titulo}"></strong>
-                    <br>
-                    <small class="text-muted">ID: <span th:text="${h.id}"></span></small>
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center">
+                        <strong class="h5 mb-1 me-2" th:text="${h.titulo}"></strong>
+                        <span th:if="${h.consensuado}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2" style="font-size: 0.7rem;">
+                        <i class="bi bi-check-circle-fill"></i> CURADO
+                    </span>
+                        <span th:unless="${h.consensuado}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2" style="font-size: 0.7rem;">
+                        <i class="bi bi-exclamation-circle-fill"></i> IRRESTRICTO
+                    </span>
+                    </div>
+
+                    <div class="text-muted small">
+                        <span class="me-3"><strong>ID:</strong> [[${h.id}]]</span>
+                        <span class="me-3"><strong>Categoría:</strong> [[${h.categoria}]]</span>
+                        <span class="me-3"><strong>Provincia:</strong> [[${h.lugar}]]</span>
+                        <span><strong>Fecha:</strong> [[${h.fecha}]]</span>
+                    </div>
                 </div>
-
-                <span th:if="${h.consensuado}" class="badge-custom badge-curado">
-                    <i class="bi bi-check-circle-fill me-1"></i> Curado
-                </span>
-
-                <span th:unless="${h.consensuado}" class="badge-custom badge-irrestricto">
-                    <i class="bi bi-exclamation-circle-fill me-1"></i> Irrestricto
-                </span>
-
             </div>
         </li>
     </ul>
+
+    <div id="contenedorCriterios" class="d-none">
+        <div class="criterio-dato"
+             th:each="c : ${coleccion.criterios}"
+             th:data-tipo="${c.tipo}"
+             th:data-columna="${c.columna}"
+             th:data-valor="${#strings.toLowerCase(c.valor)}"
+             th:data-desde="${c.desde}"
+             th:data-hasta="${c.hasta}">
+        </div>
+    </div>
 
     <p th:if="${#lists.isEmpty(coleccion.hechos)}" class="text-muted mt-3">
         No hay hechos en esta colección.
@@ -129,6 +148,79 @@
                             item.style.display = !esCurado ? '' : 'none';
                         }
                     });
+                });
+            });
+        });
+
+        const hechos = document.querySelectorAll('#listaHechos .hecho-item');
+        const criteriosData = document.querySelectorAll('.criterio-dato');
+
+        // Función principal de filtrado
+        function aplicarFiltrosCriterios() {
+            // 1. Parsear los criterios a un array de objetos
+            const filtros = Array.from(criteriosData).map(c => ({
+                tipo: c.dataset.tipo,      // 'texto' o 'fecha'
+                columna: c.dataset.columna, // 'titulo', 'categoria', 'provincia', 'fecha'
+                valor: c.dataset.valor,    // para texto
+                desde: c.dataset.desde,    // para fecha
+                hasta: c.dataset.hasta     // para fecha
+            }));
+
+            hechos.forEach(hecho => {
+                let cumpleTodos = true;
+
+                filtros.forEach(f => {
+                    if (f.tipo === 'texto') {
+                        // Obtener el valor del hecho según la columna del criterio
+                        const valorHecho = hecho.getAttribute(`data-${f.columna}`) || "";
+                        if (!valorHecho.includes(f.valor)) {
+                            cumpleTodos = false;
+                        }
+                    }
+                    else if (f.tipo === 'fecha') {
+                        const fechaHecho = hecho.getAttribute('data-fecha');
+                        // Si no hay fecha en el hecho, decidís si mostrarlo u ocultarlo.
+                        // Aquí, si no hay fecha, no cumple el rango:
+                        if (!fechaHecho) {
+                            cumpleTodos = false;
+                        } else {
+                            if (fechaHecho < f.desde || fechaHecho > f.hasta) {
+                                cumpleTodos = false;
+                            }
+                        }
+                    }
+                });
+
+                // Si no cumple algún criterio, lo ocultamos con una clase o style
+                if (!cumpleTodos) {
+                    hecho.style.setProperty('display', 'none', 'important');
+                    hecho.classList.add('falla-criterio'); // Marca interna
+                }
+            });
+        }
+
+        // Ejecutar el filtrado inicial
+        aplicarFiltrosCriterios();
+
+        // Re-vincular con tus botones de "Todos / Curados / Irrestrictos"
+        const radios = document.querySelectorAll('input[name="filtroTipo"]');
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const filtroTipo = e.target.value;
+
+                hechos.forEach(item => {
+                    // Si ya falló los criterios globales, no lo mostramos nunca
+                    if (item.classList.contains('falla-criterio')) return;
+
+                    const esCurado = item.getAttribute('data-es-curado') === 'true';
+
+                    if (filtroTipo === 'todos') {
+                        item.style.display = '';
+                    } else if (filtroTipo === 'curado') {
+                        item.style.display = esCurado ? '' : 'none';
+                    } else if (filtroTipo === 'irrestricto') {
+                        item.style.display = !esCurado ? '' : 'none';
+                    }
                 });
             });
         });
