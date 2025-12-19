@@ -651,28 +651,44 @@ function getCsrf() {
 
         document.querySelectorAll("form select[name='size']").forEach(sel => {
             sel.addEventListener("change", function () {
-                const form = this.closest("form");
                 const seleccionados = obtenerSeleccionados();
+                const hidden = document.getElementById("hechosHidden");
 
-                const hiddenInput = document.createElement("input");
-                hiddenInput.type = "hidden";
-                hiddenInput.name = "hechos";
-                hiddenInput.value = seleccionados.join(",");
+                if (hidden) {
+                    hidden.value = seleccionados.join(",");
+                }
 
-                form.appendChild(hiddenInput);
-                form.submit();
+                this.closest("form").submit();
             });
         });
 
-        const btn = document.getElementById("btnConfirmarPick");
-        if (btn) {
-            btn.addEventListener("click", () => {
+        const btnConfirmar = document.getElementById("btnConfirmarPick");
+        const btnCancelar = document.getElementById("btnCancelarPick");
+
+        if (btnConfirmar) {
+            btnConfirmar.addEventListener("click", () => {
                 const ids = obtenerSeleccionados();
+
                 if (!RETURN_TO) {
                     alert("Error: returnTo no definido");
                     return;
                 }
-                window.location.href = RETURN_TO + "?hechos=" + ids.join(",");
+
+                const url = new URL(RETURN_TO, window.location.origin);
+                url.searchParams.set("hechos", ids.join(","));
+                window.location.href = url.toString();
+            });
+        }
+
+        if (btnCancelar) {
+            btnCancelar.addEventListener("click", () => {
+                if (!RETURN_TO) {
+                    alert("Error: returnTo no definido");
+                    return;
+                }
+
+                // volver sin modificar selección
+                window.location.href = RETURN_TO;
             });
         }
     }
