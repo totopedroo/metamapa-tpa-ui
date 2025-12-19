@@ -44,11 +44,10 @@
             // RENDER INICIAL DE CRITERIOS (BLINDADO)
             // ===============================
             const ul = document.getElementById("criteriosSeleccionados");
-            const cont = document.getElementById("criteriosIdsContainer");
+            //const cont = document.getElementById("criteriosIdsContainer");
 
             if (col.criterios && Array.isArray(col.criterios)) {
                 col.criterios.forEach(c => {
-                    // Buscamos el ID (fix para error 400)
                     const cId = c.id || c.id_criterio || c.idCriterio;
                     if (!cId) return;
 
@@ -56,18 +55,18 @@
                         ? `Texto contiene: "${c.valor}"`
                         : `Rango: ${c.desde} → ${c.hasta}`;
 
+                    // Metemos el input ocultO DENTRO del li
                     ul.insertAdjacentHTML("beforeend", `
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            data-id="${cId}"
-                            data-json='${JSON.stringify(c)}'>
-                            ${texto}
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                        data-id="${cId}"
+                        data-json='${JSON.stringify(c)}'>
+                        <span>${texto}</span>
+                        <div>
+                            <input type="hidden" name="criteriosIds" value="${cId}">
                             <button type="button" class="btn btn-sm btn-danger quitar-criterio">✕</button>
-                        </li>
-                    `);
-
-                    cont.insertAdjacentHTML("beforeend",
-                        `<input type="hidden" name="criteriosIds" value="${cId}">`
-                    );
+                        </div>
+                    </li>
+                `);
                 });
             }
 

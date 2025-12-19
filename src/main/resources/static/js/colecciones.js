@@ -70,12 +70,15 @@ function renderTextoCriterio(c) {
 }
 
 function activarBotonesQuitarCriterio() {
-        document.querySelectorAll(".quitar-criterio").forEach(btn => {
-            btn.onclick = () => {
-                btn.parentElement.remove();
-                guardarEstado();
-            };
-        });
+    document.querySelectorAll(".quitar-criterio").forEach(btn => {
+        btn.onclick = () => {
+            const fila = btn.closest('.list-group-item');
+            if (fila) {
+                fila.remove();
+            }
+            guardarEstado();
+        };
+    });
 }
 
 async function cargarCriteriosExistentes() {

@@ -29,6 +29,7 @@ public class HechoDTO {
     private Double latitud;
     private Double longitud;
     private LocalDate fechaCarga;
+    @JsonAlias({"fechaAcontecimiento", "fecha_acontecimiento"})
     private LocalDate fecha; // fechaAcontecimiento
     private List<String> etiquetas;
     private Long idContribuyente;
