@@ -68,8 +68,8 @@ public class HechosUiController {
     ) {
 
         System.out.println(">>> [FRONT] Buscando Hechos | Filtros recibidos:");
-        System.out.println("    Modo (Tipo): " + modo);
-        System.out.println("    Categoría: " + categoria);
+        System.out.println("    latitud : " + latitud);
+        System.out.println("    longitud: " + longitud);
         System.out.println("    Página: " + page + " | Tamaño: " + size);
 
 
