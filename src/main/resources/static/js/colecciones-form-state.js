@@ -88,13 +88,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (est.descripcion) document.querySelector("[name='descripcion']").value = est.descripcion;
 
         if (est.algoritmoId) {
-            document.getElementById("algoritmoSelect").value = est.algoritmoId;
-            document.getElementById("algoritmoIdHidden").value = est.algoritmoId;
+            const sel = document.getElementById("algoritmoSelect");
+            const hid = document.getElementById("algoritmoIdHidden");
+
+            if (sel) sel.value = est.algoritmoId;
+            if (hid) hid.value = est.algoritmoId;
         }
 
         if (est.fuenteId) {
-            document.getElementById("fuenteSelect").value = est.fuenteId;
-            document.getElementById("fuenteIdHidden").value = est.fuenteId;
+            const sel = document.getElementById("fuenteSelect");
+            const hid = document.getElementById("fuenteIdHidden");
+
+            if (sel) sel.value = est.fuenteId;
+            if (hid) hid.value = est.fuenteId;
         }
 
         // ===============================
@@ -200,13 +206,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Sincronizar hidden inputs después de restaurar ---
-    const algSel = document.getElementById("algoritmoSelect");
-    const algHidden = document.getElementById("algoritmoIdHidden");
-    if (algSel && algHidden) algHidden.value = algSel.value;
+    const syncHidden = (selectId, hiddenId) => {
+        const sel = document.getElementById(selectId);
+        const hid = document.getElementById(hiddenId);
+        if (sel && hid) hid.value = sel.value;
+    };
 
-    const fuenteSel = document.getElementById("fuenteSelect");
-    const fuenteHidden = document.getElementById("fuenteIdHidden");
-    if (fuenteSel && fuenteHidden) fuenteHidden.value = fuenteSel.value;
+    syncHidden("algoritmoSelect", "algoritmoIdHidden");
+    syncHidden("fuenteSelect", "fuenteIdHidden");
 
     // ============================================================
     //   GUARDAR ANTES DE IR A /hechos (pick mode)

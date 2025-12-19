@@ -190,6 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     }
+
     // =======================================================
     // 2) EDITAR COLECCIÓN
     // =======================================================
@@ -200,82 +201,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const params = new URLSearchParams(window.location.search);
         const hechosParam = params.get("hechos");
-        if (!hechosParam) return;
 
-        const nuevos = hechosParam.split(",").map(Number);
-        const originales = JSON.parse(document.getElementById("hechosOriginalesJson").value);
+        if (hechosParam) {
 
-        const agregados = nuevos.filter(x => !originales.includes(x));
-        const quitados = originales.filter(x => !nuevos.includes(x));
+            const nuevos = hechosParam.split(",").map(Number);
+            const originales = JSON.parse(
+                document.getElementById("hechosOriginalesJson").value || "[]"
+            );
 
-        if (agregados.length === 0 && quitados.length === 0) return;
+            const agregados = nuevos.filter(x => !originales.includes(x));
+            const quitados = originales.filter(x => !nuevos.includes(x));
 
-        const modal = new bootstrap.Modal(modalEditar);
+            if (agregados.length > 0 || quitados.length > 0) {
 
-        // Cargar títulos SOLO de los hechos involucrados
-        const idsAConsultar = [...new Set([...nuevos, ...originales])];
+                const modal = new bootstrap.Modal(modalEditar);
 
-        cargarTitulos(idsAConsultar).then(titulos => {
+                // Cargar títulos SOLO de los hechos involucrados
+                const idsAConsultar = [...new Set([...nuevos, ...originales])];
 
-            modal.show();
+                cargarTitulos(idsAConsultar).then(titulos => {
 
-            // ------- TITULO DINÁMICO -------
-            const tituloModal = modalEditar.querySelector(".modal-title");
+                    modal.show();
 
-            if (agregados.length > 0 && quitados.length === 0) {
-                tituloModal.textContent = "Está por agregar los siguientes hechos:";
+                    // ------- TITULO DINÁMICO -------
+                    const tituloModal = modalEditar.querySelector(".modal-title");
+
+                    if (agregados.length > 0 && quitados.length === 0) {
+                        tituloModal.textContent = "Está por agregar los siguientes hechos:";
+                    }
+                    else if (quitados.length > 0 && agregados.length === 0) {
+                        tituloModal.textContent = "Está por quitar los siguientes hechos:";
+                    }
+                    else {
+                        tituloModal.textContent = "Confirmar cambios";
+                    }
+
+                    // ------- LISTA DE AGREGADOS -------
+                    document.getElementById("listaAgregadosEditar").innerHTML =
+                        agregados.length
+                            ? agregados.map(id =>
+                                `<li class="list-group-item">
+                                Hecho #${id} — <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
+                            </li>`
+                            ).join("")
+                            : `<li class="list-group-item">Ninguno</li>`;
+
+                    // ------- LISTA DE QUITADOS -------
+                    document.getElementById("listaQuitadosEditar").innerHTML =
+                        quitados.length
+                            ? quitados.map(id =>
+                                `<li class="list-group-item">
+                                Hecho #${id} — <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
+                            </li>`
+                            ).join("")
+                            : `<li class="list-group-item">Ninguno</li>`;
+
+                    // ------- RECONSTRUIR INPUTS -------
+                    renderHechosSeleccionados(nuevos, titulos);
+
+                    // ------- EDITAR SELECCIÓN -------
+                    const idColeccion = document.querySelector("[name='id']").value;
+
+                    document.getElementById("btnEditarSeleccionEditar").onclick = () => {
+                        window.location.href =
+                            `/hechos?pick=true&hechos=${nuevos.join(",")}&returnTo=/colecciones/editar/${idColeccion}`;
+                    };
+
+                    // ------- CONFIRMAR -------
+                    document.getElementById("btnConfirmarEditar").onclick = () => {
+
+                        const modalInst = bootstrap.Modal.getInstance(modalEditar);
+                        modalInst.hide();
+
+                        renderHechosSeleccionados(nuevos, titulos);
+                    };
+                });
             }
-            else if (quitados.length > 0 && agregados.length === 0) {
-                tituloModal.textContent = "Está por quitar los siguientes hechos:";
-            }
-            else {
-                tituloModal.textContent = "Confirmar cambios";
-            }
-
-            // ------- LISTA DE AGREGADOS -------
-            document.getElementById("listaAgregadosEditar").innerHTML =
-                agregados.length
-                    ? agregados.map(id =>
-                        `<li class="list-group-item">
-                            Hecho #${id} — <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
-                        </li>`
-                    ).join("")
-                    : `<li class="list-group-item">Ninguno</li>`;
-
-            // ------- LISTA DE QUITADOS -------
-            document.getElementById("listaQuitadosEditar").innerHTML =
-                quitados.length
-                    ? quitados.map(id =>
-                        `<li class="list-group-item">
-                            Hecho #${id} — <strong>${titulos[id] ?? ""}</strong>
-                        </li>`
-                    ).join("")
-                    : `<li class="list-group-item">Ninguno</li>`;
-
-            // ------- RECONSTRUIR INPUTS -------
-            renderHechosSeleccionados(nuevos, titulos);
-
-            // ------- EDITAR SELECCIÓN -------
-            const idColeccion = document.querySelector("[name='id']").value;
-
-            document.getElementById("btnEditarSeleccionEditar").onclick = () => {
-                window.location.href =
-                    `/hechos?pick=true&hechos=${nuevos.join(",")}&returnTo=/colecciones/editar/${idColeccion}`;
-            };
-
-            // ------- CONFIRMAR -------
-            document.getElementById("btnConfirmarEditar").onclick = () => {
-
-                const modal = bootstrap.Modal.getInstance(document.getElementById("modalConfirmarEditar"));
-                modal.hide();
-
-                // reconstruir lista visible
-                const ul = document.getElementById("hechosSeleccionados");
-
-                // dejar los nuevos en inputs hidden
-                renderHechosSeleccionados(nuevos, titulos);
-            };
-        });
+        }
     }
 
     // Botón "Seleccionar hechos"
@@ -288,20 +290,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.querySelectorAll("input[name='hechosIds']")
             ).map(i => i.value).join(",");
 
-            if (typeof guardarEstado === "function") guardarEstado();
-
-            let returnTo;
-
-            if (window.FORM_MODE === "nueva") {
-                returnTo = "/colecciones/nueva";
+            if (typeof guardarEstado === "function") {
+                guardarEstado();
             }
 
-            if (window.FORM_MODE === "editar") {
-                returnTo = `/colecciones/editar/${window.FORM_STATE_KEY}`;
+            if (!window.RETURN_TO) {
+                alert("Error: RETURN_TO no definido");
+                return;
             }
 
             window.location.href =
-                `/hechos?pick=true&hechos=${ids}&returnTo=${encodeURIComponent(returnTo)}`;
+                `/hechos?pick=true&hechos=${ids}&returnTo=${encodeURIComponent(window.RETURN_TO)}`;
         };
     }
 

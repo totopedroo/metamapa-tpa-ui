@@ -223,19 +223,13 @@ public class ColeccionesUiController {
                          RedirectAttributes redirect,
                          HttpSession session) {
 
-        System.out.println(">>> ENTRO POST EDITAR");
-
         validarAdmin(session);
 
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
 
-        if (form.getAlgoritmoId() != null) {
-            coleccionService.asociarAlgoritmo(id, form.getAlgoritmoId());
-        }
+        coleccionService.asociarAlgoritmo(id, form.getAlgoritmoId());
 
-        if (form.getFuenteId() != null) {
-            coleccionService.asociarFuente(id, form.getFuenteId());
-        }
+        coleccionService.asociarFuente(id, form.getFuenteId());
 
         coleccionService.editarColeccion(id, form);
 
@@ -348,6 +342,9 @@ public class ColeccionesUiController {
                     entity,
                     String.class
             );
+
+            System.out.println(">>> RESP BACKEND STATUS = " + resp.getStatusCode());
+            System.out.println(">>> RESP BACKEND BODY = " + resp.getBody());
 
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
 

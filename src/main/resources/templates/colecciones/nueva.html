@@ -172,7 +172,7 @@
 </div>
 
 <!-- ================================================= -->
-<!-- MODAL CONFIRMAR NUEVA -->
+<!-- MODAL CONFIRMAR HECHOS -->
 <!-- ================================================= -->
 <div class="modal fade" id="modalConfirmarNueva" tabindex="-1">
     <div class="modal-dialog">
@@ -205,8 +205,10 @@
 <script th:src="@{/js/colecciones.js}"></script>
 
 <script th:inline="javascript">
-    window.FORM_STATE_KEY = /*[[${form.id}]]*/ 'nueva';
+    window.RETURN_TO = "/colecciones/nueva";
+    window.FORM_STATE_KEY = "nueva";
 </script>
+
 <script th:src="@{/js/colecciones-form-state.js}"></script>
 
 <th:block th:replace="fragments/footer :: footer"></th:block>
