@@ -172,10 +172,41 @@ function getCsrf() {
     /* ===========================================================
        MODAL SOLICITAR ELIMINACIÓN
        =========================================================== */
-
+// Referencias globales (como las tenías)
     const modalSol = modal("modalSolicitudEliminacion");
     const formSol = document.getElementById("formSolicitudEliminacion");
 
+// 1. ABRIR SOLICITUD
+    function abrirSolicitud(id, titulo) {
+        // Aca usamos tu variable para mostrar el modal
+        modalSol.style.display = "block";
+
+        document.getElementById("idHechoSolicitud").value = id;
+        document.getElementById("tituloHechoSolicitud").textContent = titulo;
+
+        // --- LIMPIEZA DE VALIDACIONES PREVIAS ---
+        const inputJustif = document.getElementById("justificacionSolicitud");
+        const errorDiv = document.getElementById("errorSolicitudEliminacion");
+
+        // Sacamos el rojo y limpiamos texto si quedó sucio
+        if (inputJustif) {
+            inputJustif.classList.remove("border-0");
+            inputJustif.classList.remove("is-invalid");
+            inputJustif.value = "";
+        }
+        if (errorDiv) errorDiv.textContent = "";
+    }
+
+// 2. CERRAR SOLICITUD
+    function cerrarSolicitud() {
+        // Aca usamos tu variable para ocultar el modal
+        modalSol.style.display = "none";
+
+        formSol?.reset();
+        document.getElementById("errorSolicitudEliminacion").textContent = "";
+    }
+
+// Event Listeners de Botones
     document.querySelectorAll(".btn-solicitar-eliminacion").forEach(btn => {
         btn.addEventListener("click", () => {
             const fila = btn.closest("tr");
@@ -185,36 +216,44 @@ function getCsrf() {
         });
     });
 
-    function abrirSolicitud(id, titulo) {
-        modalSol.style.display = "block";
-        document.getElementById("idHechoSolicitud").value = id;
-        document.getElementById("tituloHechoSolicitud").textContent = titulo;
-    }
-
     document.getElementById("cerrarModalSolicitud")?.addEventListener("click", cerrarSolicitud);
     document.getElementById("cancelarModalSolicitud")?.addEventListener("click", cerrarSolicitud);
 
-    function cerrarSolicitud() {
-        modalSol.style.display = "none";
-        formSol?.reset();
-        document.getElementById("errorSolicitudEliminacion").textContent = "";
-    }
-
+// 3. SUBMIT DEL FORMULARIO
     formSol?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // 1. Preparamos los datos como FORMULARIO (No JSON)
-        // Esto es vital para que tu controller Java entienda el objeto 'NuevaSolicitudForm'
+        // Referencias
+        const inputJustif = document.getElementById("justificacionSolicitud");
+        const errorDiv = document.getElementById("errorSolicitudEliminacion");
+        const texto = inputJustif.value.trim();
+
+        // --- VALIDACIÓN: Mínimo 500 caracteres ---
+        if (texto.length < 500) {
+            // Sacamos border-0 para que se vea el borde
+            inputJustif.classList.remove("border-0");
+            // Agregamos clase de error (rojo)
+            inputJustif.classList.add("is-invalid");
+
+            // Mensaje de error
+            errorDiv.textContent = `La justificación es muy corta (${texto.length} caracteres). Debe tener al menos 500.`;
+            return; // <--- FRENAMOS EL ENVÍO
+        }
+
+        // Si pasa, limpiamos estilos
+        inputJustif.classList.add("border-0");
+        inputJustif.classList.remove("is-invalid");
+        errorDiv.textContent = "";
+
+        // Preparamos datos
         const params = new URLSearchParams();
         params.append('idHecho', document.getElementById("idHechoSolicitud").value);
-        params.append('justificacion', document.getElementById("justificacionSolicitud").value.trim());
-        params.append('tipo', 'ELIMINACION'); // <--- IMPORTANTE: El Java usa esto en el IF
+        params.append('justificacion', texto);
+        params.append('tipo', 'ELIMINACION');
 
         try {
             const csrf = getCsrf();
-            const headers = {
-                "Content-Type": "application/x-www-form-urlencoded"
-            };
+            const headers = { "Content-Type": "application/x-www-form-urlencoded" };
             if (csrf) headers[csrf.header] = csrf.token;
 
             const resp = await fetch("/contribuyente/nueva-solicitud", {
@@ -223,17 +262,15 @@ function getCsrf() {
                 body: params
             });
 
-            if (!resp.ok) {
-                throw new Error("Error al procesar la solicitud en el servidor.");
-            }
+            if (!resp.ok) throw new Error("Error al procesar la solicitud.");
 
-            // 1. Cerramos el modal rojo
+            // Éxito: Cerramos el rojo (usando modalSol implícitamente)
             cerrarSolicitud();
 
-            // 2. Abrimos el modal verde (MANUALMENTE)
+            // Abrimos el verde (Manual)
             const modalExito = document.getElementById('modalExitoSimple');
             if (modalExito) {
-                modalExito.style.display = "block"; // <--- ESTO ES LO QUE ARREGLA TODO
+                modalExito.style.display = "block";
             } else {
                 alert("Solicitud enviada correctamente.");
                 window.location.reload();
@@ -241,7 +278,7 @@ function getCsrf() {
 
         } catch (err) {
             console.error(err);
-            document.getElementById("errorSolicitudEliminacion").textContent = "Error: " + err.message;
+            errorDiv.textContent = "Error: " + err.message;
         }
     });
     /* ===========================================================
