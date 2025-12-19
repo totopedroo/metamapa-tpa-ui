@@ -249,6 +249,21 @@ public class HechosUiService {
                 raw.put("contenidoMultimedia", v);
             }
         }
+
+        Object fuentesObj = raw.get("fuentes");
+        if (fuentesObj instanceof List<?> list) {
+            // si es lista, la dejamos (idealmente lista de strings)
+            raw.put("fuentes", list.stream().map(Object::toString).toList());
+            return;
+        }
+
+        // Caso 2: viene "fuente": "DINAMICO" (singular)
+        Object fuenteObj = raw.get("fuente");
+        if (fuenteObj != null) {
+            raw.put("fuentes", List.of(fuenteObj.toString()));
+        } else {
+            raw.put("fuentes", List.of());
+        }
     }
 
     public Map<String, Object> obtenerHechosPaginadosDesdeApi(String url) {
