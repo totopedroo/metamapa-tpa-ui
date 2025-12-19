@@ -166,20 +166,24 @@
                     <th class="p-3 rounded-l-md">ID</th>
                     <th class="p-3">Título</th>
                     <th class="p-3">Descripción</th>
-                    <th class="p-3">Tags</th>
 
                     <th class="p-3 text-center">Ver Mapa</th>
 
+                    <!-- COLUMNA DINÁMICA: ELIMINAR / SOLICITAR -->
+                    <!-- Se muestra si es ADMIN o CONTRIBUYENTE y NO estamos en modo pick -->
                     <th class="p-3 text-center"
-                        th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
+                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
+                        <span th:if="${session.rol == 'ADMIN'}">Eliminar</span>
+                        <span th:if="${session.rol == 'CONTRIBUYENTE'}">Solicitar Baja</span>
+                    </th>
 
+                    <!-- COLUMNA EDITAR -->
                     <th class="p-3 text-center"
-                        th:if="${param.pick == null and session.rol == 'ADMIN'}">Eliminar</th>
+                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">Editar</th>
 
+                    <!-- COLUMNA DETALLE (Siempre la última, lleva el borde derecho) -->
                     <th class="p-3 text-center rounded-r-md"
-                        th:if="${param.pick == null and session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE'}">Editar</th>
-
-                    <th class="p-3 text-center">Ver detalle</th>
+                        th:if="${param.pick == null}">Ver detalle</th>
                 </tr>
                 </thead>
 
@@ -200,7 +204,7 @@
                     th:data-hecho-consensuado="${hecho.consensuado}"
                     th:data-hecho-fuentes="${#strings.listJoin(hecho.fuentes, ', ')}">
 
-                <!-- PICK MODE: checkbox -->
+                    <!-- PICK MODE -->
                     <td class="p-3 text-center" th:if="${param.pick}">
                         <input type="checkbox" class="pick-checkbox"
                                th:value="${hecho.id}">
@@ -217,67 +221,55 @@
                     <td class="p-3 col-descripcion leading-snug texto-justificado"
                         th:text="${hecho.descripcion}"></td>
 
-                    <!-- Etiquetas -->
-                    <td class="p-3 col-etiquetas">
-                        <span th:each="tag : ${hecho.etiquetas}"
-                              class="tag"
-                              th:text="${tag}">
-                        </span>
-                    </td>
-
-                    <!-- Ver mapa (SIEMPRE visible, incluso en pick mode) -->
+                    <!-- Mapa -->
                     <td class="p-3 text-center">
                         <button class="btn-icono btn-ver-mapa">
                             <i class="fas fa-map-marker-alt"></i>
                         </button>
                     </td>
 
-                    <!-- Solicitar eliminación (solo contribuyente y NO en pick mode) -->
+                    <!-- COLUMNA DINÁMICA BODY: ELIMINAR / SOLICITAR -->
+                    <!-- Usamos la MISMA condición que en el TH -->
                     <td class="p-3 text-center"
-                        th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">
-                        <button class="btn-icono eliminar btn-solicitar-eliminacion">
+                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
+
+                        <!-- Si es ADMIN -> Botón Eliminar Directo -->
+                        <button class="btn-icono eliminar btn-eliminar-admin"
+                                th:if="${session.rol == 'ADMIN'}"
+                                th:data-id="${hecho.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                        <!-- Si es CONTRIBUYENTE -> Botón Solicitar Baja -->
+                        <button class="btn-icono eliminar btn-solicitar-eliminacion"
+                                th:if="${session.rol == 'CONTRIBUYENTE'}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
 
-                    <!-- Eliminar (solo admin y NO pick) -->
+                    <!-- COLUMNA EDITAR -->
                     <td class="p-3 text-center"
-                        th:if="${param.pick == null and session.rol == 'ADMIN'}">
-                        <button class="btn-icono eliminar btn-eliminar-admin"
-                                th:data-id="${hecho.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
+                        th:if="${param.pick == null and (session.rol == 'ADMIN' or session.rol == 'CONTRIBUYENTE')}">
 
-                    <!-- Editar (solo si no estamos en pick) -->
-                    <td class="p-3 text-center" th:if="${param.pick == null}">
-
-                        <!-- ADMIN siempre puede -->
                         <button class="btn-icono editar btn-editar-hecho"
                                 th:if="${session.rol == 'ADMIN'}">
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        <!-- CONTRIBUYENTE si es dueño -->
                         <button class="btn-icono editar btn-editar-hecho"
-                                th:if="${session.rol == 'CONTRIBUYENTE'
-                                        and hecho.idContribuyente != null
-                                        and hecho.idContribuyente == session.usuarioId}">
+                                th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente == session.usuarioId}">
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        <!-- caso contrario -->
-                        <span class="text-gray-400"
-                              th:if="${session.rol != null
-                                     and !(session.rol == 'ADMIN'
-                                     or (session.rol == 'CONTRIBUYENTE'
-                                         and hecho.idContribuyente != null
-                                         and hecho.idContribuyente == session.usuarioId))}">
+                        <!-- Espacio vacío si no tiene permiso de editar este específico -->
+                        <span class="text-gray-300"
+                              th:if="${session.rol == 'CONTRIBUYENTE' and hecho.idContribuyente != session.usuarioId}">
                             -
                         </span>
                     </td>
 
-                    <td class="p-3 text-center">
+                    <!-- Ver Detalle -->
+                    <td class="p-3 text-center" th:if="${param.pick == null}">
                         <button class="btn-icono btn-ver-detalle">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -286,7 +278,8 @@
 
                 <!-- Si no hay hechos -->
                 <tr th:if="${hechos == null or #lists.isEmpty(hechos)}">
-                    <td colspan="7" class="text-center text-gray-500 py-4">
+                    <!-- Ajustamos el colspan para que cubra todo -->
+                    <td colspan="12" class="text-center text-gray-500 py-4">
                         No se encontraron hechos.
                     </td>
                 </tr>
