@@ -62,21 +62,77 @@
     <!-- ========================================================= -->
     <!-- LISTADO DE HECHOS -->
     <!-- ========================================================= -->
-    <h4 class="mt-4">Hechos incluidos</h4>
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <h4 class="mb-0">Hechos incluidos</h4>
 
-    <ul class="list-group mt-3">
-        <li class="list-group-item"
-            th:each="h : ${coleccion.hechos}">
-            <strong th:text="${h.titulo}"></strong>
-            <br>
-            <small class="text-muted">ID: <span th:text="${h.id}"></span></small>
+        <!-- BOTONES DE FILTRO -->
+        <div class="btn-group" role="group" aria-label="Filtro de hechos">
+            <input type="radio" class="btn-check" name="filtroTipo" id="btnTodos" value="todos" checked autocomplete="off">
+            <label class="btn btn-outline-secondary btn-sm" for="btnTodos">Todos</label>
+
+            <input type="radio" class="btn-check" name="filtroTipo" id="btnCurados" value="curado" autocomplete="off">
+            <label class="btn btn-outline-success btn-sm" for="btnCurados">Curados</label>
+
+            <input type="radio" class="btn-check" name="filtroTipo" id="btnIrrestrictos" value="irrestricto" autocomplete="off">
+            <label class="btn btn-outline-warning btn-sm" for="btnIrrestrictos">Irrestrictos</label>
+        </div>
+    </div>
+
+    <!-- LISTA CON IDENTIFICADOR Y DATA ATTRIBUTE -->
+    <ul class="list-group mt-3" id="listaHechos">
+        <li class="list-group-item hecho-item"
+            th:each="h : ${coleccion.hechos}"
+            th:data-es-curado="${h.consensuado}">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong th:text="${h.titulo}"></strong>
+                    <br>
+                    <small class="text-muted">ID: <span th:text="${h.id}"></span></small>
+                </div>
+
+                <span th:if="${h.consensuado}" class="badge-custom badge-curado">
+                    <i class="bi bi-check-circle-fill me-1"></i> Curado
+                </span>
+
+                <span th:unless="${h.consensuado}" class="badge-custom badge-irrestricto">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> Irrestricto
+                </span>
+
+            </div>
         </li>
     </ul>
 
-    <p th:if="${#lists.isEmpty(coleccion.hechos)}"
-       class="text-muted mt-3">
+    <p th:if="${#lists.isEmpty(coleccion.hechos)}" class="text-muted mt-3">
         No hay hechos en esta colección.
     </p>
+
+    <!-- SCRIPT PARA FILTRAR VISUALMENTE -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const radios = document.querySelectorAll('input[name="filtroTipo"]');
+            const items = document.querySelectorAll('#listaHechos .hecho-item');
+
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const filtro = e.target.value; // 'todos', 'curado', 'irrestricto'
+
+                    items.forEach(item => {
+                        // Leemos el atributo th:data-es-curado (se convierte en string "true" o "false")
+                        const esCurado = item.getAttribute('data-es-curado') === 'true';
+
+                        if (filtro === 'todos') {
+                            item.style.display = ''; // Mostrar
+                        } else if (filtro === 'curado') {
+                            item.style.display = esCurado ? '' : 'none';
+                        } else if (filtro === 'irrestricto') {
+                            item.style.display = !esCurado ? '' : 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
     <hr>
 

@@ -13,12 +13,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -97,17 +100,29 @@ public class HechosUiService {
 
      /* Llama a POST /api/hechos/crear en el backend
      */
-    public HechoDTO crearHecho(HechoDTO nuevoHecho) {
-        // Usamos tu ruta (/api/hechos/crear) que es consistente con el backend actual,
-        // en lugar de /fuente-dinamica/... que parece ser de otra versión.
-        String url = apiBaseUrl + "/api/hechos/crear";
-        try {
-            return restTemplate.postForObject(url, nuevoHecho, HechoDTO.class);
-        } catch (Exception e) {
-            System.err.println("Error al crear hecho: " + e.getMessage());
-            return null;
-        }
-    }
+     public HechoDTO crearHecho(HechoDTO nuevoHecho) {
+         String url = apiBaseUrl + "/api/hechos/crear";
+         try {
+             ResponseEntity<HechoDTO> resp = restTemplate.postForEntity(url, nuevoHecho, HechoDTO.class);
+
+             HechoDTO body = resp.getBody();
+             if (body == null) {
+                 throw new ResponseStatusException(resp.getStatusCode(),
+                         "Backend respondió sin body al crear hecho");
+             }
+             return body;
+
+         } catch (HttpStatusCodeException e) {
+             // 🔥 Acá vas a ver el error real del backend (400/500) con su mensaje
+             throw new ResponseStatusException(
+                     e.getStatusCode(),
+                     "Error desde backend: " + e.getResponseBodyAsString(),
+                     e
+             );
+         } catch (Exception e) {
+             throw new ResponseStatusException(500, "Error UI creando hecho: " + e.getMessage(), e);
+         }
+     }
 
     /**
      * Llama a POST /api/hechos/importar-api en el backend

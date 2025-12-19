@@ -113,15 +113,14 @@ function getCsrf() {
             fechaAcontecimiento: fechaAcontecimientoEl.value || null,
 
             // ✅ como te lo pide el backend:
-            contenidoMultimedia: {
-                url: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : ""
-            },
+
+            // ✅ STRING (no objeto)
+            contenidoMultimedia: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : null,
 
             // ✅ como te lo pide el backend:
-            etiquetas: etiquetasObj,
+            etiquetas: etiquetasObj
 
             // backend dice que puede ser null
-            contribuyente: null
         };
 
         // Validación de obligatorios
@@ -138,7 +137,7 @@ function getCsrf() {
 
             // OJO: dejo tu endpoint tal cual lo tenías (/hechos/crear).
             // Si tu controller expone /hechos/ui/crear, cambialo acá.
-            const resp = await fetch("/hechos/crear", {
+            const resp = await fetch("/hechos/ui/crear", {
                 method: "POST",
                 credentials: "same-origin",
                 headers,
