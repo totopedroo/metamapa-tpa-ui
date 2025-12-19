@@ -2,6 +2,7 @@
 package ar.utn.ba.ddsi.metamapa.services;
 
 import ar.utn.ba.ddsi.metamapa.API.CookieForwarder;
+import ar.utn.ba.ddsi.metamapa.dto.CrearHechoUiRequest;
 import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
 import ar.utn.ba.ddsi.metamapa.utils.MultipartInputStreamFileResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,29 +101,40 @@ public class HechosUiService {
 
      /* Llama a POST /api/hechos/crear en el backend
      */
-     public HechoDTO crearHecho(HechoDTO nuevoHecho) {
+     public HechoDTO crearHecho(CrearHechoUiRequest req) {
          String url = apiBaseUrl + "/api/hechos/crear";
-         try {
-             ResponseEntity<HechoDTO> resp = restTemplate.postForEntity(url, nuevoHecho, HechoDTO.class);
 
-             HechoDTO body = resp.getBody();
-             if (body == null) {
-                 throw new ResponseStatusException(resp.getStatusCode(),
-                         "Backend respondió sin body al crear hecho");
-             }
-             return body;
+         String token = cookies.getTokenFromCurrentRequest();
+         String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
 
-         } catch (HttpStatusCodeException e) {
-             // 🔥 Acá vas a ver el error real del backend (400/500) con su mensaje
-             throw new ResponseStatusException(
-                     e.getStatusCode(),
-                     "Error desde backend: " + e.getResponseBodyAsString(),
-                     e
-             );
-         } catch (Exception e) {
-             throw new ResponseStatusException(500, "Error UI creando hecho: " + e.getMessage(), e);
-         }
+         Map<String, Object> body = Map.of(
+                 "titulo", req.titulo(),
+                 "descripcion", req.descripcion(),
+                 "categoria", req.categoria(),
+                 "provincia", req.provincia(),
+                 "latitud", req.latitud(),
+                 "longitud", req.longitud(),
+                 "fechaAcontecimiento", req.fechaAcontecimiento(),
+                 "contenidoMultimedia", req.contenidoMultimedia(),   // <-- string
+                 "etiquetas", req.etiquetas()
+         );
+
+         Map response = client.post()
+                 .uri(url)
+                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                 .header("Cookie", cookieHeader)
+                 .contentType(MediaType.APPLICATION_JSON)
+                 .body(body)
+                 .retrieve()
+                 .body(Map.class);
+
+         // normalizás lo que vuelve para tu UI DTO
+         normalizarHechoParaUi((Map<String, Object>) response);
+
+         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+         return mapper.convertValue(response, HechoDTO.class);
      }
+
 
     /**
      * Llama a POST /api/hechos/importar-api en el backend

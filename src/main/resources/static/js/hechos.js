@@ -558,20 +558,31 @@ function getCsrf() {
         html += addRow("Categoría", ds.hechoCategoria);
         html += addRow("Latitud", ds.hechoLatitud);
         html += addRow("Longitud", ds.hechoLongitud);
-        html += addRow("Fecha acontecimiento", ds.hechoFechaAcontecimiento);
-        html += addRow("Fecha carga", ds.hechoFechaCarga);
+        const fechaAcontecimiento =
+            fila.getAttribute("data-hecho-fecha-acontecimiento") || ds.hechoFechaAcontecimiento || "";
+
+        const contenido =
+            fila.getAttribute("data-hecho-contenido") || ds.hechoContenido || "";
+
+        html += addRow("Fecha acontecimiento", fechaAcontecimiento);        html += addRow("Fecha carga", ds.hechoFechaCarga);
 
         if (etiquetas.length) html += addRow("Etiquetas", etiquetas.join(", "));
         if (consensos.length) html += addRow("Consensos", consensos.join(", "));
         if (consensuadoTxt) html += addRow("Consensuado", consensuadoTxt);
         if (fuentes.length) html += addRow("Fuentes", fuentes.join(", "));
 
-        // Contenido multimedia: solo si existe
-        if (ds.hechoContenido && ds.hechoContenido.trim().length) {
+
+        if (contenido && contenido.trim().length) {
+            // opcional: mostrarlo como link clickeable
+            const url = contenido.trim();
             html += `
     <div class="flex justify-between border-b pb-1">
       <span class="font-semibold">Contenido multimedia:</span>
-      <span class="text-right">${ds.hechoContenido.trim()}</span>
+      <span class="text-right">
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">
+          ${url}
+        </a>
+      </span>
     </div>
   `;
         }

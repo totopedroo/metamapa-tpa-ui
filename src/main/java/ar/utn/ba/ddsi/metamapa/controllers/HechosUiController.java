@@ -1,6 +1,7 @@
 package ar.utn.ba.ddsi.metamapa.controllers;
 
 import ar.utn.ba.ddsi.metamapa.dto.ColeccionDTO;
+import ar.utn.ba.ddsi.metamapa.dto.CrearHechoUiRequest;
 import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
 import ar.utn.ba.ddsi.metamapa.services.ColeccionUiService;
 import ar.utn.ba.ddsi.metamapa.services.HechosUiService;
@@ -102,7 +103,7 @@ public class HechosUiController {
     /**
      * Procesa el envío del formulario para crear un nuevo hecho.
      */
-    @PostMapping("/crear")
+   /* @PostMapping("/crear")
     @ResponseBody
     public ResponseEntity<?> crearHechoDesdeUi(@RequestBody HechoDTO input, HttpServletRequest request) {
         try {
@@ -140,7 +141,7 @@ public class HechosUiController {
             e.printStackTrace(); // ¡Esto imprimirá el error real en la consola!
             return ResponseEntity.internalServerError().body("Error en servidor: " + e.getMessage());
         }
-    }
+    }*/
     /**
      * Maneja el botón de "Importar desde API".
      */
@@ -161,7 +162,7 @@ public class HechosUiController {
      */
 
     @PostMapping("/ui/crear")
-    public ResponseEntity<HechoDTO> crear(@RequestBody HechoDTO dto) {
+    public ResponseEntity<HechoDTO> crear(@RequestBody CrearHechoUiRequest dto) {
         HechoDTO creado = hechosService.crearHecho(dto);
         return ResponseEntity.ok(creado);
     }
