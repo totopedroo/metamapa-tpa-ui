@@ -155,10 +155,10 @@ document.addEventListener("DOMContentLoaded", () => {
         //   Restaurar criterios
         // ===============================
         const critUl = document.getElementById("criteriosSeleccionados");
-        const critContainer = document.getElementById("criteriosIdsContainer");
+        //const critContainer = document.getElementById("criteriosIdsContainer");
 
         critUl.innerHTML = "";
-        critContainer.innerHTML = "";
+        //critContainer.innerHTML = "";
 
         const criteriosIds = est.criteriosIds ?? [];
 
@@ -168,29 +168,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 const crit = lista.find(c => String(c.id_criterio) === String(id));
                 if (!crit) return;
 
-                // Texto visible
-                let texto = "";
-                if (crit.tipo === "texto") texto = `Texto contiene: "${crit.valor}"`;
-                if (crit.tipo === "fecha") texto = `Rango: ${crit.desde} → ${crit.hasta}`;
+                let texto = (crit.tipo === "texto") ? `Texto: "${crit.valor}"` : `Rango: ${crit.desde} → ${crit.hasta}`;
 
-                // Render
-                critUl.insertAdjacentHTML(
-                    "beforeend",
-                    `
+                critUl.insertAdjacentHTML("beforeend", `
                 <li class="list-group-item d-flex justify-content-between align-items-center"
-                    data-id="${crit.id_criterio}"
-                    data-json='${JSON.stringify(crit)}'>
+                    data-id="${crit.id_criterio}">
                     ${texto}
+                    <input type="hidden" name="criteriosIds" value="${crit.id_criterio}">
                     <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
                 </li>
-                `
-                );
-
-                // Hidden input
-                critContainer.insertAdjacentHTML(
-                    "beforeend",
-                    `<input type="hidden" name="criteriosIds" value="${crit.id_criterio}">`
-                );
+            `);
             });
 
             activarBotonesQuitarCriterio();
