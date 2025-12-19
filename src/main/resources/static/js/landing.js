@@ -99,7 +99,3 @@ $$(".tab").forEach(btn => {
     });
 });
 
-/* IMPORTANTE:
-   Eliminamos el "DOMContentLoaded" que llamaba a cargarColecciones() y cargarHechos().
-   Ahora dejamos que Thymeleaf muestre el contenido inicial (SSR).
-*/

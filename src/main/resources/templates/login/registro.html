@@ -2,11 +2,60 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
   <title>MetaMapa - Registro</title>
-
-  <!-- HEAD GLOBAL -->
-  <th:block th:replace="fragments/head :: head"></th:block>
-
+  <th:block th:replace="~{fragments/head :: head}"></th:block>
   <link rel="stylesheet" th:href="@{/css/registro.css}"/>
+
+  <!-- Iconos para el ojito (Bootstrap Icons) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Estilos para la barra de fuerza y el ojito -->
+  <style>
+    .password-strength-container {
+      margin-top: 5px;
+      height: 5px;
+      background-color: #eee;
+      border-radius: 3px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .password-strength-bar {
+      height: 100%;
+      width: 0%;
+      transition: all 0.3s ease;
+      border-radius: 3px;
+    }
+    .strength-text {
+      font-size: 0.75rem;
+      margin-top: 3px;
+      display: block;
+      text-align: right;
+      font-weight: bold;
+    }
+    /* Colores y anchos según nivel */
+    .weak { background-color: #ff4d4d; width: 33%; }
+    .medium { background-color: #ffd700; width: 66%; }
+    .strong { background-color: #28a745; width: 100%; }
+
+    /* Estilos para el contenedor del input + ojito */
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .password-toggle-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%; /* Centrado vertical aproximado */
+      transform: translateY(-30%); /* Ajuste fino por el margin-top del input */
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #6c757d;
+      font-size: 1.1rem;
+    }
+    .password-toggle-btn:hover {
+      color: #333;
+    }
+  </style>
 </head>
 <body>
 
@@ -38,8 +87,20 @@
     <label for="email">Correo electrónico <span style="color:red">*</span></label>
     <input type="email" id="email" th:field="*{email}" placeholder="ejemplo@email.com" required />
 
+    <!-- INPUT DE CONTRASEÑA CON OJITO -->
     <label for="contrasena">Contraseña <span style="color:red">*</span></label>
-    <input type="password" id="contrasena" th:field="*{contrasena}" placeholder="Crea una contraseña segura" required />
+    <div class="password-wrapper">
+      <input type="password" id="contrasena" th:field="*{contrasena}" placeholder="Crea una contraseña segura" required />
+      <button type="button" class="password-toggle-btn" id="togglePassword">
+        <i class="bi bi-eye-slash" id="toggleIcon"></i>
+      </button>
+    </div>
+
+    <!-- BARRA DE PROGRESO DE SEGURIDAD -->
+    <div class="password-strength-container">
+      <div id="strengthBar" class="password-strength-bar"></div>
+    </div>
+    <span id="strengthText" class="strength-text" style="color: #999;"></span>
 
     <button type="submit" class="btn-register">Registrarme</button>
 
@@ -61,6 +122,79 @@
     <span class="footer-right">Español (AR)</span>
   </div>
 </footer>
+
+<!-- SCRIPT DE VALIDACIÓN Y OJITO -->
+<script>
+  const passwordInput = document.getElementById('contrasena');
+  const strengthBar = document.getElementById('strengthBar');
+  const strengthText = document.getElementById('strengthText');
+  const toggleBtn = document.getElementById('togglePassword');
+  const toggleIcon = document.getElementById('toggleIcon');
+
+  // --- 1. Funcionalidad del Ojito (Mostrar/Ocultar) ---
+  toggleBtn.addEventListener('click', function() {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+
+    // Alternar icono
+    if (type === 'text') {
+      toggleIcon.classList.remove('bi-eye-slash');
+      toggleIcon.classList.add('bi-eye');
+    } else {
+      toggleIcon.classList.remove('bi-eye');
+      toggleIcon.classList.add('bi-eye-slash');
+    }
+  });
+
+  // --- 2. Barra de Fuerza (Con corrección del bug) ---
+  passwordInput.addEventListener('input', function() {
+    const val = passwordInput.value;
+    const result = checkStrength(val);
+
+    // Limpiar clases anteriores
+    strengthBar.className = 'password-strength-bar';
+
+    if (val.length === 0) {
+      // Si está vacío, forzamos ancho 0
+      strengthBar.style.width = '0%';
+      strengthText.textContent = '';
+    } else {
+      // CORRECCIÓN: Si hay texto, quitamos el width inline para que el CSS actúe
+      strengthBar.style.width = '';
+
+      if (result.score <= 1) {
+        strengthBar.classList.add('weak');
+        strengthText.textContent = 'Débil';
+        strengthText.style.color = '#ff4d4d';
+      } else if (result.score === 2) {
+        strengthBar.classList.add('medium');
+        strengthText.textContent = 'Media';
+        strengthText.style.color = '#ffd700'; // Dorado
+      } else {
+        strengthBar.classList.add('strong');
+        strengthText.textContent = 'Fuerte';
+        strengthText.style.color = '#28a745';
+      }
+    }
+  });
+
+  function checkStrength(password) {
+    let score = 0;
+    if (!password) return { score: 0 };
+
+    // Criterios
+    if (password.length > 5) score++;
+    if (password.length > 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    // Normalizar score a 0-3
+    if (score > 4) return { score: 3 };
+    if (score > 2) return { score: 2 };
+    return { score: 1 };
+  }
+</script>
 
 </body>
 </html>
