@@ -521,13 +521,11 @@ function getCsrf() {
         // Contenido multimedia: solo si existe
         if (ds.hechoContenido && ds.hechoContenido.trim().length) {
             html += `
-        <div class="flex justify-between border-b pb-1">
-          <span class="font-semibold">Contenido multimedia:</span>
-          <span class="text-right">
-            <a href="${ds.hechoContenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>
-          </span>
-        </div>
-      `;
+    <div class="flex justify-between border-b pb-1">
+      <span class="font-semibold">Contenido multimedia:</span>
+      <span class="text-right">${ds.hechoContenido.trim()}</span>
+    </div>
+  `;
         }
 
         detalleBody.innerHTML = html || `<div class="text-gray-500">Sin datos para mostrar.</div>`;
