@@ -88,8 +88,28 @@
     <ul class="list-group mt-3">
         <li class="list-group-item"
             th:each="c : ${coleccion.criterios}">
-            <span th:text="${c.tipo}"></span> :
-            <strong th:text="${c.valor}"></strong>
+
+            <!-- TEXTO -->
+            <span th:if="${c.tipo == 'texto'}">
+            <strong th:switch="${c.columna}">
+            <span th:case="'titulo'">Título</span>
+            <span th:case="'categoria'">Categoría</span>
+            <span th:case="'provincia'">Provincia</span>
+            <span th:case="*"
+                  th:text="${#strings.capitalize(c.columna)}"></span>
+            </strong>
+            contiene:
+            <span th:text="${c.valor}"></span>
+        </span>
+
+            <!-- FECHA -->
+            <span th:if="${c.tipo == 'fecha'}">
+            Fecha de acontecimiento:
+            <strong th:text="${c.desde}"></strong>
+            →
+            <strong th:text="${c.hasta}"></strong>
+        </span>
+
         </li>
     </ul>
 

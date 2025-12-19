@@ -10,7 +10,7 @@ async function cargarTitulos(ids) {
             console.error("Error consultando títulos:", err);
             return {};
         }
-    }
+}
 
 function renderHechosSeleccionados(hechosIds, titulos = {}) {
 
@@ -45,11 +45,28 @@ function renderHechosSeleccionados(hechosIds, titulos = {}) {
                 guardarEstado();
             };
         });
-    }
+}
 
 function renderTextoCriterio(c) {
-    if (c.tipo === "texto") return `Texto contiene: "${c.valor}"`;
-    if (c.tipo === "fecha") return `Rango: ${c.desde} → ${c.hasta}`;
+    const colMap = {
+        titulo: "Título",
+        categoria: "Categoría",
+        provincia: "Provincia",
+        ubicacion: "Ubicación",
+        fecha: "Fecha de acontecimiento"
+    };
+
+    const col = colMap[c.columna] ?? c.columna;
+
+    if (c.tipo === "texto") {
+        return `${col} contiene: "${c.valor}"`;
+    }
+
+    if (c.tipo === "fecha") {
+        return `${col}: ${c.desde} → ${c.hasta}`;
+    }
+
+    return "Criterio";
 }
 
 function activarBotonesQuitarCriterio() {
@@ -59,7 +76,7 @@ function activarBotonesQuitarCriterio() {
                 guardarEstado();
             };
         });
-    }
+}
 
 async function cargarCriteriosExistentes() {
     const resp = await fetch("/colecciones/ui/criterios");
@@ -79,7 +96,7 @@ async function cargarCriteriosExistentes() {
 
             sel.innerHTML += `<option value="${c.id_criterio}">${texto}</option>`;
         });
-    }
+}
 
 function agregarCriterioExistente(id) {
 
@@ -114,7 +131,16 @@ function agregarCriterioExistente(id) {
 
         sel.value = "";
         bootstrap.Modal.getInstance(document.getElementById("modalCriterios")).hide();
-    }
+}
+
+function esFechaValidaISO(fecha) {
+    // yyyy-mm-dd
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(fecha)) return false;
+
+    const d = new Date(fecha);
+    return !isNaN(d.getTime());
+}
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -340,7 +366,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const tipo = criterioTipo.value;
 
-            let criterio = {tipo};
+            let criterio = {
+                tipo,
+                columna: document.getElementById("criterioColumna").value
+            };
 
             // Backend usa tipo = "fecha" para rangos
             if (tipo === "rango") {
@@ -398,6 +427,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert("Debe completar fecha desde y fecha hasta.");
                     return;
                 }
+
+                if (!esFechaValidaISO(criterio.desde) || !esFechaValidaISO(criterio.hasta)) {
+                    alert("Formato de fecha inválido. Use fechas válidas.");
+                    return;
+                }
+
                 if (criterio.desde > criterio.hasta) {
                     alert("La fecha desde no puede ser mayor que la fecha hasta.");
                     return;
@@ -444,7 +479,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(criterio)
             });
 
-            const criterioId = await resp.json(); // backend devuelve el ID nuevo
+            if (!resp.ok) {
+                const txt = await resp.text();
+                alert("Error al crear criterio:\n" + txt);
+                return;
+            }
+
+            const criterioId = await resp.json();
 
             // 2) AGREGARLO A LA LISTA VISIBLE
             const li = `

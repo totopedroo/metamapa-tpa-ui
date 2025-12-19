@@ -124,7 +124,6 @@
 
         <h4>Fuente</h4>
 
-        <!-- 👇 CAMBIO: th:field directo en el select -->
         <select id="fuenteSelect" class="form-select mb-3" th:field="*{fuenteId}">
             <option value="">Sin fuente</option>
             <option th:each="f : ${listaFuentes}"
@@ -192,11 +191,21 @@
                 </div>
                 <div id="campoFechaDesde" class="mb-3 d-none">
                     <label>Fecha desde</label>
-                    <input id="criterioFechaDesde" type="date" class="form-control">
+                    <input id="criterioFechaDesde" type="date" class="form-control" min="1900-01-01" max="2100-12-31">
                 </div>
                 <div id="campoFechaHasta" class="mb-3 d-none">
                     <label>Fecha hasta</label>
-                    <input id="criterioFechaHasta" type="date" class="form-control">
+                    <input id="criterioFechaHasta" type="date" class="form-control" min="1900-01-01" max="2100-12-31">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Criterio en</label>
+                    <select id="criterioColumna" class="form-select">
+                        <option value="titulo">Título</option>
+                        <option value="categoria">Categoría</option>
+                        <option value="provincia">Provincia</option>
+                        <option value="fecha">Fecha de acontecimiento</option>
+                    </select>
                 </div>
             </div>
             <div class="modal-footer">
