@@ -3,7 +3,7 @@
 <head>
     <title>Editar Colección - MetaMapa</title>
 
-    <th:block th:replace="fragments/head :: head"></th:block>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
 
     <link rel="stylesheet" th:href="@{/css/inicioAdminYContribuyente.css}">
 
@@ -31,92 +31,79 @@
             const col = window.COLECCION_EDIT;
 
             // ===============================
-            // CARGAR CAMPOS BÁSICOS
-            // ===============================
-            document.getElementById("algoritmoSelect").value = col.algoritmoId ?? "";
-            document.getElementById("algoritmoIdHidden").value = col.algoritmoId ?? "";
-
-            document.getElementById("fuenteSelect").value = col.fuenteId ?? "";
-            document.getElementById("fuenteIdHidden").value = col.fuenteId ?? "";
-
-            // --- FORZAR SINCRONIZACIÓN DE SELECT → HIDDEN ---
-            document.getElementById("algoritmoIdHidden").value =
-                document.getElementById("algoritmoSelect").value;
-
-            document.getElementById("fuenteIdHidden").value =
-                document.getElementById("fuenteSelect").value;
-
-
-            // ===============================
             // RENDER INICIAL DE HECHOS
             // ===============================
             renderHechosSeleccionados(col.hechosIds, window.HECHOS_TITULOS);
 
             // Guardar los originales para detectar cambios
-            document.getElementById("hechosOriginalesJson").value =
-                JSON.stringify(col.hechosIds);
+            const originalJson = JSON.stringify(col.hechosIds || []);
+            document.getElementById("hechosOriginalesJson").value = originalJson;
 
             // ===============================
-            // RENDER INICIAL DE CRITERIOS
+            // RENDER INICIAL DE CRITERIOS (BLINDADO)
             // ===============================
             const ul = document.getElementById("criteriosSeleccionados");
             const cont = document.getElementById("criteriosIdsContainer");
 
-            col.criterios.forEach(c => {
+            if (col.criterios && Array.isArray(col.criterios)) {
+                col.criterios.forEach(c => {
+                    // Buscamos el ID (fix para error 400)
+                    const cId = c.id || c.id_criterio || c.idCriterio;
+                    if (!cId) return;
 
-                const texto =
-                    c.tipo === "texto"
+                    const texto = c.tipo === "texto"
                         ? `Texto contiene: "${c.valor}"`
                         : `Rango: ${c.desde} → ${c.hasta}`;
 
-                ul.insertAdjacentHTML(
-                    "beforeend",
-                    `
-                    <li class="list-group-item d-flex justify-content-between align-items-center"
-                        data-id="${c.id}"
-                        data-json='${JSON.stringify(c)}'>
-                        ${texto}
-                        <button class="btn btn-sm btn-danger quitar-criterio">✕</button>
-                        <input type="hidden" name="criteriosIds" value="${c.id}">
-                    </li>
-                `
-                );
+                    ul.insertAdjacentHTML("beforeend", `
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            data-id="${cId}"
+                            data-json='${JSON.stringify(c)}'>
+                            ${texto}
+                            <button type="button" class="btn btn-sm btn-danger quitar-criterio">✕</button>
+                        </li>
+                    `);
 
-                cont.insertAdjacentHTML(
-                    "beforeend",
-                    `<input type="hidden" name="criteriosIds" value="${c.id}">`
-                );
-            });
+                    cont.insertAdjacentHTML("beforeend",
+                        `<input type="hidden" name="criteriosIds" value="${cId}">`
+                    );
+                });
+            }
 
-            activarBotonesQuitarCriterio();
+            if (typeof activarBotonesQuitarCriterio === 'function') {
+                activarBotonesQuitarCriterio();
+            }
 
             // ===============================
-            // INICIALIZAR SELECTOR DE CRITERIOS EXISTENTES
-            // ===============================
-            cargarCriteriosExistentes();
-
-            // ===============================
-            // PICK DE HECHOS (MISMO QUE NUEVA)
+            // PICK DE HECHOS
             // ===============================
             const pick = document.getElementById("btnPickHechos");
-            pick.onclick = () => {
-                const ids = Array
-                    .from(document.querySelectorAll("input[name='hechosIds']"))
-                    .map(i => i.value)
-                    .join(",");
+            if(pick) {
+                pick.onclick = (e) => {
+                    e.preventDefault();
+                    const ids = Array
+                        .from(document.querySelectorAll("input[name='hechosIds']"))
+                        .map(i => i.value)
+                        .join(",");
 
-                if (typeof guardarEstado === "function") guardarEstado();
+                    if (typeof guardarEstado === "function") guardarEstado();
 
-                window.location.href =
-                    `/hechos?pick=true&hechos=${ids}&returnTo=/colecciones/editar/${col.id}`;
-            };
+                    window.location.href =
+                        `/hechos?pick=true&hechos=${ids}&returnTo=/colecciones/editar/${col.id}`;
+                };
+            }
+
+            // Cargar criterios existentes para el modal
+            if(typeof cargarCriteriosExistentes === 'function') {
+                cargarCriteriosExistentes();
+            }
         });
     </script>
 
 </head>
 <body>
 
-<th:block th:replace="fragments/header :: header"></th:block>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 
 <main class="container my-5">
 
@@ -144,27 +131,25 @@
 
         <h4>Algoritmo de consenso</h4>
 
-        <select id="algoritmoSelect" class="form-select mb-3">
-        <option value="">Ninguno</option>
+        <!-- 👇 CAMBIO: th:field directo en el select. Eliminamos el input hidden -->
+        <select id="algoritmoSelect" class="form-select mb-3" th:field="*{algoritmoId}">
+            <option value="">Ninguno</option>
             <option th:each="alg : ${listaAlgoritmos}"
                     th:value="${alg.id}" th:text="${alg.nombre}">
             </option>
         </select>
 
-        <input type="hidden" id="algoritmoIdHidden" th:field="*{algoritmoId}">
-
         <hr>
 
         <h4>Fuente</h4>
 
-        <select id="fuenteSelect" class="form-select mb-3">
-        <option value="">Sin fuente</option>
+        <!-- 👇 CAMBIO: th:field directo en el select -->
+        <select id="fuenteSelect" class="form-select mb-3" th:field="*{fuenteId}">
+            <option value="">Sin fuente</option>
             <option th:each="f : ${listaFuentes}"
                     th:value="${f.id}" th:text="${f.nombre}">
             </option>
         </select>
-
-        <input type="hidden" id="fuenteIdHidden" th:field="*{fuenteId}">
 
         <hr>
 
@@ -174,7 +159,7 @@
             Seleccionar hechos
         </a>
 
-        <ul id="hechosSeleccionados" class="list-group scroll-3 hechos-list"></ul>
+        <ul id="hechosSeleccionados" class="list-group scroll-3 hechos-list mt-2"></ul>
 
         <div id="hechosIdsContainer"></div>
 
@@ -198,90 +183,47 @@
     </form>
 </main>
 
-<!-- ================================================= -->
-<!-- MODAL CRITERIOS -->
-<!-- ================================================= -->
+<!-- MODAL CRITERIOS (Igual que antes) -->
 <div class="modal fade" id="modalCriterios" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title">Nuevo criterio</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-
                 <div class="mb-3">
                     <label class="form-label">Seleccionar criterio existente</label>
                     <select id="criterioExistente" class="form-select">
                         <option value="">-- Seleccionar existente --</option>
                     </select>
                 </div>
-
                 <hr>
-
                 <label>Tipo</label>
                 <select id="criterioTipo" class="form-select mb-3">
                     <option value="texto">Texto contiene</option>
                     <option value="rango">Rango de fechas</option>
                 </select>
-
-                <!-- campo texto -->
                 <div id="campoTexto" class="mb-3">
                     <input id="criterioValorTexto" type="text" class="form-control" placeholder="Ingrese texto...">
                 </div>
-
-                <!-- fecha desde -->
                 <div id="campoFechaDesde" class="mb-3 d-none">
                     <label>Fecha desde</label>
                     <input id="criterioFechaDesde" type="date" class="form-control">
                 </div>
-
-                <!-- fecha hasta -->
                 <div id="campoFechaHasta" class="mb-3 d-none">
                     <label>Fecha hasta</label>
                     <input id="criterioFechaHasta" type="date" class="form-control">
                 </div>
-
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-success" id="btnGuardarCriterio">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnGuardarCriterio">Guardar</button>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- ================================================= -->
-<!-- MODAL CONFIRMAR NUEVA -->
-<!-- ================================================= -->
-<div class="modal fade" id="modalConfirmarNueva" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar selección</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <p>Está por agregar los siguientes hechos a la colección:</p>
-                <ul id="listaHechosConfirmarNueva" class="list-group my-3 scroll-5"></ul>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <a id="btnEditarSeleccionNueva" class="btn btn-warning">Editar selección</a>
-                <button class="btn btn-primary" id="btnConfirmarNueva">Confirmar</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<th:block th:replace="fragments/footer :: footer"></th:block>
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
 </body>
 </html>

@@ -95,8 +95,7 @@ public class HechosUiService {
 
     }
 
-    /**
-     * Llama a POST /api/hechos/crear en el backend
+     /* Llama a POST /api/hechos/crear en el backend
      */
     public HechoDTO crearHecho(HechoDTO nuevoHecho) {
         // Usamos tu ruta (/api/hechos/crear) que es consistente con el backend actual,
@@ -196,7 +195,62 @@ public class HechosUiService {
         return Collections.emptyList();
     }
 
-    // METODO PARA PAGINACION
+    // HechosUiService.java
+    @SuppressWarnings("unchecked")
+    private void normalizarHechoParaUi(Map<String, Object> raw) {
+
+        // 1) idHecho -> id
+        if (raw.containsKey("idHecho") && !raw.containsKey("id")) {
+            raw.put("id", raw.get("idHecho"));
+        }
+
+        // 2) fechaAcontecimiento -> fecha
+        if (raw.containsKey("fechaAcontecimiento") && !raw.containsKey("fecha")) {
+            raw.put("fecha", raw.get("fechaAcontecimiento"));
+        }
+
+        // 3) contenidoMultimedia -> urlMultimedia (String)
+        Object cm = raw.get("contenidoMultimedia");
+
+        if (cm == null) {
+            raw.put("urlMultimedia", null);
+            raw.put("contenidoMultimedia", null);
+            return;
+        }
+
+        // Caso A: viene como objeto JSON => Map con clave "url"
+        if (cm instanceof Map<?, ?> cmMap) {
+            Object urlObj = cmMap.get("url");
+            String url = (urlObj != null) ? urlObj.toString().trim() : null;
+
+            if (url == null || url.isBlank()) {
+                raw.put("urlMultimedia", null);
+                raw.put("contenidoMultimedia", null);
+            } else {
+                raw.put("urlMultimedia", url);
+                raw.put("contenidoMultimedia", url); // también, por si el alias te juega en contra
+            }
+            return;
+        }
+
+        // Caso B: viene como string
+        if (cm instanceof String s) {
+            String v = s.trim();
+
+            // si es el "toString" de una clase Java, NO sirve como url
+            if (v.contains("ContenidoMultimedia@") || v.contains(".ContenidoMultimedia@")) {
+                raw.put("urlMultimedia", null);
+                raw.put("contenidoMultimedia", null);
+            } else if (v.isBlank()) {
+                raw.put("urlMultimedia", null);
+                raw.put("contenidoMultimedia", null);
+            } else {
+                raw.put("urlMultimedia", v);
+                raw.put("contenidoMultimedia", v);
+            }
+        }
+    }
+
     public Map<String, Object> obtenerHechosPaginadosDesdeApi(String url) {
         try {
             Map response = restTemplate.getForObject(url, Map.class);
@@ -208,11 +262,18 @@ public class HechosUiService {
 
                 List<?> raw = (List<?>) response.get("items");
 
+// ✅ normalizar ANTES del convertValue
+                for (Object item : raw) {
+                    if (item instanceof Map<?, ?> m) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> hecho = (Map<String, Object>) m;
+                        normalizarHechoParaUi(hecho);
+                    }
+                }
+
                 List<HechoDTO> hechos = raw.stream()
                         .map(item -> mapper.convertValue(item, HechoDTO.class))
                         .toList();
-
-                // armamos un map uniforme
                 return Map.of(
                         "items", hechos,
                         "page", response.get("page"),
@@ -233,4 +294,5 @@ public class HechosUiService {
                 "size", 10
         );
     }
+
 }
