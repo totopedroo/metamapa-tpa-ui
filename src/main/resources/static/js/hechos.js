@@ -1,9 +1,8 @@
 function getCsrf() {
     const token = document.querySelector('meta[name="_csrf"]')?.content;
     const header = document.querySelector('meta[name="_csrf_header"]')?.content;
-    return { token, header };
+    return token && header ? { token, header } : null;
 }
-
 
 (function () {
 
@@ -15,14 +14,52 @@ function getCsrf() {
     const HECHOS_INICIALES = window.HECHOS_INICIALES ?? "";
 
     /* ===========================================================
-       MODALES: crear, editar, solicitar eliminación
+       HELPERS
        =========================================================== */
 
     function modal(id) {
         return document.getElementById(id);
     }
 
-    /* ------------------ MODAL CREAR ------------------ */
+    function renderValue(v) {
+        if (v === null || v === undefined) return "-";
+        const s = String(v).trim();
+        return s.length ? s : "-";
+    }
+
+    // Para no mostrar filas vacías en el modal detalle
+    function addRow(label, value) {
+        const v = renderValue(value);
+        if (v === "-") return "";
+        return `
+      <div class="flex justify-between border-b pb-1">
+        <span class="font-semibold">${label}:</span>
+        <span class="text-right">${v}</span>
+      </div>
+    `;
+    }
+
+    // 👉 Etiquetas como array de strings
+    function parseEtiquetas(valor) {
+        if (!valor || !valor.trim()) return [];
+        return valor
+            .split(",")
+            .map(t => t.trim())
+            .filter(t => t.length > 0);
+    }
+
+    // Para editar: "" => null
+    function parseNullableNumber(v) {
+        if (v === null || v === undefined) return null;
+        const s = String(v).trim();
+        if (!s.length) return null;
+        const n = parseFloat(s);
+        return Number.isNaN(n) ? null : n;
+    }
+
+    /* ===========================================================
+       MODAL CREAR
+       =========================================================== */
 
     const modalCrear = modal("modalCrearHecho");
     const formCrear = document.getElementById("formCrearHecho");
@@ -40,15 +77,6 @@ function getCsrf() {
         document.getElementById("errorCrearHecho").textContent = "";
     }
 
-    // 👉 Etiquetas como array de strings
-    function parseEtiquetas(valor) {
-        if (!valor || !valor.trim()) return [];
-        return valor
-            .split(",")
-            .map(t => t.trim())
-            .filter(t => t.length > 0);
-    }
-
     /* Submit crear hecho */
     formCrear?.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -63,26 +91,40 @@ function getCsrf() {
         const etiquetasEl = document.getElementById("etiquetas");
         const latitudEl = document.getElementById("latitud");
         const longitudEl = document.getElementById("longitud");
-        const fechaEl = document.getElementById("fechaAcontecimiento");
+
+        // ✅ tu HTML usa ESTE id (no "fecha")
+        const fechaAcontecimientoEl = document.getElementById("fechaAcontecimiento");
+
+        const etiquetasStr = parseEtiquetas(etiquetasEl.value);
+        const etiquetasObj = etiquetasStr.map(nombre => ({ nombre }));
 
         const payload = {
             titulo: tituloEl.value.trim(),
             descripcion: descripcionEl.value.trim(),
             categoria: categoriaEl.value.trim(),
-            // 👇 AGREGAMOS PROVINCIA (Backend lo requiere obligatoriamente)
+
+            // Si tu backend lo requiere (vos habías puesto provincia obligatoria)
             provincia: "Buenos Aires",
 
             latitud: parseFloat(latitudEl.value),
             longitud: parseFloat(longitudEl.value),
 
-            fechaAcontecimiento: fechaEl.value,
+            // ✅ como te lo pide el backend:
+            fechaAcontecimiento: fechaAcontecimientoEl.value || null,
 
-            // Enviamos 'urlMultimedia' que el DTO del front entiende
-            urlMultimedia: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : null,
+            // ✅ como te lo pide el backend:
+            contenidoMultimedia: {
+                url: urlMultimediaEl.value ? urlMultimediaEl.value.trim() : ""
+            },
 
-            etiquetas: parseEtiquetas(etiquetasEl.value)
+            // ✅ como te lo pide el backend:
+            etiquetas: etiquetasObj,
+
+            // backend dice que puede ser null
+            contribuyente: null
         };
 
+        // Validación de obligatorios
         if (!payload.titulo || !payload.categoria || !payload.fechaAcontecimiento ||
             Number.isNaN(payload.latitud) || Number.isNaN(payload.longitud)) {
             errorDiv.textContent = "Faltan datos obligatorios o hay valores inválidos.";
@@ -90,18 +132,23 @@ function getCsrf() {
         }
 
         try {
+            const csrf = getCsrf();
+            const headers = { "Content-Type": "application/json" };
+            if (csrf) headers[csrf.header] = csrf.token;
+
+            // OJO: dejo tu endpoint tal cual lo tenías (/hechos/crear).
+            // Si tu controller expone /hechos/ui/crear, cambialo acá.
             const resp = await fetch("/hechos/crear", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                credentials: "same-origin",
+                headers,
                 body: JSON.stringify(payload)
             });
 
             if (!resp.ok) {
                 const texto = await resp.text();
                 console.error("Respuesta de error crear:", resp.status, texto);
-                throw new Error(`Error ${resp.status} al crear el hecho.`);
+                throw new Error(texto || `Error ${resp.status} al crear el hecho.`);
             }
 
             cerrarCrearHecho();
@@ -119,12 +166,12 @@ function getCsrf() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("abrirModalCrear") !== null) {
         modalCrear.style.display = "block";
-
-        // OPCIONAL: limpiar la URL (saca ?abrirModalCrear sin recargar)
         window.history.replaceState({}, "", "/hechos");
     }
 
-    /* ------------------ MODAL SOLICITAR ELIMINACIÓN ------------------ */
+    /* ===========================================================
+       MODAL SOLICITAR ELIMINACIÓN
+       =========================================================== */
 
     const modalSol = modal("modalSolicitudEliminacion");
     const formSol = document.getElementById("formSolicitudEliminacion");
@@ -162,9 +209,14 @@ function getCsrf() {
         };
 
         try {
+            const csrf = getCsrf();
+            const headers = { "Content-Type": "application/json" };
+            if (csrf) headers[csrf.header] = csrf.token;
+
             const resp = await fetch("/hechos/ui/solicitud-eliminacion", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                headers,
                 body: JSON.stringify(payload)
             });
 
@@ -178,23 +230,19 @@ function getCsrf() {
         }
     });
 
-    /* ------------------ ADMIN: ELIMINAR HECHO ------------------ */
-
-    /* ------------------ ADMIN: ELIMINAR HECHO (MODAL CUSTOM) ------------------ */
+    /* ===========================================================
+       ADMIN: ELIMINAR HECHO (MODAL CUSTOM)
+       =========================================================== */
 
     const modalEliminar = document.getElementById("modalConfirmarEliminar");
     const btnConfirmarEliminar = document.getElementById("btnConfirmarEliminacion");
     const btnCancelarEliminar = document.getElementById("btnCancelarEliminacion");
 
-    // Variable para guardar temporalmente qué ID queremos borrar
     let idParaEliminar = null;
 
-    // 1. Al hacer click en el tachito de basura
     document.querySelectorAll(".btn-eliminar-admin").forEach(btn => {
         btn.addEventListener("click", function (e) {
-            e.preventDefault(); // Por las dudas
-
-            // Obtenemos el ID del atributo (como arreglamos antes)
+            e.preventDefault();
             const id = btn.getAttribute("data-id");
 
             if (!id) {
@@ -202,41 +250,37 @@ function getCsrf() {
                 return;
             }
 
-            // Guardamos el ID en la variable global temporal
             idParaEliminar = id;
-
-            // Mostramos el modal lindo
             if (modalEliminar) modalEliminar.style.display = "block";
         });
     });
 
-    // 2. Función para cerrar el modal
     function cerrarModalEliminar() {
         if (modalEliminar) modalEliminar.style.display = "none";
-        idParaEliminar = null; // Limpiamos la variable por seguridad
+        idParaEliminar = null;
     }
 
-    // Eventos para cerrar (Botón cancelar y click afuera)
     btnCancelarEliminar?.addEventListener("click", cerrarModalEliminar);
 
-    // Cerrar si hacen click afuera del contenido blanco (opcional, si tu CSS lo soporta)
     window.addEventListener("click", (e) => {
         if (e.target === modalEliminar) cerrarModalEliminar();
     });
 
-    // 3. Al hacer click en el botón ROJO "Sí, eliminar" del modal
     btnConfirmarEliminar?.addEventListener("click", async () => {
-
-        if (!idParaEliminar) return; // Si no hay ID, no hacemos nada
+        if (!idParaEliminar) return;
 
         try {
-            // Cambiamos el texto del botón para dar feedback visual
-            const textoOriginal = btnConfirmarEliminar.innerText;
             btnConfirmarEliminar.innerText = "Eliminando...";
             btnConfirmarEliminar.disabled = true;
 
+            const csrf = getCsrf();
+            const headers = {};
+            if (csrf) headers[csrf.header] = csrf.token;
+
             const resp = await fetch(`/hechos/ui/eliminar/${idParaEliminar}`, {
-                method: "DELETE"
+                method: "DELETE",
+                credentials: "same-origin",
+                headers
             });
 
             if (!resp.ok) {
@@ -244,9 +288,7 @@ function getCsrf() {
                 throw new Error(msg);
             }
 
-            // Éxito
             cerrarModalEliminar();
-            // alert("Hecho eliminado correctamente."); // <-- Opcional: Podés sacar esto también si querés
             window.location.reload();
 
         } catch (err) {
@@ -254,12 +296,14 @@ function getCsrf() {
             alert("Error eliminando hecho: " + err.message);
             cerrarModalEliminar();
         } finally {
-            // Restauramos el botón por si falló y no recargó la página
             btnConfirmarEliminar.innerText = "Sí, eliminar";
             btnConfirmarEliminar.disabled = false;
         }
     });
-    /* ------------------ MODAL EDITAR ------------------ */
+
+    /* ===========================================================
+       MODAL EDITAR
+       =========================================================== */
 
     const modalEditar = modal("modalEditarHecho");
     const formEditar = document.getElementById("formEditarHecho");
@@ -284,10 +328,16 @@ function getCsrf() {
         document.getElementById("latitudEditar").value = fila.dataset.hechoLatitud || "";
         document.getElementById("longitudEditar").value = fila.dataset.hechoLongitud || "";
 
+        // Si el dataset tiene contenido, lo uso
+        document.getElementById("urlMultimediaEditar").value = fila.dataset.hechoContenido || "";
+
+        // Fecha acontecimiento desde dataset si existe
+        document.getElementById("fechaEditar").value = fila.dataset.hechoFechaAcontecimiento || "";
+
+        // Etiquetas desde spans
         const etiquetas = [...fila.querySelectorAll(".col-etiquetas span")]
             .map(s => s.textContent.trim())
             .join(", ");
-
         document.getElementById("etiquetasEditar").value = etiquetas;
     }
 
@@ -300,10 +350,6 @@ function getCsrf() {
         document.getElementById("errorEditarHecho").textContent = "";
     }
 
-    function parseNullable(v) {
-        return v === "" ? null : parseFloat(v);
-    }
-
     formEditar?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -312,23 +358,37 @@ function getCsrf() {
 
         const id = document.getElementById("idHechoEditar").value;
 
+        const etiquetasStr = parseEtiquetas(document.getElementById("etiquetasEditar").value);
+        const etiquetasObj = etiquetasStr.map(nombre => ({ nombre }));
+
+        // Ajusto al contrato del back
         const payload = {
             titulo: document.getElementById("tituloEditar").value.trim() || null,
             descripcion: document.getElementById("descripcionEditar").value.trim() || null,
             categoria: document.getElementById("categoriaEditar").value.trim() || null,
-            latitud: parseNullable(document.getElementById("latitudEditar").value),
-            longitud: parseNullable(document.getElementById("longitudEditar").value),
+            latitud: parseNullableNumber(document.getElementById("latitudEditar").value),
+            longitud: parseNullableNumber(document.getElementById("longitudEditar").value),
+
             fechaAcontecimiento: document.getElementById("fechaEditar").value || null,
-            contenidoMultimedia: document.getElementById("urlMultimediaEditar").value
-                ? document.getElementById("urlMultimediaEditar").value.trim()
-                : null,
-            etiquetas: parseEtiquetas(document.getElementById("etiquetasEditar").value)
+
+            contenidoMultimedia: {
+                url: document.getElementById("urlMultimediaEditar").value
+                    ? document.getElementById("urlMultimediaEditar").value.trim()
+                    : ""
+            },
+
+            etiquetas: etiquetasObj
         };
 
         try {
+            const csrf = getCsrf();
+            const headers = { "Content-Type": "application/json" };
+            if (csrf) headers[csrf.header] = csrf.token;
+
             const resp = await fetch(`/hechos/ui/editar/${id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                headers,
                 body: JSON.stringify(payload)
             });
 
@@ -341,13 +401,17 @@ function getCsrf() {
         }
     });
 
-    /* ------------------ LIMPIAR FILTROS ------------------ */
+    /* ===========================================================
+       LIMPIAR FILTROS
+       =========================================================== */
 
     document.getElementById("btnLimpiarFiltros")?.addEventListener("click", () =>
         window.location.href = "/hechos"
     );
 
-    /* ------------------ MAPA ------------------ */
+    /* ===========================================================
+       MAPA
+       =========================================================== */
 
     const mapContainer = document.getElementById("mapHechos");
 
@@ -396,13 +460,14 @@ function getCsrf() {
         });
     }
 
-    /* ------------------ MODAL VER DETALLE ------------------ */
+    /* ===========================================================
+       MODAL VER DETALLE (FIX: NO MOSTRAR “-”)
+       =========================================================== */
 
     const modalDetalle = modal("modalDetalleHecho");
     const detalleBody = document.getElementById("detalleHechoBody");
     const errorDetalle = document.getElementById("errorDetalleHecho");
 
-    // Abrir modal usando los datos de la fila (dataset)
     document.querySelectorAll(".btn-ver-detalle").forEach(btn => {
         btn.addEventListener("click", () => {
             const fila = btn.closest("tr");
@@ -414,48 +479,58 @@ function getCsrf() {
         if (!modalDetalle || !detalleBody) return;
 
         modalDetalle.style.display = "block";
-        errorDetalle.textContent = "";
+        if (errorDetalle) errorDetalle.textContent = "";
 
         const ds = fila.dataset;
 
-        const id = ds.hechoId || "";
-        const titulo = ds.hechoTitulo || "";
-        const descripcion = ds.hechoDescripcion || "";
-        const categoria = ds.hechoCategoria || "";
-        const latitud = ds.hechoLatitud || "";
-        const longitud = ds.hechoLongitud || "";
-        const fechaAcontecimiento = ds.hechoFechaAcontecimiento || "";
-        const horaAcontecimiento = ds.hechoHoraAcontecimiento || "";
-        const fechaCarga = ds.hechoFechaCarga || "";
-        const etiquetas = ds.hechoEtiquetas || "";
-        const consensos = ds.hechoConsensos || "";
-        const consensuado = ds.hechoConsensuado === "true" ? "Sí" : "No";
-        const fuentes = ds.hechoFuentes || "";
-        const contenido = ds.hechoContenido || "";
+        const etiquetas = (ds.hechoEtiquetas || "")
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean);
 
-        detalleBody.innerHTML = `
-            <p><strong>ID:</strong> ${id || "-"}</p>
-            <p><strong>Título:</strong> ${titulo || "-"}</p>
-            <p><strong>Descripción:</strong> ${descripcion || "-"}</p>
-            <p><strong>Categoría:</strong> ${categoria || "-"}</p>
+        const consensos = (ds.hechoConsensos || "")
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean);
 
-            <p><strong>Latitud:</strong> ${latitud || "-"}</p>
-            <p><strong>Longitud:</strong> ${longitud || "-"}</p>
-            <p><strong>Fecha acontecimiento:</strong> ${fechaAcontecimiento || "-"}</p>
-            <p><strong>Hora acontecimiento:</strong> ${horaAcontecimiento || "-"}</p>
-            <p><strong>Fecha carga:</strong> ${fechaCarga || "-"}</p>
-            <p><strong>Etiquetas:</strong> ${etiquetas || "-"}</p>
-            <p><strong>Consensuado:</strong> ${consensuado}</p>
-            <p><strong>Consensos:</strong> ${consensos || "-"}</p>
-            <p><strong>Fuentes:</strong> ${fuentes || "-"}</p>
-            <p><strong>Contenido multimedia:</strong>
-                ${
-            contenido
-                ? `<a href="${contenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>`
-                : "-"
+        const fuentes = (ds.hechoFuentes || "")
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        // consensuado: solo mostrar si existe el dato
+        let consensuadoTxt = null;
+        if (ds.hechoConsensuado === "true") consensuadoTxt = "Sí";
+        else if (ds.hechoConsensuado === "false") consensuadoTxt = "No";
+
+        let html = "";
+        html += addRow("ID", ds.hechoId);
+        html += addRow("Título", ds.hechoTitulo);
+        html += addRow("Descripción", ds.hechoDescripcion);
+        html += addRow("Categoría", ds.hechoCategoria);
+        html += addRow("Latitud", ds.hechoLatitud);
+        html += addRow("Longitud", ds.hechoLongitud);
+        html += addRow("Fecha acontecimiento", ds.hechoFechaAcontecimiento);
+        html += addRow("Fecha carga", ds.hechoFechaCarga);
+
+        if (etiquetas.length) html += addRow("Etiquetas", etiquetas.join(", "));
+        if (consensos.length) html += addRow("Consensos", consensos.join(", "));
+        if (consensuadoTxt) html += addRow("Consensuado", consensuadoTxt);
+        if (fuentes.length) html += addRow("Fuentes", fuentes.join(", "));
+
+        // Contenido multimedia: solo si existe
+        if (ds.hechoContenido && ds.hechoContenido.trim().length) {
+            html += `
+        <div class="flex justify-between border-b pb-1">
+          <span class="font-semibold">Contenido multimedia:</span>
+          <span class="text-right">
+            <a href="${ds.hechoContenido}" target="_blank" class="text-blue-600 underline">Ver recurso</a>
+          </span>
+        </div>
+      `;
         }
-            </p>
-        `;
+
+        detalleBody.innerHTML = html || `<div class="text-gray-500">Sin datos para mostrar.</div>`;
     }
 
     function cerrarDetalleHecho() {
@@ -470,7 +545,7 @@ function getCsrf() {
 
     /* ======================================================
        PICK MODE
-      ====================================================== */
+       ====================================================== */
     if (PICK_MODE) {
 
         const hidden = document.getElementById("hechosHidden");
@@ -480,7 +555,6 @@ function getCsrf() {
             return hidden.value.split(",").filter(x => x);
         }
 
-        /** 1. Marcar los checkboxes al cargar */
         function marcarCheckBoxes() {
             const seleccionados = obtenerSeleccionados();
             seleccionados.forEach(id => {
@@ -490,24 +564,19 @@ function getCsrf() {
         }
         marcarCheckBoxes();
 
-        /** 2. Cuando cambia un checkbox, actualizar el hidden */
         document.addEventListener("change", e => {
             if (!e.target.classList.contains("pick-checkbox")) return;
 
             const prev = new Set(obtenerSeleccionados());
 
-            if (e.target.checked) {
-                prev.add(e.target.value);
-            } else {
-                prev.delete(e.target.value);
-            }
+            if (e.target.checked) prev.add(e.target.value);
+            else prev.delete(e.target.value);
 
             hidden.value = [...prev].join(",");
         });
 
-        /** 3. Propagar HECHOS a todos los links de paginación */
         document.querySelectorAll("a.page-link").forEach(a => {
-            a.addEventListener("click", e => {
+            a.addEventListener("click", () => {
                 const seleccionados = obtenerSeleccionados();
                 if (seleccionados.length === 0) return;
 
@@ -517,14 +586,12 @@ function getCsrf() {
             });
         });
 
-        /** 4. Propagar HECHOS al enviar el formulario de filtros */
         const formFiltros = document.getElementById("filtrosForm");
-        formFiltros.addEventListener("submit", () => {
+        formFiltros?.addEventListener("submit", () => {
             const seleccionados = obtenerSeleccionados();
             document.getElementById("hechosHidden").value = seleccionados.join(",");
         });
 
-        /** 5. Propagar HECHOS al cambiar el selector "Mostrar X por página" */
         document.querySelectorAll("form select[name='size']").forEach(sel => {
             sel.addEventListener("change", function () {
                 const form = this.closest("form");
@@ -540,7 +607,6 @@ function getCsrf() {
             });
         });
 
-        /** 6. Confirmar selección */
         const btn = document.getElementById("btnConfirmarPick");
         if (btn) {
             btn.addEventListener("click", () => {
@@ -553,4 +619,5 @@ function getCsrf() {
             });
         }
     }
+
 })();
