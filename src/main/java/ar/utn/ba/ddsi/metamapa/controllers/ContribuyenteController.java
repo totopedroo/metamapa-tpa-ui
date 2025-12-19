@@ -87,6 +87,7 @@ public class ContribuyenteController {
     public String nuevaSolicitud(Model model,
                                  HttpSession session,
                                  @RequestParam(required = false) String categoria,
+                                 @RequestParam(required = false) String modo,
                                  @RequestParam(required = false)
                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
                                  @RequestParam(required = false)
@@ -105,6 +106,7 @@ public class ContribuyenteController {
         // nuevo: ahora el servicio devuelve Map
         Map<String,Object> resultado = hechosService.filtrarHechos(
                 categoria,
+                modo,
                 fechaReporteDesde,
                 fechaReporteHasta,
                 fechaAcontecimientoDesde,

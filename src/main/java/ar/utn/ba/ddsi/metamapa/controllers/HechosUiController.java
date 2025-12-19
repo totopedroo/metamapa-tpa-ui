@@ -52,6 +52,7 @@ public class HechosUiController {
     @GetMapping
     public String listarHechos(
         @RequestParam(required = false) String categoria,
+        @RequestParam(required = false) String modo,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteDesde,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaReporteHasta,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaAcontecimientoDesde,
@@ -65,8 +66,15 @@ public class HechosUiController {
         @RequestParam(required = false) String hechos,
         Model model
     ) {
+
+        System.out.println(">>> [FRONT] Buscando Hechos | Filtros recibidos:");
+        System.out.println("    Modo (Tipo): " + modo);
+        System.out.println("    Categoría: " + categoria);
+        System.out.println("    Página: " + page + " | Tamaño: " + size);
+
+
         Map<String, Object> resultado = hechosService.filtrarHechos(
-            categoria, fechaReporteDesde, fechaReporteHasta,
+            categoria, modo, fechaReporteDesde, fechaReporteHasta,
             fechaAcontecimientoDesde, fechaAcontecimientoHasta,
             latitud, longitud, page, size
         );
@@ -75,17 +83,32 @@ public class HechosUiController {
         // Si resultado es null o vacío, maneja el error
         if (resultado != null && resultado.get("items") != null) {
             List<HechoDTO> items = (List<HechoDTO>) resultado.get("items");
+            System.out.println(">>> [FRONT] Backend respondió OK.");
+            System.out.println("    Cantidad de items recibidos: " + items.size());
+            if(!items.isEmpty()) {
+                System.out.println("    Ejemplo Item 0 Titulo: " + items.get(0).getTitulo());
+                System.out.println("    Ejemplo Item 0 Consensuado: " + items.get(0).getConsensuado());
+            }
+
             model.addAttribute("hechos", items);
             model.addAttribute("hechosLista", items);
-            model.addAttribute("page", (int) resultado.get("page") + 1);
-            model.addAttribute("totalPages", resultado.get("totalPages"));
-            model.addAttribute("size", resultado.get("size"));
-            model.addAttribute("totalItems", resultado.get("totalItems"));
+
+            // Datos de paginación seguros (con defaults por si vienen null)
+            model.addAttribute("page", (int) resultado.getOrDefault("page", 0) + 1);
+            model.addAttribute("totalPages", resultado.getOrDefault("totalPages", 0));
+            model.addAttribute("size", resultado.getOrDefault("size", size));
+            model.addAttribute("totalItems", resultado.getOrDefault("totalItems", 0));
+
+            // Datos de estado para la vista
             model.addAttribute("pick", pick);
             model.addAttribute("returnTo", returnTo);
             model.addAttribute("hechosSel", hechos);
         } else {
+            System.out.println(">>> [FRONT] Backend respondió vacío o null.");
             model.addAttribute("hechos", Collections.emptyList());
+            model.addAttribute("page", 1);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("totalItems", 0);
         }
 
         return "hechos/hechos";

@@ -7,22 +7,17 @@ import ar.utn.ba.ddsi.metamapa.dto.HechoDTO;
 import ar.utn.ba.ddsi.metamapa.utils.MultipartInputStreamFileResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -58,14 +53,14 @@ public class HechosUiService {
      * pero llama a 'obtenerListaDesdeApi' para manejar el JSON correctamente.
      */
     public Map<String, Object> filtrarHechos(String categoria,
-                                        LocalDate fechaReporteDesde,
-                                        LocalDate fechaReporteHasta,
-                                        LocalDate fechaAcontecimientoDesde,
-                                        LocalDate fechaAcontecimientoHasta,
-                                        Double latitud,
-                                        Double longitud,
-                                        int page,
-                                        int size) {
+                                             String modo, LocalDate fechaReporteDesde,
+                                             LocalDate fechaReporteHasta,
+                                             LocalDate fechaAcontecimientoDesde,
+                                             LocalDate fechaAcontecimientoHasta,
+                                             Double latitud,
+                                             Double longitud,
+                                             int page,
+                                             int size) {
 
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpUrl(apiBaseUrl + "/api/hechos")
@@ -75,6 +70,7 @@ public class HechosUiService {
         if (categoria != null && !categoria.isBlank()) {
             builder.queryParam("categoria", categoria);
         }
+        if (modo != null && !modo.isBlank()) builder.queryParam("modo", modo);
         if (fechaReporteDesde != null) {
             builder.queryParam("fechaReporteDesde", fechaReporteDesde);
         }
@@ -316,16 +312,19 @@ public class HechosUiService {
                 List<HechoDTO> hechos = raw.stream()
                         .map(item -> mapper.convertValue(item, HechoDTO.class))
                         .toList();
-                return Map.of(
-                        "items", hechos,
-                        "page", response.get("page"),
-                        "totalPages", response.get("totalPages"),
-                        "totalItems", response.get("totalItems"),
-                        "size", response.get("size")
-                );
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("items", hechos);
+                result.put("page", response.getOrDefault("page", 0));
+                result.put("totalPages", response.getOrDefault("totalPages", 0));
+                result.put("totalItems", response.getOrDefault("totalItems", 0));
+                result.put("size", response.getOrDefault("size", 10));
+
+                return result;
             }
         } catch (Exception e) {
             System.err.println("ERROR FRONTEND (Hechos) " + e.getMessage());
+            e.printStackTrace();
         }
 
         return Map.of(
