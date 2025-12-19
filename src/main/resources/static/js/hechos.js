@@ -203,33 +203,47 @@ function getCsrf() {
     formSol?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const payload = {
-            idHecho: parseInt(document.getElementById("idHechoSolicitud").value, 10),
-            justificacion: document.getElementById("justificacionSolicitud").value.trim()
-        };
+        // 1. Preparamos los datos como FORMULARIO (No JSON)
+        // Esto es vital para que tu controller Java entienda el objeto 'NuevaSolicitudForm'
+        const params = new URLSearchParams();
+        params.append('idHecho', document.getElementById("idHechoSolicitud").value);
+        params.append('justificacion', document.getElementById("justificacionSolicitud").value.trim());
+        params.append('tipo', 'ELIMINACION'); // <--- IMPORTANTE: El Java usa esto en el IF
 
         try {
             const csrf = getCsrf();
-            const headers = { "Content-Type": "application/json" };
+            const headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            };
             if (csrf) headers[csrf.header] = csrf.token;
 
-            const resp = await fetch("/hechos/ui/solicitud-eliminacion", {
+            const resp = await fetch("/contribuyente/nueva-solicitud", {
                 method: "POST",
-                credentials: "same-origin",
-                headers,
-                body: JSON.stringify(payload)
+                headers: headers,
+                body: params
             });
 
-            if (!resp.ok) throw new Error(await resp.text());
+            if (!resp.ok) {
+                throw new Error("Error al procesar la solicitud en el servidor.");
+            }
 
+            // 1. Cerramos el modal rojo
             cerrarSolicitud();
-            alert("Solicitud enviada correctamente.");
+
+            // 2. Abrimos el modal verde (MANUALMENTE)
+            const modalExito = document.getElementById('modalExitoSimple');
+            if (modalExito) {
+                modalExito.style.display = "block"; // <--- ESTO ES LO QUE ARREGLA TODO
+            } else {
+                alert("Solicitud enviada correctamente.");
+                window.location.reload();
+            }
 
         } catch (err) {
-            document.getElementById("errorSolicitudEliminacion").textContent = err.message;
+            console.error(err);
+            document.getElementById("errorSolicitudEliminacion").textContent = "Error: " + err.message;
         }
     });
-
     /* ===========================================================
        ADMIN: ELIMINAR HECHO (MODAL CUSTOM)
        =========================================================== */

@@ -638,7 +638,27 @@
         </form>
     </div>
 </div>
+<div class="modal fade" id="modalExitoSolicitud" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
 
+                <h3 class="mb-3 fw-bold text-secondary">¡Solicitud Enviada!</h3>
+
+                <p class="text-muted mb-4 fs-5">
+                    Tu solicitud ha sido registrada correctamente. Un administrador la revisará a la brevedad.
+                </p>
+
+                <button type="button" class="btn btn-success btn-lg px-5 rounded-pill fw-bold shadow-sm" onclick="window.location.reload()">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div id="modalConfirmarEliminar" class="modal">
     <div class="modal-content max-w-md mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white">
 
@@ -666,6 +686,26 @@
                 Sí, eliminar
             </button>
         </div>
+    </div>
+</div>
+
+<div id="modalExitoSimple" class="modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px;">
+
+        <div style="margin-bottom: 20px;">
+            <i class="fas fa-check-circle" style="font-size: 4rem; color: #198754;"></i>
+        </div>
+
+        <h3 style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px;">¡Solicitud Enviada!</h3>
+        <p style="color: #666; margin-bottom: 20px;">
+            Tu solicitud ha sido registrada correctamente.
+        </p>
+
+        <button type="button"
+                class="btn-verde-oscuro px-4 py-2 rounded-md text-sm"
+                onclick="window.location.reload()">
+            Aceptar
+        </button>
     </div>
 </div>
 
