@@ -161,34 +161,11 @@ public class HechosUiController {
      */
 
     @PostMapping("/ui/crear")
-    @ResponseBody
-    public ResponseEntity<?> crearHechoUI(@RequestBody HechoDTO input, HttpServletRequest request) {
-        try {
-            String jwt = (String) request.getSession().getAttribute("accessToken");
-            if (jwt == null) return ResponseEntity.status(401).body("No autenticado (Sesión expirada o inválida)");
-
-            String url = backendBaseUrl + "/api/hechos/crear";
-            input.setIdContribuyente((Long) request.getSession().getAttribute("usuarioId"));
-
-            System.out.print(input);
-
-            var headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + jwt);
-            headers.set("Content-Type", "application/json");
-
-            var entity = new HttpEntity<>(input, headers);
-
-            ResponseEntity<String> resp = restTemplate.exchange(
-                url, HttpMethod.POST, entity, String.class
-            );
-
-            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Error UI al crear hecho: " + e.getMessage());
-        }
+    public ResponseEntity<HechoDTO> crear(@RequestBody HechoDTO dto) {
+        HechoDTO creado = hechosService.crearHecho(dto);
+        return ResponseEntity.ok(creado);
     }
+
     @PatchMapping("/ui/editar/{id}")
     @ResponseBody
     public ResponseEntity<?> editarHechoUI(@PathVariable Long id,
