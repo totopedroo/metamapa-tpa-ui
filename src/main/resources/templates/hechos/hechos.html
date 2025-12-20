@@ -187,7 +187,7 @@
                     <th class="p-3 rounded-l-md">ID</th>
                     <th class="p-3">Título</th>
                     <th class="p-3">Descripción</th>
-                    <th class="p-3">Tags</th>
+                    <!--th class="p-3">Tags</th-->
                     <th class="p-3 text-center">Ver Mapa</th>
                     <th class="p-3 text-center" th:if="${param.pick == null and session.rol == 'CONTRIBUYENTE'}">Solicitar Eliminación</th>
                     <th class="p-3 text-center" th:if="${param.pick == null and session.rol == 'ADMIN'}">Eliminar</th>
@@ -220,9 +220,9 @@
                     <td class="p-3 font-semibold" th:text="${hecho.id}"></td>
                     <td class="p-3 col-titulo leading-snug texto-justificado" th:text="${hecho.titulo}"></td>
                     <td class="p-3 col-descripcion leading-snug texto-justificado" th:text="${hecho.descripcion}"></td>
-                    <td class="p-3 col-etiquetas">
+                    <!--td class="p-3 col-etiquetas">
                         <span th:each="tag : ${hecho.etiquetas}" class="tag" th:text="${tag}"></span>
-                    </td>
+                    </td-->
                     <td class="p-3 text-center">
                         <button class="btn-icono btn-ver-mapa"><i class="fas fa-map-marker-alt"></i></button>
                     </td>
