@@ -104,14 +104,24 @@ public class HechosUiService {
          String token = cookies.getTokenFromCurrentRequest();
          String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
 
+<<<<<<< HEAD
          // ✅ Map mutable para permitir nulls (Map.of NO permite null)
          Map<String, Object> body = new java.util.LinkedHashMap<>();
+=======
+         Map<String, Object> body = new HashMap<>();
+>>>>>>> 6ec2b4777a43cc8aecea9609cb642428a12b9965
          body.put("titulo", req.titulo());
          body.put("descripcion", req.descripcion());
          body.put("categoria", req.categoria());
          body.put("provincia", req.provincia());
          body.put("latitud", req.latitud());
          body.put("longitud", req.longitud());
+<<<<<<< HEAD
+=======
+         body.put("fechaAcontecimiento", req.fechaAcontecimiento());
+         body.put("contenidoMultimedia", req.contenidoMultimedia());
+         body.put("etiquetas", req.etiquetas());
+>>>>>>> 6ec2b4777a43cc8aecea9609cb642428a12b9965
 
          LocalDate fecha = req.fechaAcontecimiento();
          body.put("fechaAcontecimiento", fecha);

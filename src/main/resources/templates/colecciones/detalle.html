@@ -52,7 +52,7 @@
 
         <p>
             <strong>Cantidad de hechos:</strong>
-            <span th:text="${coleccion.cantidadHechos}"></span>
+            <span id="contadorHechos" th:text="${coleccion.cantidadHechos}"></span>
         </p>
 
     </div>
@@ -154,6 +154,7 @@
         const hechos = document.querySelectorAll('#listaHechos .hecho-item');
         const criteriosData = document.querySelectorAll('.criterio-dato');
         const radios = document.querySelectorAll('.filtro-radio');
+        const contadorSpan = document.getElementById('contadorHechos');
 
         // 1. Parsear criterios una sola vez
         const filtrosActivos = Array.from(criteriosData).map(c => ({
@@ -168,6 +169,8 @@
         function actualizarVisibilidad() {
             // Obtenemos qué radio está seleccionado
             const modoSeleccionado = document.querySelector('input[name="filtroTipo"]:checked').value; // 'todos', 'curado', 'irrestricto'
+
+            let cantidadVisible = 0;
 
             hechos.forEach(hecho => {
                 let debeMostrar = true;
@@ -204,10 +207,16 @@
                 // C) Aplicar estilo final
                 if (debeMostrar) {
                     hecho.classList.remove('d-none'); // Usamos clase de bootstrap d-none
+                    cantidadVisible++;
                 } else {
                     hecho.classList.add('d-none');
                 }
             });
+
+            if (contadorSpan) {
+                contadorSpan.textContent = cantidadVisible;
+            }
+
         }
 
         // 3. Event Listeners
