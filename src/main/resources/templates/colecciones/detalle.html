@@ -105,6 +105,13 @@
                 <span th:unless="${h.consensuado}" class="badge-custom badge-irrestricto">
                     <i class="bi bi-exclamation-circle-fill me-1"></i> Irrestricto
                 </span>
+                <button type="button"
+                        class="btn-icono btn-ver-detalle border-0 bg-transparent text-secondary"
+                        th:data-id="${h.id}"
+                        title="Ver detalles"
+                        style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                    <i class="fas fa-eye fa-lg"></i>
+                </button>
             </div>
         </li>
     </ul>
@@ -142,6 +149,27 @@
     </ul>
     <p th:if="${#lists.isEmpty(coleccion.criterios)}" class="text-muted mt-3">No hay criterios definidos.</p>
 
+    <div id="modalDetalleHecho" class="modal">
+        <div class="modal-content1 max-w-2xl mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white relative">
+
+            <span class="close-btn" id="cerrarModalDetalleX">&times;</span>
+
+            <h3 class="text-2xl font-bold mb-2 text-gray-800">Detalle del hecho</h3>
+
+            <div id="loadingDetalle" class="text-center py-4 text-gray-500 hidden">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Cargando información...
+            </div>
+
+            <div id="errorDetalleHecho" class="text-sm text-red-600 mb-2 hidden"></div>
+
+            <div id="detalleHechoBody" class="space-y-3 text-sm text-gray-800">
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                <button id="cancelarModalDetalle" type="button" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
 </main>
 
@@ -224,6 +252,145 @@
 
         // 4. Ejecutar al inicio para aplicar criterios
         actualizarVisibilidad();
+    });
+</script>
+<!-- SCRIPT DETALLE HECHOS -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // 1. CONFIGURACIÓN
+        // IMPORTANTE: Cambiá esto por lo que diga el @RequestMapping de tu Controller
+        const BASE_URL = 'http://localhost:8080/api/hechos';
+
+        // 2. REFERENCIAS DOM
+        const modalDetalle = document.getElementById('modalDetalleHecho');
+        const detalleBody = document.getElementById('detalleHechoBody');
+        const loading = document.getElementById('loadingDetalle');
+        const errorMsg = document.getElementById('errorDetalleHecho');
+        const listaHechos = document.getElementById('listaHechos');
+
+        // 3. EVENTO CLICK (Delegación)
+        if (listaHechos) {
+            listaHechos.addEventListener('click', (e) => {
+                // Buscamos si el click fue en el botón del ojo (o en el ícono de adentro)
+                const btn = e.target.closest('.btn-ver-detalle');
+                if (btn) {
+                    const id = btn.getAttribute('data-id');
+                    cargarYMostrarDetalle(id);
+                }
+            });
+        }
+
+        function castToHechoDTO(json) {
+            return {
+                // Mapeamos ID buscando variantes por si cambia el back
+                id: json.id || json._id || json.idHecho,
+
+                titulo: json.titulo,
+                descripcion: json.descripcion,
+                categoria: json.categoria,
+
+                // Acá arreglamos el lío de nombres:
+                // Si el JSON trae 'provincia', lo guardamos en 'lugar' (como tu DTO Java)
+                lugar: json.lugar || json.provincia || "Sin ubicación",
+
+                // Lo mismo con multimedia
+                urlMultimedia: json.urlMultimedia || json.contenidoMultimedia,
+
+                // Y con la fecha
+                fecha: json.fecha || json.fechaAcontecimiento || json.fechaCarga,
+
+                latitud: json.latitud,
+                longitud: json.longitud,
+                consensuado: json.consensuado,
+
+                // Aseguramos que siempre sea un array para no romper el .map()
+                etiquetas: Array.isArray(json.etiquetas) ? json.etiquetas : [],
+                fuentes: Array.isArray(json.fuentes) ? json.fuentes : [],
+                consensos: Array.isArray(json.consensos) ? json.consensos : []
+            };
+        }
+
+        // 4. LÓGICA DE CARGA (FETCH)
+        async function cargarYMostrarDetalle(id) {
+            // A) Resetear Modal
+            modalDetalle.style.display = 'block';
+            detalleBody.innerHTML = '';
+            loading.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            try {
+                // B) Llamar a TU endpoint Java: GET /api/hechos/{id}
+                const response = await fetch(`${BASE_URL}/${id}`);
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: No se encontró el hecho.`);
+                }
+                const dataCruda = await response.json();
+                // C) Convertir el DTO que manda tu Java a JSON
+                const dto = castToHechoDTO(dataCruda);
+
+                // D) Pintar los datos (Asegurate que los nombres coincidan con tu HechoDto)
+                renderizarDatos(dto);
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.textContent = "Error al cargar los datos: " + err.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 5. HELPER PARA PINTAR HTML
+        function renderizarDatos(data) {
+            // Ajustá estos campos según cómo se llamen en tu HechoDto.java
+            // Ejemplo: data.titulo, data.descripcion, etc.
+
+            let etiquetasHtml = '-';
+            if (data.etiquetas && data.etiquetas.length > 0) {
+                // Si etiquetas es lista de objetos: t.nombre. Si es Strings: t
+                etiquetasHtml = data.etiquetas.map(t =>
+                    `<span class="badge bg-light text-dark border me-1">${t.nombre || t}</span>`
+                ).join('');
+            }
+
+            let linkHtml = '-';
+            // Verificamos si tu DTO manda "urlMultimedia" o "contenidoMultimedia"
+            const url = data.urlMultimedia || (data.contenidoMultimedia ? data.contenidoMultimedia.url : null);
+            if (url) {
+                linkHtml = `<a href="${url}" target="_blank" class="text-primary">Ver archivo</a>`;
+            }
+
+            detalleBody.innerHTML = `
+                ${row('ID', data.id)}
+                ${row('Título', data.titulo)}
+                ${row('Descripción', data.descripcion)}
+                ${row('Categoría', data.categoria)}
+                ${row('Fecha', data.fechaAcontecimiento || data.fecha)}
+                ${row('Ubicación', `${data.latitud}, ${data.longitud}`)}
+                ${row('Etiquetas', etiquetasHtml)}
+                ${row('Multimedia', linkHtml)}
+                ${row('Estado', data.consensuado ? 'Curado' : 'Irrestricto')}
+            `;
+        }
+
+        const row = (label, val) => `
+            <div style="display: flex; margin-bottom: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px;">
+                <span style="font-weight: 600; width: 30%; color: #555;">${label}:</span>
+                <span style="width: 70%; word-break: break-word;">${val || '-'}</span>
+            </div>`;
+
+        // 6. CERRAR MODAL
+        function cerrarModal() {
+            modalDetalle.style.display = 'none';
+        }
+        document.getElementById('cerrarModalDetalleX')?.addEventListener('click', cerrarModal);
+        document.getElementById('cancelarModalDetalle')?.addEventListener('click', cerrarModal);
+        window.addEventListener('click', (e) => {
+            if (e.target === modalDetalle) cerrarModal();
+        });
     });
 </script>
 
