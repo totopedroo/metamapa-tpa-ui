@@ -18,6 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -103,33 +104,76 @@ public class HechosUiService {
          String token = cookies.getTokenFromCurrentRequest();
          String cookieHeader = cookies.getCookieHeaderFromCurrentRequest();
 
-         Map<String, Object> body = Map.of(
-                 "titulo", req.titulo(),
-                 "descripcion", req.descripcion(),
-                 "categoria", req.categoria(),
-                 "provincia", req.provincia(),
-                 "latitud", req.latitud(),
-                 "longitud", req.longitud(),
-                 "fechaAcontecimiento", req.fechaAcontecimiento(),
-                 "contenidoMultimedia", req.contenidoMultimedia(),   // <-- string
-                 "etiquetas", req.etiquetas()
-         );
+         // ✅ Map mutable para permitir nulls (Map.of NO permite null)
+         Map<String, Object> body = new java.util.LinkedHashMap<>();
+         body.put("titulo", req.titulo());
+         body.put("descripcion", req.descripcion());
+         body.put("categoria", req.categoria());
+         body.put("provincia", req.provincia());
+         body.put("latitud", req.latitud());
+         body.put("longitud", req.longitud());
 
-         Map response = client.post()
-                 .uri(url)
-                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                 .header("Cookie", cookieHeader)
-                 .contentType(MediaType.APPLICATION_JSON)
-                 .body(body)
-                 .retrieve()
-                 .body(Map.class);
+         LocalDate fecha = req.fechaAcontecimiento();
+         body.put("fechaAcontecimiento", fecha);
 
-         // normalizás lo que vuelve para tu UI DTO
-         normalizarHechoParaUi((Map<String, Object>) response);
+         // ✅ contenidoMultimedia: normalizar string vacío a null
+         if (req.contenidoMultimedia() != null && !req.contenidoMultimedia().isBlank()) {
+             body.put("contenidoMultimedia", req.contenidoMultimedia().trim()); // string
+             // Si tu BACKEND en realidad espera objeto {url: "..."} usá esto en vez de la línea de arriba:
+             // body.put("contenidoMultimedia", Map.of("url", req.contenidoMultimedia().trim()));
+         } else {
+             body.put("contenidoMultimedia", null);
+         }
 
-         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-         return mapper.convertValue(response, HechoDTO.class);
+         body.put("etiquetas", req.etiquetas()); // lista (o lo que sea tu request)
+
+         try {
+             var reqBuilder = client.post()
+                     .uri(url)
+                     .contentType(MediaType.APPLICATION_JSON)
+                     .body(body);
+
+             // ✅ headers solo si existen (evita Bearer null / Cookie null)
+             if (token != null && !token.isBlank()) {
+                 reqBuilder = reqBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+             }
+             if (cookieHeader != null && !cookieHeader.isBlank()) {
+                 reqBuilder = reqBuilder.header(HttpHeaders.COOKIE, cookieHeader);
+             }
+
+             Map<String, Object> response = reqBuilder
+                     .retrieve()
+                     .body(Map.class);
+
+             if (response == null) {
+                 throw new ResponseStatusException(
+                         org.springframework.http.HttpStatus.BAD_GATEWAY,
+                         "Backend respondió null al crear hecho"
+                 );
+             }
+
+             // ✅ normalizás lo que vuelve para tu UI DTO
+             normalizarHechoParaUi(response);
+
+             ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+             return mapper.convertValue(response, HechoDTO.class);
+
+         } catch (org.springframework.web.client.RestClientResponseException e) {
+             // 🔥 esto te muestra el error REAL del backend (status + body)
+             throw new ResponseStatusException(
+                     org.springframework.http.HttpStatus.valueOf(e.getRawStatusCode()),
+                     "Error desde backend: " + e.getResponseBodyAsString(),
+                     e
+             );
+         } catch (Exception e) {
+             throw new ResponseStatusException(
+                     org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+                     "Error UI creando hecho: " + e.getMessage(),
+                     e
+             );
+         }
      }
+
 
 
     /**

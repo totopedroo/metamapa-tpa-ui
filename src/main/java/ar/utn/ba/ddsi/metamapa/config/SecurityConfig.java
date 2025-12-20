@@ -39,8 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/hechos/ui/eliminar/**").hasRole("ADMIN")
                         .requestMatchers("/hechos/ui/editar/**").hasRole("ADMIN")
                         .requestMatchers("/hechos/ui/editar").hasRole("ADMIN")
-                        .requestMatchers("/hechos/ui/crear").hasRole("ADMIN")
-                        .requestMatchers("/hechos/ui/crear").hasRole("CONTRIBUYENTE")
+                        .requestMatchers("/hechos/ui/crear").hasAnyRole("ADMIN","CONTRIBUYENTE")
 
 
                         .requestMatchers(
