@@ -352,3 +352,131 @@ select:invalid ~ .invalid-feedback {
     background-color: var(--color-verde-oscuro);
     color: #fff;
 }
+
+/* --- VARIABLES GLOBALES (Agregá esto en :root si no está) --- */
+:root {
+    --color-verde-oscuro: #198754; /* El verde del botón */
+    /* ... tus otras variables ... */
+}
+
+/* --- MODAL CENTRADO (Flexbox) --- */
+/* =========================================
+   ESTILOS DEL MODAL DETALLE (Tipo Tarjeta)
+   ========================================= */
+
+/* 1. Fondo oscuro y centrado perfecto */
+.modal {
+    display: none; /* Se activa con JS */
+    position: fixed;
+    z-index: 1050; /* Por encima de todo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.5); /* Sombra negra */
+    backdrop-filter: blur(2px); /* Un leve desenfoque al fondo */
+
+    /* Flexbox para centrar la tarjeta */
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. La Tarjeta Blanca */
+.modal-card {
+    background-color: #fff;
+    width: 95%;
+    max-width: 600px; /* Ancho similar a tu foto */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Para que no se corte en pantallas chicas */
+    font-family: Arial, sans-serif; /* Tu fuente base */
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 3. Cabecera (Título y X) */
+.modal-card-header {
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Sin borde abajo según tu foto, o muy sutil si preferís */
+}
+
+.modal-card-header h3 {
+    margin: 0;
+    font-size: 1.5rem; /* Tamaño grande como la foto */
+    font-weight: bold;
+    color: #333;
+}
+
+.close-icon {
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    font-weight: normal;
+}
+.close-icon:hover { color: #333; }
+
+/* 4. Cuerpo con Scroll */
+.modal-card-body {
+    padding: 0 25px 20px 25px; /* Padding a los costados */
+    overflow-y: auto;
+}
+
+/* 5. Las filas de datos (Líneas grises) */
+.detalle-row {
+    display: flex;
+    justify-content: space-between; /* Separa etiqueta y valor */
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb; /* La línea gris finita */
+    font-size: 0.95rem;
+}
+/* Quitamos la línea del último elemento */
+.detalle-row:last-child { border-bottom: none; }
+
+.detalle-label {
+    font-weight: bold; /* Negrita como en la foto */
+    color: #444;
+    width: 35%;
+}
+
+.detalle-valor {
+    width: 65%;
+    text-align: right; /* Alineado a la derecha */
+    color: #333;
+}
+
+/* 6. Pie con el botón */
+.modal-card-footer {
+    padding: 15px 25px;
+    text-align: right;
+    border-top: 1px solid #eee; /* Opcional */
+    background-color: #f9f9f9; /* Un gris muy sutil abajo */
+    border-radius: 0 0 8px 8px;
+}
+
+/* Botón Verde igual a la foto */
+.btn-cerrar-modal {
+    background-color: #5c824c; /* Tu color verde primario */
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-cerrar-modal:hover {
+    background-color: #4a6b3d;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}

@@ -148,25 +148,28 @@
         </li>
     </ul>
     <p th:if="${#lists.isEmpty(coleccion.criterios)}" class="text-muted mt-3">No hay criterios definidos.</p>
-
     <div id="modalDetalleHecho" class="modal">
-        <div class="modal-content1 max-w-2xl mx-auto mt-20 p-6 shadow-xl rounded-lg bg-white relative">
+        <div class="modal-card">
 
-            <span class="close-btn" id="cerrarModalDetalleX">&times;</span>
-
-            <h3 class="text-2xl font-bold mb-2 text-gray-800">Detalle del hecho</h3>
-
-            <div id="loadingDetalle" class="text-center py-4 text-gray-500 hidden">
-                <i class="fas fa-spinner fa-spin mr-2"></i> Cargando información...
+            <div class="modal-card-header">
+                <h3>Detalle del hecho</h3>
+                <span class="close-icon" id="cerrarModalDetalleX">&times;</span>
             </div>
 
-            <div id="errorDetalleHecho" class="text-sm text-red-600 mb-2 hidden"></div>
+            <div class="modal-card-body">
 
-            <div id="detalleHechoBody" class="space-y-3 text-sm text-gray-800">
+                <div id="loadingDetalle" style="display: none; text-align: center; padding: 20px; color: #666;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 10px;">Cargando...</p>
+                </div>
+                <div id="errorDetalleHecho" style="display: none; color: #d32f2f; text-align: center; margin-bottom: 15px;"></div>
+
+                <div id="detalleHechoBody"></div>
+
             </div>
 
-            <div class="flex justify-end gap-3 pt-4 border-t mt-4">
-                <button id="cancelarModalDetalle" type="button" class="btn-verde-oscuro px-4 py-2 rounded-md text-sm">Cerrar</button>
+            <div class="modal-card-footer">
+                <button id="cancelarModalDetalle" type="button" class="btn-cerrar-modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -315,7 +318,7 @@
         // 4. LÓGICA DE CARGA (FETCH)
         async function cargarYMostrarDetalle(id) {
             // A) Resetear Modal
-            modalDetalle.style.display = 'block';
+            modalDetalle.style.display = 'flex';
             detalleBody.innerHTML = '';
             loading.style.display = 'block';
             errorMsg.style.display = 'none';
@@ -368,19 +371,18 @@
                 ${row('Título', data.titulo)}
                 ${row('Descripción', data.descripcion)}
                 ${row('Categoría', data.categoria)}
-                ${row('Fecha', data.fechaAcontecimiento || data.fecha)}
-                ${row('Ubicación', `${data.latitud}, ${data.longitud}`)}
-                ${row('Etiquetas', etiquetasHtml)}
-                ${row('Multimedia', linkHtml)}
-                ${row('Estado', data.consensuado ? 'Curado' : 'Irrestricto')}
+                ${row('Latidud', data.latitud)}
+                ${row('Longitud', data.longitud)}
+                ${row('Fecha Carga', data.fechaAcontecimiento || data.fecha)}
+                ${row('Consensuado', data.consensuado ? 'Si' : 'No')}
             `;
         }
 
         const row = (label, val) => `
-            <div style="display: flex; margin-bottom: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px;">
-                <span style="font-weight: 600; width: 30%; color: #555;">${label}:</span>
-                <span style="width: 70%; word-break: break-word;">${val || '-'}</span>
-            </div>`;
+          <div class="detalle-row">
+            <span class="detalle-label">${label}:</span>
+            <span class="detalle-valor">${val || '-'}</span>
+        </div>`;
 
         // 6. CERRAR MODAL
         function cerrarModal() {
