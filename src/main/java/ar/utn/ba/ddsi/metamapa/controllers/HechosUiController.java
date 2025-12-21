@@ -355,4 +355,25 @@ public class HechosUiController {
             return Collections.emptyList(); // Devuelve lista vacía en caso de error
         }
     }
+
+    @GetMapping("/ui/detalle/{id}")
+    @ResponseBody
+    public ResponseEntity<?> obtenerDetalleHecho(@PathVariable Long id) {
+        try {
+            // El Frontend llama al Backend internamente usando la URL configurada
+            String url = backendBaseUrl + "/api/hechos/" + id;
+
+            // Hacemos el GET y devolvemos el JSON tal cual al navegador
+            String jsonResponse = restTemplate.getForObject(url, String.class);
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(jsonResponse);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error obteniendo detalle: " + e.getMessage());
+        }
+    }
+
 }
