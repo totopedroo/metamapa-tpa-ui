@@ -227,10 +227,18 @@ public class ColeccionesUiController {
 
         form.setAdministradorId((Long) session.getAttribute("usuarioId"));
 
+        if (form.getHechosIds() == null) {
+            // Traer los hechos actuales y reinyectarlos
+            ColeccionDTO actual = coleccionService.getColeccionPorId(id);
+            form.setHechosIds(
+                    actual.getHechos().stream()
+                            .map(h -> h.getId())
+                            .toList()
+            );
+        }
+
         coleccionService.asociarAlgoritmo(id, form.getAlgoritmoId());
-
         coleccionService.asociarFuente(id, form.getFuenteId());
-
         coleccionService.editarColeccion(id, form);
 
         redirect.addFlashAttribute("ok", "Colección actualizada");
