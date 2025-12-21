@@ -12,6 +12,7 @@ function getCsrf() {
     const PICK_MODE = window.PICK_MODE ?? false;
     const RETURN_TO = window.RETURN_TO ?? null;
     const HECHOS_INICIALES = window.HECHOS_INICIALES ?? "";
+    const HECHOS_ORIGINALES = HECHOS_INICIALES;
 
     /* ===========================================================
        HELPERS
@@ -682,13 +683,17 @@ function getCsrf() {
 
         if (btnCancelar) {
             btnCancelar.addEventListener("click", () => {
-                if (!RETURN_TO) {
-                    alert("Error: returnTo no definido");
-                    return;
+                if (!RETURN_TO) return;
+
+                const url = new URL(RETURN_TO, window.location.origin);
+
+                if (HECHOS_ORIGINALES) {
+                    url.searchParams.set("hechos", HECHOS_ORIGINALES);
+                } else {
+                    url.searchParams.delete("hechos");
                 }
 
-                // volver sin modificar selección
-                window.location.href = RETURN_TO;
+                window.location.href = url.toString();
             });
         }
     }

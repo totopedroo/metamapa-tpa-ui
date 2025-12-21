@@ -181,43 +181,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (hechosParam) {
 
-                const hechos = [...new Set(
+                const originales = Array.from(
+                    document.querySelectorAll("input[name='hechosIds']")
+                ).map(i => Number(i.value));
+
+                const nuevos = [...new Set(
                     hechosParam.split(",").map(Number)
                 )];
-                const modal = new bootstrap.Modal(modalNueva);
 
-                // TRAER TÍTULOS SOLO DE ESTOS hechos
-                cargarTitulos(hechos).then(titulos => {
+                const agregados = nuevos.filter(x => !originales.includes(x));
+                const quitados  = originales.filter(x => !nuevos.includes(x));
 
-                    modal.show();
+                if (agregados.length > 0 || quitados.length > 0) {
 
-                    // Render lista
-                    document.getElementById("listaHechosConfirmarNueva").innerHTML =
-                        hechos.map(id => `
-                        <li class="list-group-item">
-                            Hecho #${id} —
-                            <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
-                        </li>
-                    `).join("");
+                    // en nueva, estos son los hechos finales elegidos
+                    const hechos = nuevos;
 
-                    // Hidden inputs
-                    renderHechosSeleccionados(hechos, titulos);
+                    // Crear modal
+                    const modal = new bootstrap.Modal(modalNueva);
 
-                    // Editar selección
-                    document.getElementById("btnEditarSeleccionNueva").onclick = () => {
-                        window.location.href =
-                            `/hechos?pick=true&hechos=${hechosParam}&returnTo=/colecciones/nueva`;
-                    };
+                    // TRAER TÍTULOS SOLO DE ESTOS hechos
+                    cargarTitulos(hechos).then(titulos => {
 
-                    // Confirmar
-                    document.getElementById("btnConfirmarNueva").onclick = () => {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById("modalConfirmarNueva"));
-                        modal.hide();
+                        modal.show();
 
-                        // Usamos SIEMPRE la función centralizada
-                        renderHechosSeleccionados(hechos, titulos);
-                    };
-                });
+                        // Render lista
+                        document.getElementById("listaHechosConfirmarNueva").innerHTML =
+                            hechos.map(id => `
+                            <li class="list-group-item">
+                                Hecho #${id} —
+                                <strong>${titulos[String(id)] ?? "(sin título)"}</strong>
+                            </li>
+                        `).join("");
+
+                        // Editar selección
+                        document.getElementById("btnEditarSeleccionNueva").onclick = () => {
+                            window.location.href =
+                                `/hechos?pick=true&hechos=${hechosParam}&returnTo=/colecciones/nueva`;
+                        };
+
+                        // Confirmar
+                        document.getElementById("btnConfirmarNueva").onclick = () => {
+                            const modalInst = bootstrap.Modal.getInstance(modalNueva);
+                            modalInst.hide();
+
+                            renderHechosSeleccionados(hechos, titulos);
+                        };
+                    });
+                }
             }
         }
     }
@@ -289,8 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             ).join("")
                             : `<li class="list-group-item">Ninguno</li>`;
 
-                    // ------- RECONSTRUIR INPUTS -------
-                    renderHechosSeleccionados(nuevos, titulos);
 
                     // ------- EDITAR SELECCIÓN -------
                     const idColeccion = document.querySelector("[name='id']").value;

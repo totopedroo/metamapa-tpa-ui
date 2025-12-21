@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const vieneDePick = params.has("hechos");
 
-    if (sessionStorage.getItem(KEY) && !vieneDePick) {
+    if (sessionStorage.getItem(KEY)) {
         restaurarEstado();
     }
 
