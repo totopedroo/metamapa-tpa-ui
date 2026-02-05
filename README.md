@@ -2,8 +2,6 @@
 
 UI web del proyecto **MetaMapa**, plataforma colaborativa para la gestión y visualización de hechos geolocalizados (TPA DDSI — UTN FRBA).
 
-Backend/API: https://github.com/totopedroo/metamapa-tpa
-
 ## Qué incluye
 Entrega orientada a **diseño y maquetado** de interfaz aplicando principios de **UI/UX**, accesibilidad y diseño responsive usando **HTML5**, **CSS3** y un poco de **JavaScript**.
 
