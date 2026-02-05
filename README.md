@@ -49,3 +49,18 @@ La interfaz se diseñó con una jerarquía de hasta **3 niveles** de profundidad
    git clone https://github.com/totopedroo/metamapa-tpa-ui.git
    cd metamapa-tpa-ui
 2. Abrir index.html en el navegador.
+
+### Opción 2 (recomendada): servidor local simple
+Esto evita problemas con rutas relativas o carga de recursos.
+
+## Con Python:
+- python -m http.server 8000
+- Abrir http://localhost:8000
+
+### Relación con el backend
+Este repositorio contiene la UI/maquetado. El backend (API + lógica + persistencia) se encuentra en: https://github.com/totopedroo/metamapa-tpa
+
+### Créditos
+
+## Trabajo Práctico Anual — Diseño y Desarrollo de Sistemas de Información (DDSI) — UTN FRBA — 2025.
+::contentReference[oaicite:0]{index=0}
