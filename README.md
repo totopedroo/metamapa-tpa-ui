@@ -1,61 +1,51 @@
-#  MetaMapa - UI & Maquetado Web
+# MetaMapa — UI (Web)
 
-##  Descripción general
+UI web del proyecto **MetaMapa**, plataforma colaborativa para la gestión y visualización de hechos geolocalizados (TPA DDSI — UTN FRBA).
 
-**MetaMapa** es una plataforma colaborativa de gestión y visualización de hechos geolocalizados, desarrollada como parte del Trabajo Práctico Anual de **Diseño y Desarrollo de Sistemas de Información (DDSI) - UTN FRBA**.
+Backend/API: https://github.com/totopedroo/metamapa-tpa
 
-Esta entrega corresponde al **diseño y maquetado de la interfaz de usuario (UI)**, con el objetivo de aplicar principios de usabilidad, accesibilidad y diseño responsive utilizando **HTML5 y CSS3**.
+## Qué incluye
+Entrega orientada a **diseño y maquetado** de interfaz aplicando principios de **UI/UX**, accesibilidad y diseño responsive usando **HTML5**, **CSS3** y un poco de **JavaScript**.
 
----
+## Pantallas y flujos principales
 
-##  Objetivos de la entrega
+### Acceso público
+- Landing page con propósito del sistema y accesos a visualización/registro.
+- Visualización anónima de colecciones y hechos.
+- Enlaces a información legal y privacidad.
 
-- Incorporar nociones de **diseño UI/UX** aplicadas al sistema MetaMapa.  
-- Implementar el **maquetado web** de las interfaces principales en **HTML5**.  
-- Aplicar **estilos y principios de diseño responsivo** mediante **CSS3**.  
-- Representar las **interacciones, jerarquías y flujos de navegación** definidos en el diseño de interfaz.  
+### Visualizador (anónimo o registrado)
+- Listado de colecciones disponibles.
+- Filtros de hechos por fecha, ubicación, categoría y fuente.
+- Alternancia entre modo **Curado** e **Irrestricto**.
+- Visualización detallada de un hecho (mapa, multimedia y fuente).
+- Solicitud de eliminación de hechos (mín. 500 caracteres).
 
----
+### Contribuyente
+- Subida de nuevos hechos (título, descripción, categoría, ubicación, fecha y multimedia).
+- Edición de hechos propios dentro de los 7 días posteriores a su creación.
+- Generación de solicitudes de eliminación de hechos existentes.
 
-##  Alcance funcional
+### Administrador
+- Panel de control con resumen de actividad (hechos, fuentes, solicitudes).
+- CRUD de colecciones y fuentes (estáticas, dinámicas y proxy).
+- Configuración del algoritmo de consenso por colección.
+- Aprobación, rechazo o modificación de hechos.
+- Importación masiva de hechos desde archivos CSV (10.000+ entradas).
 
-Esta entrega incluye el diseño y maquetado de las siguientes interfaces:
+## Arquitectura de navegación
+La interfaz se diseñó con una jerarquía de hasta **3 niveles** de profundidad, priorizando consistencia visual, usabilidad y accesibilidad.
 
-###  **Landing Page (Acceso público)**
-- Presentación del propósito y objetivos de MetaMapa.  
-- Ejemplos destacados de colecciones y hechos.  
-- Enlaces de acceso a:
-  - Visualización anónima de hechos.
-  - Registro e inicio de sesión (colaboradores y administradores).
-  - Información legal y de privacidad.
+## Tecnologías
+- HTML5
+- CSS3 (responsive)
+- JavaScript
 
----
+## Ejecutar en local
 
-###  **Visualizador (Usuario anónimo o registrado)**
-- Listado de colecciones disponibles.  
-- Filtros de hechos por **fecha, ubicación, categoría y fuente**.  
-- Alternancia entre **modo curado** e **irrestricto**.  
-- Visualización detallada de un hecho (mapa interactivo, multimedia y fuente).  
-- Solicitud de eliminación de hechos (mínimo 500 caracteres).  
-
----
-
-###  **Contribuyente**
-- Subida de nuevos hechos (título, descripción, categoría, ubicación, fecha y multimedia).  
-- Edición de hechos propios dentro de los 7 días posteriores a su creación.  
-- Generación de solicitudes de eliminación de hechos existentes.  
-
----
-
-###  **Administrador**
-- Panel de control con resumen de actividad (hechos, fuentes, solicitudes).  
-- CRUD de colecciones y fuentes (estáticas, dinámicas y proxy).  
-- Configuración del algoritmo de consenso por colección.  
-- Aprobación, rechazo o modificación de hechos.  
-- Importación de hechos desde archivos **CSV (10.000+ entradas)**.
-
----
-
-##  Arquitectura de navegación
-
-La interfaz se estructura bajo una jerarquía de **máximo tres niveles de profundidad**, siguiendo principios de usabilidad y consistencia visual:
+### Opción 1: abrir el sitio
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/totopedroo/metamapa-tpa-ui.git
+   cd metamapa-tpa-ui
+2. Abrir index.html en el navegador.
