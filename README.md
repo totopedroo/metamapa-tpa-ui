@@ -61,4 +61,4 @@ Esto evita problemas con rutas relativas o carga de recursos.
 2. Abrir http://localhost:8000
 
 ## Créditos
-Trabajo Práctico Anual — Diseño y Desarrollo de Sistemas de Información (DDSI) — UTN FRBA — 2025.
+### Trabajo Práctico Anual — Diseño y Desarrollo de Sistemas de Información (DDSI) — UTN FRBA — 2025.
