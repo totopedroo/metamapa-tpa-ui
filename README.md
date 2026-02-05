@@ -2,6 +2,8 @@
 
 UI web del proyecto **MetaMapa**, plataforma colaborativa para la gestión y visualización de hechos geolocalizados (TPA DDSI — UTN FRBA).
 
+Backend (proyecto separado): https://github.com/totopedroo/metamapa-tpa
+
 ## Qué incluye
 Entrega orientada a **diseño y maquetado** de interfaz aplicando principios de **UI/UX**, accesibilidad y diseño responsive usando **HTML5**, **CSS3** y un poco de **JavaScript**.
 
@@ -46,17 +48,17 @@ La interfaz se diseñó con una jerarquía de hasta **3 niveles** de profundidad
    ```bash
    git clone https://github.com/totopedroo/metamapa-tpa-ui.git
    cd metamapa-tpa-ui
+   ```
 2. Abrir index.html en el navegador.
 
 ### Opción 2 (recomendada): servidor local simple
 Esto evita problemas con rutas relativas o carga de recursos.
 
-Con Python:
-1. python -m http.server 8000
+1. Con Python:
+   ```bash
+    python -m http.server 8000
+   ```
 2. Abrir http://localhost:8000
-
-## Relación con el backend
-Este repositorio contiene la UI/maquetado. El backend (API + lógica + persistencia) se encuentra en: https://github.com/totopedroo/metamapa-tpa
 
 ## Créditos
 Trabajo Práctico Anual — Diseño y Desarrollo de Sistemas de Información (DDSI) — UTN FRBA — 2025.
